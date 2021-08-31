@@ -1,4 +1,100 @@
 --------------------------------------------------------------------------------
+ 2021-08-30 23:27:00.594751
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/.bashrc
+	snippet/commands.sh
+	snippet/convert.go
+	snippet/dd_android_AgencyList_test_agencyList.py
+	snippet/dd_android_DeleteList_test_deleteList.py
+	snippet/dd_android_FlashMenu_test_flashMenu.py
+	snippet/dd_android_Inbox_test_inbox.py
+	snippet/dd_android_Login_test_login.py
+	snippet/dd_android_MailDetail_test_mailDetail.py
+	snippet/dd_android_Outbox_test_outBox.py
+	snippet/dd_android_PhoneCase_test_phoneCase.py
+	snippet/dd_android_SearchList_test_searchList.py
+	snippet/dd_android_Setting_test_setting.py
+	snippet/dd_android_Sidebar_test_sidebar.py
+	snippet/dd_android_StartDriver.py
+	snippet/dd_android_Util_AppiumExtend.py
+	snippet/dd_android_Util_memcachedUtil.py
+	snippet/dd_android_adbShell_test_adbShell.py
+	snippet/dd_android_conftest.py
+	snippet/dd_android_executePytest.py
+	snippet/dd_android_mainScript.py
+	snippet/dd_android_memcachedUtil.py
+	snippet/dd_android_tests.py
+	snippet/dd_flaskSubprocessRun.py
+	snippet/dd_web_conftest.py
+	snippet/dd_web_scriptMain.py
+	snippet/dd_web_script_login_test_login.py
+	snippet/dd_web_script_receive_test_leftmenupage.py
+	snippet/dd_web_script_receive_test_personal_information.py
+	snippet/dd_web_script_receive_test_receive.py
+	snippet/dd_web_script_receive_test_receive_blacklist.py
+	snippet/dd_web_script_receive_test_receive_checkInbox.py
+	snippet/dd_web_script_receive_test_receive_deletemail.py
+	snippet/dd_web_script_receive_test_receive_mailsearch.py
+	snippet/dd_web_script_receive_test_receive_markread.py
+	snippet/dd_web_script_receive_test_receive_procuration.py
+	snippet/dd_web_script_receive_test_receive_spam.py
+	snippet/dd_web_script_receive_test_setup_choose.py
+	snippet/dd_web_script_search_test_mail_search.py
+	snippet/dd_web_script_sendMail_test_email_Read.py
+	snippet/dd_web_script_sendMail_test_sendmail.py
+	snippet/dd_web_script_sendMail_test_sendmail_Read.py
+	snippet/dd_web_script_sendMail_test_sendmail_addresslist.py
+	snippet/dd_web_script_sendMail_test_sendmail_draft.py
+	snippet/dd_web_script_sendMail_test_sendmail_editor.py
+	snippet/dd_web_script_sendMail_test_sendmail_fail.py
+	snippet/dd_web_script_sendMail_test_sendmail_page.py
+	snippet/dd_web_script_sendMail_test_sendmail_recall.py
+	snippet/dd_web_script_sendMail_test_sendmail_reply.py
+	snippet/dd_web_script_sendMail_test_sendmail_result.py
+	snippet/dd_web_script_startDriver_test_startDriver.py
+	snippet/dd_web_script_test_sendmail_test.py
+	snippet/dd_web_script_test_sendmail_test_email_Read.py
+	snippet/dd_web_script_test_sendmail_test_sendmail_Fj.py
+	snippet/dd_web_script_test_sendmail_test_sendmail_Read.py
+	snippet/dd_web_script_test_sendmail_test_sendmail_Readrelay.py
+	snippet/dd_web_script_test_sendmail_test_sendmail_Readreply.py
+	snippet/dd_web_script_test_sendmail_test_sendmail_addresslist.py
+	snippet/dd_web_script_test_sendmail_test_sendmail_draft.py
+	snippet/dd_web_script_test_sendmail_test_sendmail_editor.py
+	snippet/dd_web_script_test_sendmail_test_sendmail_fail.py
+	snippet/dd_web_script_test_sendmail_test_sendmail_page.py
+	snippet/dd_web_script_test_sendmail_test_sendmail_recall.py
+	snippet/dd_web_script_test_sendmail_test_sendmail_result.py
+	snippet/dd_web_script_test_sendmail_test_sendmail_template3.py
+	snippet/dd_web_script_test_sendmail_test_sendmail_writingpaper.py
+	snippet/dd_web_script_test_setting_delivery_test_setting_delivery_autoreply.py
+	snippet/dd_web_script_test_setting_delivery_test_setting_delivery_compose.py
+	snippet/dd_web_script_test_setting_delivery_test_setting_delivery_forward.py
+	snippet/dd_web_script_test_setting_delivery_test_setting_delivery_page.py
+	snippet/dd_web_script_test_setting_delivery_test_setting_delivery_read.py
+	snippet/dd_web_script_test_setting_delivery_test_setting_delivery_reply.py
+	snippet/dd_web_script_test_setting_delivery_test_setting_delivery_template.py
+	snippet/delete_branches_older_than.sh
+	snippet/dmidecode.go
+	snippet/func.py
+	snippet/ivanti.sh
+	snippet/jenkins
+	snippet/main.go
+	snippet/prefix.go
+	snippet/quarta_etapa.py
+	snippet/quinta_etapa.py
+	snippet/sexta_etapa.py
+	snippet/taichi_zoo_vortex_ring.py
+	snippet/terceira_etapa.py
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+--------------------------------------------------------------------------------
  2021-08-30 22:52:32.875610
 --------------------------------------------------------------------------------
   On branch main
