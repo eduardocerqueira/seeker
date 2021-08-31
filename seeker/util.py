@@ -34,6 +34,6 @@ def git_push():
     now = datetime.now()
     git_status(now)
     commit_message = f"{now} new snippets"
-    call("git add", shell=True)
+    call("git add .", shell=True)
     call('git commit -m "' + commit_message + '"', shell=True)
     call('git push origin main', shell=True)

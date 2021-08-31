@@ -12,7 +12,7 @@ class Gists:
     user = get_config(_config, "user")
 
     def get(self):
-        assert getenv("TOKEN")
+        assert getenv("TOKEN"), "Missing github TOKEN env variable"
         session = requests.Session()
         session.auth = (self.user, getenv("TOKEN"))
         headers = {"Accept": "application/vnd.github.v3+json"}
