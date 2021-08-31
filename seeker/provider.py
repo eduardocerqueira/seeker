@@ -11,8 +11,10 @@ class Gists:
     url = get_config(_config, "url")
     user = get_config(_config, "user")
 
-    def get(self):
+    def __init__(self):
         assert getenv("TOKEN"), "Missing github TOKEN env variable"
+
+    def get(self):
         session = requests.Session()
         session.auth = (self.user, getenv("TOKEN"))
         headers = {"Accept": "application/vnd.github.v3+json"}
