@@ -17,6 +17,10 @@ find/get -> purge -> push
 
 * by file extension
 
+## Requirements
+* GitHub OauthAPI token
+* Python 3
+
 ## Build
 
 ```shell
@@ -45,7 +49,9 @@ pip install -e .
 ```shell
 export TOKEN=**********
 cd seeker
-python main.py
+seeker --help
+seeker --test
+seeker
 ```
 
 check [report](seeker/report.txt)
@@ -55,6 +61,8 @@ check [report](seeker/report.txt)
 ```shell
 # build
 sh ops/scripts/docker_build.sh
+# manually 
+docker build -t seeker:latest -f Dockerfile . --network host
 
 # run
 docker run -e TOKEN=$TOKEN -e GITHUB_USERNAME="eduardomcerqueira" -e GITHUB_EMAIL="eduardomcerqueira@gmail.com" -it seeker /bin/bash

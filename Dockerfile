@@ -5,8 +5,8 @@ LABEL maintainer="eduardomcerqueira@gmail.com"
 LABEL description="seeker for new code snippets"
 
 ENV TOKEN=$TOKEN
-ENV GITHUB_USERNAME
-ENV GITHUB_EMAIL
+ENV GITHUB_USERNAME=${GITHUB_USERNAME:-"eduardomcerqueira"}
+ENV GITHUB_EMAIL=${GITHUB_EMAIL:-"eduardomcerqueira@gmail.com"}
 
 RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir devpi-client
@@ -23,4 +23,4 @@ RUN git config --global user.email $GITHUB_EMAIL
 
 # check
 WORKDIR seeker
-RUN python main.py
+RUN seeker --test
