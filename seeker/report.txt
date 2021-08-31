@@ -1,0 +1,76 @@
+--------------------------------------------------------------------------------
+ 2021-08-30 22:52:32.875610
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	modified:   report.txt
+	new file:   snippet/Clean Code.java
+	new file:   snippet/Food Price Comparer V1.py
+	new file:   snippet/Food Price Comparer V2.py
+	new file:   snippet/Review(1).py
+	new file:   snippet/app.py
+	new file:   snippet/file_collector.py
+	new file:   snippet/gistfile1.py
+	new file:   snippet/google_translate.py
+	new file:   snippet/ipmi-updater.py
+	new file:   snippet/jos.py
+	new file:   snippet/map.java
+	new file:   snippet/parallel.py
+	new file:   snippet/primeira_etapa.py
+	new file:   snippet/segunda_etapa.py
+	new file:   snippet/teste7.java
+	new file:   snippet/teste9.java
+	new file:   snippet/to_filename.py
+	new file:   snippet/unraid_3060_lhr_31mhs.sh
+	new file:   snippet/variadic_query_executor.py
+	modified:   util.py
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   snippet/unraid_3060_lhr_31mhs.sh
+
+
+--------------------------------------------------------------------------------
+ 2021-08-30 22:51:36.175491
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   report.txt
+	modified:   util.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/Clean Code.java
+	snippet/Food Price Comparer V1.py
+	snippet/Food Price Comparer V2.py
+	snippet/Review(1).py
+	snippet/app.py
+	snippet/file_collector.py
+	snippet/gistfile1.py
+	snippet/google_translate.py
+	snippet/ipmi-updater.py
+	snippet/jos.py
+	snippet/map.java
+	snippet/parallel.py
+	snippet/primeira_etapa.py
+	snippet/segunda_etapa.py
+	snippet/teste7.java
+	snippet/teste9.java
+	snippet/to_filename.py
+	snippet/unraid_3060_lhr_31mhs.sh
+	snippet/variadic_query_executor.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
+ 2021-08-30 22:43:11.910398
+--------------------------------------------------------------------------------
+  127

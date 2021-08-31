@@ -1,6 +1,6 @@
 from configparser import SafeConfigParser
 import json
-from subprocess import call
+from subprocess import call, check_output
 from datetime import datetime
 from os import remove, rename
 
@@ -22,7 +22,8 @@ def prepend_line(file_name, line):
 
 
 def git_status(now):
-    rs = call("status", shell=True)
+    # rs = call("git status", shell=True)
+    rs = check_output(["git", "status"], universal_newlines=True)
     line = "-" * 80
     report_header = f"{line}\n " \
                     f"{now}\n" \
