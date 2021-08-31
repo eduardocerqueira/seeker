@@ -2,6 +2,10 @@
 
 find code snippets based on [configuration](seeker/seeker.conf)
 
+**life cycle**
+
+find/get -> purge -> push
+
 **report**
 
 * by language
@@ -16,6 +20,9 @@ find code snippets based on [configuration](seeker/seeker.conf)
 ## Build
 
 ```shell
+sh ops/scripts/egg_build.sh
+
+# or manually
 python3 -m pip install --upgrade build
 ```
 

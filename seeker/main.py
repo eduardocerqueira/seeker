@@ -2,8 +2,9 @@ from provider import Gists
 from seeker.util import git_push, purge
 import logging
 
+logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+
 if __name__ == '__main__':
-    print("Seeker is running ...")
     logging.info("Seeker is running ...")
     g = Gists()
     # life cycle
