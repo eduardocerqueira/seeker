@@ -1,8 +1,8 @@
 from configparser import SafeConfigParser
 import json
 from subprocess import call, check_output
-from datetime import datetime
-from os import remove, rename
+from datetime import datetime, timedelta
+from os import remove, rename, listdir
 
 
 def get_config(section, parameter):
@@ -22,7 +22,6 @@ def prepend_line(file_name, line):
 
 
 def git_status(now):
-    # rs = call("git status", shell=True)
     rs = check_output(["git", "status"], universal_newlines=True)
     line = "-" * 80
     report_header = f"{line}\n " \
@@ -38,3 +37,14 @@ def git_push():
     call("git add .", shell=True)
     call('git commit -m "' + commit_message + '"', shell=True)
     call('git push origin main', shell=True)
+
+
+def purge():
+    day = get_config("purge", "day")
+    files = listdir("snippet")
+    for file in files:
+        with open(f"snippet/{file}", "r") as fp:
+            data = fp.read()
+            dt = datetime.today() - timedelta(days=day)
+            if dt.strftime("%Y-%m-%d") in data:
+                remove(f"snippet/{file}")

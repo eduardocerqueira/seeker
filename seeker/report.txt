@@ -1,4 +1,128 @@
 --------------------------------------------------------------------------------
+ 2021-08-31 09:21:41.503387
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   ../README.md
+	modified:   main.py
+	modified:   seeker.conf
+	deleted:    snippet/.bashrc
+	deleted:    snippet/Clean Code.java
+	deleted:    snippet/DIY Cine Film Scanner Makers
+	deleted:    snippet/Food Price Comparer V1.py
+	deleted:    snippet/Food Price Comparer V2.py
+	deleted:    snippet/Review(1).py
+	deleted:    snippet/app.py
+	deleted:    snippet/build-ubuntu-linux.sh
+	deleted:    snippet/commands.sh
+	deleted:    snippet/convert.go
+	deleted:    snippet/dd_android_AgencyList_test_agencyList.py
+	deleted:    snippet/dd_android_DeleteList_test_deleteList.py
+	deleted:    snippet/dd_android_FlashMenu_test_flashMenu.py
+	deleted:    snippet/dd_android_Inbox_test_inbox.py
+	deleted:    snippet/dd_android_Login_test_login.py
+	deleted:    snippet/dd_android_MailDetail_test_mailDetail.py
+	deleted:    snippet/dd_android_Outbox_test_outBox.py
+	deleted:    snippet/dd_android_PhoneCase_test_phoneCase.py
+	deleted:    snippet/dd_android_SearchList_test_searchList.py
+	deleted:    snippet/dd_android_Setting_test_setting.py
+	deleted:    snippet/dd_android_Sidebar_test_sidebar.py
+	deleted:    snippet/dd_android_StartDriver.py
+	deleted:    snippet/dd_android_Util_AppiumExtend.py
+	deleted:    snippet/dd_android_Util_memcachedUtil.py
+	deleted:    snippet/dd_android_adbShell_test_adbShell.py
+	deleted:    snippet/dd_android_conftest.py
+	deleted:    snippet/dd_android_executePytest.py
+	deleted:    snippet/dd_android_mainScript.py
+	deleted:    snippet/dd_android_memcachedUtil.py
+	deleted:    snippet/dd_android_tests.py
+	deleted:    snippet/dd_flaskSubprocessRun.py
+	deleted:    snippet/dd_web_conftest.py
+	deleted:    snippet/dd_web_scriptMain.py
+	deleted:    snippet/dd_web_script_login_test_login.py
+	deleted:    snippet/dd_web_script_receive_test_leftmenupage.py
+	deleted:    snippet/dd_web_script_receive_test_personal_information.py
+	deleted:    snippet/dd_web_script_receive_test_receive.py
+	deleted:    snippet/dd_web_script_receive_test_receive_blacklist.py
+	deleted:    snippet/dd_web_script_receive_test_receive_checkInbox.py
+	deleted:    snippet/dd_web_script_receive_test_receive_deletemail.py
+	deleted:    snippet/dd_web_script_receive_test_receive_mailsearch.py
+	deleted:    snippet/dd_web_script_receive_test_receive_markread.py
+	deleted:    snippet/dd_web_script_receive_test_receive_procuration.py
+	deleted:    snippet/dd_web_script_receive_test_receive_spam.py
+	deleted:    snippet/dd_web_script_receive_test_setup_choose.py
+	deleted:    snippet/dd_web_script_search_test_mail_search.py
+	deleted:    snippet/dd_web_script_sendMail_test_email_Read.py
+	deleted:    snippet/dd_web_script_sendMail_test_sendmail.py
+	deleted:    snippet/dd_web_script_sendMail_test_sendmail_Read.py
+	deleted:    snippet/dd_web_script_sendMail_test_sendmail_addresslist.py
+	deleted:    snippet/dd_web_script_sendMail_test_sendmail_draft.py
+	deleted:    snippet/dd_web_script_sendMail_test_sendmail_editor.py
+	deleted:    snippet/dd_web_script_sendMail_test_sendmail_fail.py
+	deleted:    snippet/dd_web_script_sendMail_test_sendmail_page.py
+	deleted:    snippet/dd_web_script_sendMail_test_sendmail_recall.py
+	deleted:    snippet/dd_web_script_sendMail_test_sendmail_reply.py
+	deleted:    snippet/dd_web_script_sendMail_test_sendmail_result.py
+	deleted:    snippet/dd_web_script_startDriver_test_startDriver.py
+	deleted:    snippet/dd_web_script_test_sendmail_test.py
+	deleted:    snippet/dd_web_script_test_sendmail_test_email_Read.py
+	deleted:    snippet/dd_web_script_test_sendmail_test_sendmail_Fj.py
+	deleted:    snippet/dd_web_script_test_sendmail_test_sendmail_Read.py
+	deleted:    snippet/dd_web_script_test_sendmail_test_sendmail_Readrelay.py
+	deleted:    snippet/dd_web_script_test_sendmail_test_sendmail_Readreply.py
+	deleted:    snippet/dd_web_script_test_sendmail_test_sendmail_addresslist.py
+	deleted:    snippet/dd_web_script_test_sendmail_test_sendmail_draft.py
+	deleted:    snippet/dd_web_script_test_sendmail_test_sendmail_editor.py
+	deleted:    snippet/dd_web_script_test_sendmail_test_sendmail_fail.py
+	deleted:    snippet/dd_web_script_test_sendmail_test_sendmail_page.py
+	deleted:    snippet/dd_web_script_test_sendmail_test_sendmail_recall.py
+	deleted:    snippet/dd_web_script_test_sendmail_test_sendmail_result.py
+	deleted:    snippet/dd_web_script_test_sendmail_test_sendmail_template3.py
+	deleted:    snippet/dd_web_script_test_sendmail_test_sendmail_writingpaper.py
+	deleted:    snippet/dd_web_script_test_setting_delivery_test_setting_delivery_autoreply.py
+	deleted:    snippet/dd_web_script_test_setting_delivery_test_setting_delivery_compose.py
+	deleted:    snippet/dd_web_script_test_setting_delivery_test_setting_delivery_forward.py
+	deleted:    snippet/dd_web_script_test_setting_delivery_test_setting_delivery_page.py
+	deleted:    snippet/dd_web_script_test_setting_delivery_test_setting_delivery_read.py
+	deleted:    snippet/dd_web_script_test_setting_delivery_test_setting_delivery_reply.py
+	deleted:    snippet/dd_web_script_test_setting_delivery_test_setting_delivery_template.py
+	deleted:    snippet/delete_branches_older_than.sh
+	deleted:    snippet/dmidecode.go
+	deleted:    snippet/file.sh
+	deleted:    snippet/file_collector.py
+	deleted:    snippet/func.py
+	deleted:    snippet/gistfile1.py
+	deleted:    snippet/google_translate.py
+	deleted:    snippet/ipmi-updater.py
+	deleted:    snippet/ivanti.sh
+	deleted:    snippet/jenkins
+	deleted:    snippet/jos.py
+	deleted:    snippet/main.go
+	deleted:    snippet/map.java
+	deleted:    snippet/parallel.py
+	deleted:    snippet/prefix.go
+	deleted:    snippet/primeira_etapa.py
+	deleted:    snippet/quarta_etapa.py
+	deleted:    snippet/quinta_etapa.py
+	deleted:    snippet/remove-android-studio.sh
+	deleted:    snippet/segunda_etapa.py
+	deleted:    snippet/sexta_etapa.py
+	deleted:    snippet/taichi_zoo_vortex_ring.py
+	deleted:    snippet/terceira_etapa.py
+	deleted:    snippet/teste7.java
+	deleted:    snippet/teste9.java
+	deleted:    snippet/to_filename.py
+	deleted:    snippet/unraid_3060_lhr_31mhs.sh
+	deleted:    snippet/variadic_query_executor.py
+	modified:   util.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2021-08-30 23:27:00.594751
 --------------------------------------------------------------------------------
   On branch main
