@@ -12,6 +12,7 @@ class Gists:
     user = get_config(_config, "user")
 
     def get(self):
+        assert getenv("TOKEN")
         session = requests.Session()
         session.auth = (self.user, getenv("TOKEN"))
         headers = {"Accept": "application/vnd.github.v3+json"}
@@ -22,7 +23,7 @@ class Gists:
             comment = "#"
             for k, v in gist['files'].items():
                 if v['language'] in self.filter:
-                    if "go" in str(v['language']).lower():
+                    if str(v['language']).lower() in ["go", "java"]:
                         comment = "//"
                     file_content = session.get(v['raw_url'])
                     with open(join("./snippet", v['filename']), 'w') as snippet:
@@ -53,4 +54,3 @@ class GitHub:
     #         f"stars: {repo.stargazers_count} "
     #         f"forks: {repo.forks_count} "
     #         f"language: {repo.language}")
-
