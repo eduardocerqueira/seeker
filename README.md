@@ -43,6 +43,16 @@ python main.py
 
 check [report](seeker/report.txt)
 
+## Container
+
+```shell
+# build
+sh ops/scripts/docker_build.sh
+
+# run
+docker run -e TOKEN=$TOKEN -e GITHUB_USERNAME="eduardomcerqueira" -e GITHUB_EMAIL="eduardomcerqueira@gmail.com" -it seeker /bin/bash
+```
+
 ## Links
 
 * https://gist.github.com/discover
