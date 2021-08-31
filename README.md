@@ -62,9 +62,11 @@ check [report](seeker/report.txt)
 # build
 sh ops/scripts/docker_build.sh
 # manually 
-docker build -t seeker:latest -f Dockerfile . --network host
+docker build --build-arg SEEKER_RUN="--test" -t seeker -f Dockerfile . --network host
 
 # run
+sh ops/scripts/docker_run.sh
+# manually
 docker run -e TOKEN=$TOKEN -e GITHUB_USERNAME="eduardomcerqueira" -e GITHUB_EMAIL="eduardomcerqueira@gmail.com" -it seeker /bin/bash
 ```
 
