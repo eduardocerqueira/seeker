@@ -1,0 +1,106 @@
+--------------------------------------------------------------------------------
+ 2021-08-30 21:44:25.441931
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	new file:   snippet/DIY Cine Film Scanner Makers
+	new file:   snippet/VirtualPainting.py
+	new file:   snippet/build-ubuntu-linux.sh
+	new file:   snippet/file.sh
+	new file:   snippet/get-blog-id.py
+	new file:   snippet/netaccess.py
+	new file:   snippet/remove-android-studio.sh
+	new file:   snippet/rostopic_republisher_rate.py
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   ../README.md
+	modified:   ../requirements.txt
+	modified:   main.py
+	modified:   util.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	report.txt
+	snippet/RedditCommentRespond.py
+	snippet/RedditLogin.py
+	snippet/RedditReadComments.py
+	snippet/taichi_zoo_ff.py
+	snippet/taichi_zoo_ff2.py
+
+--------------------------------------------------------------------------------
+ 2021-08-30 21:46:33.621777
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	new file:   snippet/DIY Cine Film Scanner Makers
+	new file:   snippet/VirtualPainting.py
+	new file:   snippet/build-ubuntu-linux.sh
+	new file:   snippet/file.sh
+	new file:   snippet/get-blog-id.py
+	new file:   snippet/netaccess.py
+	new file:   snippet/remove-android-studio.sh
+	new file:   snippet/rostopic_republisher_rate.py
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   ../README.md
+	modified:   ../requirements.txt
+	modified:   main.py
+	modified:   util.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	report.txt
+	snippet/RedditCommentRespond.py
+	snippet/RedditLogin.py
+	snippet/RedditReadComments.py
+	snippet/taichi_zoo_ff.py
+	snippet/taichi_zoo_ff2.py
+
+--------------------------------------------------------------------------------
+ 2021-08-30 21:47:54.944686
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	new file:   snippet/DIY Cine Film Scanner Makers
+	new file:   snippet/VirtualPainting.py
+	new file:   snippet/build-ubuntu-linux.sh
+	new file:   snippet/file.sh
+	new file:   snippet/get-blog-id.py
+	new file:   snippet/netaccess.py
+	new file:   snippet/remove-android-studio.sh
+	new file:   snippet/rostopic_republisher_rate.py
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   ../README.md
+	modified:   ../requirements.txt
+	modified:   main.py
+	modified:   util.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	report.txt
+	snippet/RedditCommentRespond.py
+	snippet/RedditLogin.py
+	snippet/RedditReadComments.py
+	snippet/taichi_zoo_ff.py
+	snippet/taichi_zoo_ff2.py
+
+--------------------------------------------------------------------------------
+ 2021-08-30 21:52:56.469697
+--------------------------------------------------------------------------------
+  127
