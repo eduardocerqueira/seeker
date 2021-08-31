@@ -8,6 +8,9 @@ ENV TOKEN=$TOKEN
 ENV GITHUB_USERNAME=${GITHUB_USERNAME:-"eduardomcerqueira"}
 ENV GITHUB_EMAIL=${GITHUB_EMAIL:-"eduardomcerqueira@gmail.com"}
 
+RUN git config --global user.name $GITHUB_USERNAME
+RUN git config --global user.email $GITHUB_EMAIL
+
 RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir devpi-client
 RUN git config --global http.sslVerify false
@@ -17,9 +20,7 @@ RUN pip install --no-cache-dir -U pip setuptools setuptools_scm wheel
 RUN git clone https://github.com/eduardocerqueira/seeker.git
 WORKDIR seeker
 RUN pip install -e .
-
-RUN git config --global user.name $GITHUB_USERNAME
-RUN git config --global user.email $GITHUB_EMAIL
+RUN pip freeze |grep seeker
 
 # check
 WORKDIR seeker

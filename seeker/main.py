@@ -11,11 +11,11 @@ def run():
     g = Gists()
     # life cycle
     logging.info("getting new snippets")
-    # g.get()
+    g.get()
     logging.info("purging old snippets")
-    # purge()
+    purge()
     logging.info("pushing to repo")
-    # git_push()
+    git_push()
 
 
 @click.command()
