@@ -43,7 +43,7 @@ def draw_r():
   t.circle(-12, 180)
   draw_line(-60, 20)
 
-letters = {
+alphabet = {
   "c": draw_c, "o": draw_o, "n": draw_n, "r": draw_r
 }
 
@@ -53,7 +53,7 @@ def draw_name(name):
   t.goto(-90,90)
   t.pendown()
   for letter in name:
-    letters[letter]()
+    alphabet[letter]()
     if letter == "n":
       space(20)
     else:

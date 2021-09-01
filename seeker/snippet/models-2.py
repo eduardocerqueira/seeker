@@ -1,5 +1,5 @@
-#date: 2021-09-01T13:17:48Z
-#url: https://api.github.com/gists/24fb39109ff64e648032b1e07dd98938
+#date: 2021-09-01T13:21:12Z
+#url: https://api.github.com/gists/a347c48024a25f2b47f6c5fd97edbd34
 #owner: https://api.github.com/users/thiagoferreiraw
 
 class EmbeddedReport(BaseModel, models.Model):
@@ -31,5 +31,4 @@ class EmbeddedReport(BaseModel, models.Model):
       ).decode("utf8")
 
       return "{}/embed/{}/{}#bordered=false&titled=false".format(
-          self.engine.base_url, resource["url_path"], token
-      )
+          self.
