@@ -1,5 +1,5 @@
 #!/bin/bash
 
-echo "Entrypoint"
+echo "set github push"
 git remote set-url --push origin https://$GITHUB_USERNAME:$GITHUB_TOKEN@github.com/eduardocerqueira/seeker
-git config -l
+seeker $SEEKER_RUN
