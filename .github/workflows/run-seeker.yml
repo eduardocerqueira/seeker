@@ -33,4 +33,4 @@ jobs:
         export GITHUB_TOKEN=${{ secrets.TOKEN }}
         env | grep GIT
         cd seeker
-        seeker --help
+        seeker
