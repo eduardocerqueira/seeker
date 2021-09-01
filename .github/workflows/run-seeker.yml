@@ -30,7 +30,7 @@ jobs:
         pip install -e .
     - name: run
       run: |
-        GITHUB_TOKEN=${{ secrets.TOKEN }}
-        env
+        export GITHUB_TOKEN=${{ secrets.TOKEN }}
+        env | grep GIT
         cd seeker
         seeker --help
