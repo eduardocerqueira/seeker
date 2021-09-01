@@ -1,0 +1,61 @@
+#date: 2021-09-01T16:53:07Z
+#url: https://api.github.com/gists/117b1541bb389ee2dd2b86278670c8c8
+#owner: https://api.github.com/users/meow464
+
+#!/bin/sh
+
+# this script must be run from the same directory as kivy-ios (the repo)
+# it should not be run inside kivy-ios (the repo)
+# you should create a branch "master_setup_cfg_test", add and commit the 
+# empty files "pyproject.toml" and "setup.cfg"
+
+# perl was complaining on my machine
+export LC_ALL=en_US.UTF-8
+
+# this function receives an argument, either "bdist" or "sdist"
+run_setup()
+{
+    echo "Comparing tarballs for "$1
+
+    # runs either "setup.py bdist" or "setup.py sdist" on master and calls hash_tarball_file_list
+    echo "Branch master"
+    git checkout master_setup_cfg_test --quiet
+    python3 setup.py --quiet $1
+    hash_tarball_file_list
+
+    # runs either "setup.py bdist" or "setup.py sdist" on development branch and calls hash_tarball_file_list
+    echo "Branch setup_cfg"
+    git checkout setup_cfg --quiet
+    python3 setup.py --quiet $1
+    hash_tarball_file_list
+}
+
+# the hash of the tarballs will always be different due to different metadata
+# such as date and time
+# instead of comparing the files directly we compare a list of the contents
+# of the files
+hash_tarball_file_list()
+{
+    cd dist
+    # FILE is the tarball, there should be only one at a time in this dir
+    for FILE in *
+    do
+	# save a list of the files inside the tarball
+	tar -ztf $FILE >> $FILE"_file_list.txt"
+	
+	# takes the shasum. without the "cut" the filename with "_file_list.txt"
+	# appended would be printed at the end of the line
+	SUM=$(shasum -a 256 $FILE"_file_list.txt" | cut -f1 -d' ')
+	echo "Hash of the file list of "$FILE": "$SUM
+	rm $FILE
+	rm $FILE"_file_list.txt"
+    done
+    cd ..
+}
+
+# enters the kivy directory
+cd kivy-ios
+
+# run the tests
+run_setup "bdist"
+run_setup "sdist"
