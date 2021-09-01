@@ -30,7 +30,8 @@ jobs:
         pip install -e .
     - name: run
       run: |
+        git config --global user.name eduardocerqueira
+        git config --global user.email eduardomcerqueira@gmail.com
         export GITHUB_TOKEN=${{ secrets.TOKEN }}
-        env | grep GIT
         cd seeker
         seeker
