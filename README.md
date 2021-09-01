@@ -18,7 +18,7 @@ find/get -> purge -> push
 * by file extension
 
 ## Requirements
-* GitHub OauthAPI token
+* GitHub OauthAPI GITHUB_TOKEN
 * Python 3
 
 ## Build
@@ -47,7 +47,7 @@ pip install -e .
 ## Run
 
 ```shell
-export TOKEN=**********
+export GITHUB_TOKEN=**********
 cd seeker
 seeker --help
 seeker --test
@@ -67,7 +67,7 @@ docker build --build-arg SEEKER_RUN="--test" -t seeker -f Dockerfile . --network
 # run
 sh ops/scripts/docker_run.sh
 # manually
-docker run -e TOKEN=$TOKEN -e GITHUB_USERNAME="eduardomcerqueira" -e GITHUB_EMAIL="eduardomcerqueira@gmail.com" -it seeker /bin/bash
+docker run -e GITHUB_TOKEN=$GITHUB_TOKEN -e GITHUB_USERNAME="eduardocerqueira" -e GITHUB_EMAIL="eduardomcerqueira@gmail.com" -it seeker /bin/bash
 ```
 
 ## Links

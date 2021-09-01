@@ -12,7 +12,7 @@ class Gists:
     user = get_config(_config, "user")
 
     def __init__(self):
-        assert getenv("TOKEN"), "Missing github TOKEN env variable"
+        assert getenv("GITHUB_TOKEN"), "Missing github TOKEN env variable"
 
     def get(self):
         session = requests.Session()
