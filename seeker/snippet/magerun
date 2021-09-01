@@ -1,0 +1,6 @@
+#date: 2021-09-01T01:17:59Z
+#url: https://api.github.com/gists/284137d3889fc471bac05b165e47666c
+#owner: https://api.github.com/users/hgati
+
+#!/bin/bash
+n98-magerun.phar --root-dir=/app/root --skip-root-check "$@"

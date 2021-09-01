@@ -1,4 +1,71 @@
 --------------------------------------------------------------------------------
+ 2021-09-01 01:48:05.594356
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	new file:   ../ops/scripts/docker_entrypoint.sh
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   ../.gitignore
+	modified:   ../Dockerfile
+	modified:   ../README.md
+	modified:   ../docs/gists.md
+	modified:   ../ops/scripts/docker_build.sh
+	modified:   ../ops/scripts/docker_entrypoint.sh
+	modified:   ../ops/scripts/docker_run.sh
+	modified:   ../ops/scripts/egg_build.sh
+	modified:   ../requirements.txt
+	modified:   __init__.py
+	modified:   main.py
+	modified:   provider.py
+	modified:   report.txt
+	modified:   seeker.conf
+	deleted:    snippet/.bash_profile
+	deleted:    snippet/.bashrc
+	modified:   snippet/.placeholder
+	deleted:    snippet/ModelWeightsPrinter.py
+	deleted:    snippet/Rock Paper Scissors(Revised).py
+	deleted:    snippet/VideoUtils.java
+	deleted:    snippet/boosting_ada.py
+	deleted:    snippet/boosting_ada_evaluation.py
+	deleted:    snippet/constant.go
+	deleted:    snippet/find_if_prime_number.py
+	deleted:    snippet/find_list_prime_factors.py
+	deleted:    snippet/generator.py
+	deleted:    snippet/git.sh
+	deleted:    snippet/importTruststore.sh
+	deleted:    snippet/large_csv_to_parquets.py
+	deleted:    snippet/main.py
+	deleted:    snippet/observium_agent_setup.sh
+	deleted:    snippet/pdutils.py
+	deleted:    snippet/preprocess.py
+	deleted:    snippet/python-iter-example.py
+	deleted:    snippet/reservoir.py
+	deleted:    snippet/show_leases.py
+	deleted:    snippet/split_list.py
+	deleted:    snippet/sum_with_prime_factors.py
+	deleted:    snippet/train.py
+	modified:   util.py
+	modified:   ../setup.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	docker_entrypoint.sh
+	snippet/haversine.py
+	snippet/magerun
+	snippet/mouse_move_click.py
+	snippet/seaborn_second_df.py
+	snippet/test.go
+	snippet/toymvc_example.py
+	snippet/warmup
+
+
+--------------------------------------------------------------------------------
  2021-08-31 09:28:13.172854
 --------------------------------------------------------------------------------
   On branch main
