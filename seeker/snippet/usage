@@ -1,0 +1,9 @@
+#date: 2021-09-01T13:10:32Z
+#url: https://api.github.com/gists/46aeccc2a0ae6d502a8b1504a8a68214
+#owner: https://api.github.com/users/jkawczynski
+
+#!/bin/bash
+# --symlink-path -- path shouldn't exists before runing this script
+# --target-directory -- from this directory files will be randomly symlinked
+
+python script.py --symlink-path /path_to/symlink_file --target-directory /path/to/directory_with_files/
