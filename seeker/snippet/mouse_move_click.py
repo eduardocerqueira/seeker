@@ -19,16 +19,6 @@ screen_width = win32api.GetSystemMetrics(win32con.SM_CXSCREEN)
 screen_height = win32api.GetSystemMetrics(win32con.SM_CYSCREEN)
 sys.stderr.write("screen: %s %s\n" % (screen_width, screen_height))
 
-mouse_pos_list = (
-    (1, 1),
-    (1, screen_height - 1),
-    (screen_width - 1, screen_height - 1),
-    (screen_width - 1, 1),
-)
-
-continue_flag = True
-
-
 mouse_pos_startmenu = (1, screen_height - 1)
 while True:
 
