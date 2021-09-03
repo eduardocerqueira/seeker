@@ -1,0 +1,13 @@
+#date: 2021-09-03T17:08:47Z
+#url: https://api.github.com/gists/80472ac93f060144b5999d0e0451fa7d
+#owner: https://api.github.com/users/ank510
+
+#!/usr/bin/env bash
+
+user=$(whoami)
+path=/home/$user/anaconda3/bin/python
+
+echo 'task goes here' | cat - bot_diem_danh.txt > temp && mv temp bot_diem_danh.txt
+
+chmod +x ./bot_diem_danh.py
+./bot_diem_danh.py
