@@ -1,0 +1,118 @@
+#date: 2021-09-08T16:53:49Z
+#url: https://api.github.com/gists/a75473eb5575a5c6814efafcace80957
+#owner: https://api.github.com/users/LeGEC
+
+#!/bin/bash
+
+help () {
+cat <<HELP
+NAME
+	git-wip - lists the most recently checked out branches
+	          (aka. : "What was I working on ?")
+
+SYNOPSIS
+	git wip [-a] [-h] [<count>]
+
+DESCRIPTION
+	Displays the <count> last distinct branches you checked out.
+	<count> default to 10.
+
+	It actually lists:
+	* the branch's name when you checked out a branch,
+	* the commit's sha1 when your checkout action lead to a HEADless
+	  state (e.g: checking out a tag, or an explicit sha1).
+
+OPTIONS
+	-a, --all
+		Do not limit the output, scan the complete reflog
+
+	-h, --help
+		Display this help message and exit
+	
+	<count>
+		When provided, and -a is not specified, limit the output to this
+		number of lines. defaults to 10.
+
+OUTPUT FORMAT
+	Each output line contains 3 fields (2 always present, 1 optional) :
+
+	1. short sha1 of the referenced commit
+	2. branch name, or complete sha1 if it was a HEADless state
+	3. a "#deleted" annotation if the branch does not exist anymore
+
+DATA SOURCE
+	Lines with the following pattern are extracted from the reflog :
+
+	56118dc0f HEAD@{xx}: checkout: moving from ... to {targetname}
+
+	This command will print each '{targetname}' it finds only once, along
+	with the last state this branch was seen.
+
+	This command simply scans the reflog, so it will only list entries
+	as far back as the reflog goes.
+	See 'git help reflog' and 'git help gc' for more details about reflog
+	expiration.
+
+SAMPLE USAGE
+
+	$ git wip 5
+	c348d5d4d my/branch
+	8131dd2ee master
+	6fc72aa46 feature2   #deleted
+	f323d0b46 f323d0b4653a7c49e57083dd6abcd0c4758ef673
+	f20cc4eb8 testing
+HELP
+}
+
+#   last_branches :
+# extract "sha branchname" info from the reflog
+last_branches () {
+    git reflog --no-decorate |\
+    # keep only "checkout" lines    
+    grep "checkout: moving from .* to " |\
+    # deduplicate by ref name, while preserving the order of appearance
+    awk '{ sha=$1; name=$NF; if (!seen[name]++) { print sha, name } }'
+}
+
+#   echo_with_deleted_tag $hash $br :
+# print '$hash' and '$br' to stdout,
+# check if '$br' still exists and add a '   #deleted' annotation if it doesn't
+echo_with_deleted_tag () {
+    local hash="$1"
+    local br="$2"
+    local post=""
+    if ! git rev-parse --verify -q "$br" > /dev/null; then
+        post="   #deleted"
+    fi
+    echo "$hash $br$post"
+}
+
+#---------------
+# script body :
+
+# argument handling (only the first argument will be processed) :
+n=""
+case "$1" in
+	"-h" | "--help" | "-help" | "h" | "help" )
+		help;
+		exit 0;
+		;;
+	"-a" | "--all" | "a" | "all" )
+		n="-0"
+		;;
+
+	*)
+		n="$1"
+		;;
+esac
+
+# default value : if no argument is provided, say '10 lines'
+[ -z "$n" ] && n=10
+
+# complete action :
+#  * print the lines,
+#  * keep the 'head -n $n' first lines, 
+#  * decorate them with a '   #deleted' annotation if needed
+last_branches | head -n "$n" | while read hash branch; do
+	echo_with_deleted_tag "$hash" "$branch"
+done
