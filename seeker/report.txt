@@ -1,4 +1,51 @@
 --------------------------------------------------------------------------------
+ 2021-09-20 17:13:17.956614
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/.bashrc
+	deleted:    snippet/.zshrc
+	deleted:    snippet/Colors.java
+	deleted:    snippet/download.sh
+	deleted:    snippet/errormanagement.py
+	deleted:    snippet/install.sh
+	deleted:    snippet/json_dump_stream.py
+	deleted:    snippet/load-multiple-files.py
+	deleted:    snippet/main.py
+	deleted:    snippet/mux.go
+	deleted:    snippet/setup_slcan
+	deleted:    snippet/sphp.sh
+	deleted:    "snippet/src\\com\\cursodegit\\twitterFeed\\MainClass.java"
+	deleted:    "snippet/src\\module-info.java"
+	deleted:    snippet/unsubl.sh
+	deleted:    snippet/valleys.py
+	deleted:    snippet/vault-service-creator.sh
+	deleted:    snippet/wupclient.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/.bash_aliases
+	snippet/ContactDataSource.java
+	snippet/Find the Runner-Up Score!.py
+	snippet/crm.py
+	snippet/execute_tree.sh
+	snippet/export-ziti-ca.zsh
+	snippet/pattern01.py
+	snippet/pattern02.py
+	snippet/pattern03.py
+	snippet/pattern04.py
+	snippet/refresh-front-end-files.sh
+	snippet/snake.py
+	snippet/statyczne_klasy.py
+	snippet/update-docker-compose.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2021-09-17 17:17:12.187640
 --------------------------------------------------------------------------------
   On branch main
