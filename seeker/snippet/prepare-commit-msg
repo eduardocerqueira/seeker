@@ -1,0 +1,69 @@
+#date: 2021-09-22T17:11:43Z
+#url: https://api.github.com/gists/79141b9af2ae862bafd6994e4aa77e5c
+#owner: https://api.github.com/users/Maxe12
+
+#!/usr/bin/env bash
+#
+# Authors:
+#   Stefan Buck (https://github.com/stefanbuck)
+#   Thomas Ruoff (https://github.com/tomru)
+#
+#
+# Description:
+#   Are you still prefixing your commits with a ticket number manually? You will love this script!
+#   This is a git hook script that will automatically prefix your commit messages with a ticket
+#   based on the branch name.
+#
+# Usage:
+#   1. Prefix your branch with the ticket number like ABC-123-best-feature-ever.
+#   2. Running `git commit` or `git commit -m ...` whatever you prefer
+#      If you use the latter, just enter your commit message without worrying about the ticket numner.
+#      Once you submit your commit message this hook will automatically add the prefix for you.
+#   3. Enjoy the ease of following conventions
+#
+# Installation:
+#
+#   Either copy this script to
+#   your/awesome/project/.git/hooks/prepare-commit-msg
+#
+#   Or create a global git template that gets copied each time you create or clone a git repository
+#   git config --global init.templatedir '~/.git_template/'
+#
+#   Because this is a regular script file, we need to make it executable:
+#   chmod +x .git/hooks/prepare-commit-msg
+#
+#   Done!
+
+# Get the current branch name from git
+branchname=$(git rev-parse --abbrev-ref HEAD)
+
+# do not prefix fixup! squash! commits
+if cat "$1" | grep -E -i "^(fixup|squash)!" > /dev/null; then
+    exit 0
+fi
+
+function prefixCommitMessage {
+    filename=$1
+    prefix=$2
+
+    originalmessage=$(cat "$filename")
+
+    if [[ $originalmessage == $prefix* ]]
+        then
+        exit 0
+    fi
+
+    echo "$prefix $originalmessage" > "$filename"
+}
+
+# Branch name is like: noticket-something
+if echo "$branchname" | grep -i '^noticket' > /dev/null; then
+    prefixCommitMessage "$1" 'NOTICKET'
+    exit
+fi
+
+# Branch name is like: ABC-123-something
+if echo "$branchname" | grep -E -i "^[a-z]{2,}-[0-9]+" > /dev/null; then
+    prefixCommitMessage "$1" "$(echo "$branchname" | awk 'BEGIN{ FS="-"; OFS=FS } { print toupper($1),$2 }')"
+    exit
+fi
