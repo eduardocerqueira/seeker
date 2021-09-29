@@ -1,33 +1,21 @@
-#date: 2021-09-22T17:07:31Z
-#url: https://api.github.com/gists/cfd7979de8ab6f17f8fec144f0882a3d
-#owner: https://api.github.com/users/RaphaelGoutmann
+#date: 2021-09-29T16:48:45Z
+#url: https://api.github.com/gists/70ee1fef5167e349899291e06353e44c
+#owner: https://api.github.com/users/mypy-play
 
-from tinyengine import *
-import ion
+from typing import TypeVar, Type
+from numbers import Number
+from fractions import Fraction
+from decimal import Decimal
 
-def main():
-    game = Game()
-    mainScene = Scene()
-    game.setCurrentScene(mainScene)
 
-    player = Rectangle("player", 0, 0, 10, 10, color.BLACK)
-    mainScene.addObject(player)
+T = TypeVar('T', bound=Number)
 
-    while(1):
-        speed = Vector2(0, 0)
 
-        if keydown(KEY_LEFT):
-            speed = speed.left()
-        elif keydown(KEY_RIGHT):
-            speed = speed.right()
-        elif keydown(KEY_UP):
-            speed = speed.up()
-        elif keydown(KEY_DOWN):
-            speed = speed.down()
-        
-        player.setX(player.getX() + speed.x)
-        player.setY(player.getY() + speed.y)
+def foo(bar: T):
+    pass
 
-        game.update()
 
-main()
+foo(10)
+foo(20)
+foo(0.5)
+foo("A")
