@@ -1,40 +1,13 @@
-#date: 2021-09-16T16:57:17Z
-#url: https://api.github.com/gists/686c2f00c72b72a2fb3700ae5e4351bc
-#owner: https://api.github.com/users/kapilaNR
+#date: 2021-09-30T17:06:23Z
+#url: https://api.github.com/gists/b585b346adb03c4ae26c76948737807b
+#owner: https://api.github.com/users/fladago
 
-# Stage 1
-FROM node:10-alpine as build-step
-
-RUN mkdir -p /app 
-
-WORKDIR /app 
-COPY package.json /app
-
-RUN npm install
-
-COPY . /app
-
-RUN npm run build --prod
-
-# Stage 2
-FROM nginx:1.17.1-alpine
-
-# Clean nginx
-RUN rm -rf /usr/share/nginx/html/*
-
-# Copy dist
-COPY --from=build-step /app/dist/<replace me> /usr/share/nginx/html
-
-COPY nginx.conf /etc/nginx/nginx.conf
-
-WORKDIR /usr/share/nginx/html
-
-# Permission
-RUN chown root /usr/share/nginx/html/*
-RUN chmod 755 /usr/share/nginx/html/*
-
-# Expose port
-EXPOSE 3000
-
-# Start
-CMD ["nginx", "-g", "daemon off;"]
+FROM golang:1.17.1-alpine3.14 AS build
+WORKDIR /src/
+COPY go.* /src/
+RUN go mod download
+COPY ./ /src/
+RUN CGO_ENABLED=0 go build -o /bin/demo
+FROM scratch
+COPY --from=build /bin/demo /bin/demo
+ENTRYPOINT [ "/bin/demo" ]
