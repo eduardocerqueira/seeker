@@ -1,100 +1,112 @@
-//date: 2021-09-29T17:10:04Z
-//url: https://api.github.com/gists/1f3c03e57f239d5db00dfa7b3877d47d
+//date: 2021-10-01T01:47:08Z
+//url: https://api.github.com/gists/d955e3160067d20758b3fb04849b2956
 //owner: https://api.github.com/users/ysyS2ysy
 
-package backjoon;
+package 정올;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.PriorityQueue;
 import java.util.StringTokenizer;
 
 /**
- * 일    시: 2021-09-15 ~ 2021-09-30
+ * 일    시: 2021-10-01
  * 작 성 자: 유 소 연
- * https://www.acmicpc.net/problem/1600
- * BFS
  * */
-public class Main_백준_1600_말이되고픈원숭이_유소연_568ms {
-	static int K, W, H;
+public class Main_정올_1113_119구급대_유소연_219ms {
+	static int M, N, Y, X;
 	static int[][] map;
-	static boolean[][][] visited;
-	static Queue<int[]> q = new LinkedList<>();
+	static boolean[][] visited;
+	static int answer;
 	
-	public static void main(String[] args) throws NumberFormatException, IOException {
-		// bfs
-		// visited[][][K+1] 로 관리
+	static class Point implements Comparable<Point> {
+		int y;
+		int x;
+		int dir;
+		int rotationCnt;
+		public Point(int y, int x, int dir, int rotationCnt) {
+			this.y = y;
+			this.x = x;
+			this.dir = dir;
+			this.rotationCnt = rotationCnt;
+		}
+		@Override
+		public int compareTo(Point o) {
+			// 회전수 오름차순, 만약 회전 수 같으면 y,x오름차순
+			if(this.rotationCnt != o.rotationCnt) {
+				return Integer.compare(this.rotationCnt, o.rotationCnt);
+			}else {
+				if(this.y != o.y) {
+					return Integer.compare(this.y, o.y);
+				}else {
+					return Integer.compare(this.x, o.x);
+				}
+			}
+		}
+	}
+	
+	public static void main(String[] args) throws IOException {
+		// 문제를 거꾸로 접근해볼까... 도착점 -> 시작점까지의 최소 코너도는횟수(방향전환횟수)
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		
-		// K: 말처럼 뛸 수 있는 횟수
-		K = Integer.parseInt(br.readLine());
-		// W: 가로길이, H: 세로길이
 		StringTokenizer st = new StringTokenizer(br.readLine(), " ");
-		W = Integer.parseInt(st.nextToken());
-		H = Integer.parseInt(st.nextToken());
-		map = new int[H][W];
-		visited = new boolean[H][W][K+1];
-		// map
-		for (int i = 0; i < H; i++) {
+		// M: 세로크기, N: 가로크기
+		M = Integer.parseInt(st.nextToken());
+		N = Integer.parseInt(st.nextToken());
+		map = new int[M][N];
+		visited = new boolean[M][N];
+		// 도착지점 좌표 y,x
+		st = new StringTokenizer(br.readLine(), " ");
+		Y = Integer.parseInt(st.nextToken());
+		X = Integer.parseInt(st.nextToken());
+		// map (1:도로, 2:장애물)
+		for (int i = 0; i < M; i++) {
 			st = new StringTokenizer(br.readLine(), " ");
-			for (int j = 0; j < W; j++) {
+			for (int j = 0; j < N; j++) {
 				map[i][j] = Integer.parseInt(st.nextToken());
 			}
 		}
 		// end of input
 		
-		q.add(new int[] {0,0,0,K}); // y,x,cnt,K
-		int answer = bfs();
+		PriorityQueue<Point> q = new PriorityQueue<>();
+		q.add(new Point(Y,X,0,0)); // y,x,현재 방향,방향전환횟수
+		bfs(q);
 		System.out.println(answer);
-	} // end of main
+		
+	}
 
-	private static int bfs() {
-		int[] hdy = {-2,-1,-2,-1,1,2,1,2}; // 말의 이동방향
-		int[] hdx = {-1,-2,1,2,-2,-1,2,1};
-		int[] dy = {-1,1,0,0}; // 원숭이 이동방향
+	private static void bfs(PriorityQueue<Point> q) {
+		int[] dy = {-1,1,0,0};
 		int[] dx = {0,0,-1,1};
 		
 		while(q.size() > 0) {
-			int[] cur= q.poll();
-			int cnt = cur[2];
-			int k = cur[3];
+			Point cur = q.poll();
+//			System.out.println(cur.y+", "+cur.x+": "+cur.rotationCnt+": "+cur.dir);
+			visited[cur.y][cur.x] = true;
 			
-			// 도착했다면 break;
-			if(cur[0] == H-1 && cur[1] == W-1) {
-				return cnt;
+			int dir = cur.dir; // 현재 방향
+			int rotationCnt = cur.rotationCnt; // 방향회전 수
+			
+			if(cur.y == 0 && cur.x == 0) {
+				answer = cur.rotationCnt;
+				return;
 			}
-			
-			for (int d = 0; d < 8; d++) {
-				// k를 언제 쓸지가....
-				// k를 쓰고 안쓰고 두가지 경우로 나눠야겠군...
-				
-				// k를 쓰지 않는 경우
-				if(d < 4) {
-					int ny = cur[0] + dy[d];
-					int nx = cur[1] + dx[d];
-					if(inRange(ny,nx) && map[ny][nx] == 0 && !visited[ny][nx][k]) {
-						q.add(new int[] {ny,nx,cnt+1,k});
-						visited[ny][nx][k] = true;
+
+			for (int d = 0; d < 4; d++) {
+				int ny = cur.y + dy[d];
+				int nx = cur.x + dx[d];
+				if(inRange(ny,nx) && map[ny][nx] == 1 && !visited[ny][nx]) {
+					if(dir != d && (cur.y!=Y || cur.x!=X)) {
+						q.add(new Point(ny,nx,d,rotationCnt+1));
+					}else {
+						q.add(new Point(ny,nx,d,rotationCnt));
 					}
 				}
-				// k를 쓰는 경우
-				if(k > 0) {
-					int hy = cur[0] + hdy[d];
-					int hx = cur[1] + hdx[d];
-					if(inRange(hy,hx) && map[hy][hx] == 0 && !visited[hy][hx][k-1]) {
-						q.add(new int[] {hy,hx,cnt+1,k-1});
-						visited[hy][hx][k-1] = true;
-					}
-				}
-			} // end of detect
+			} // end of for
 		} // end of while
-		
-		return -1;
 	} // end of bfs
 
 	private static boolean inRange(int ny, int nx) {
-		return ny >= 0 && nx >= 0 && ny < H && nx < W;
+		return ny >= 0 && nx >= 0 && ny < M && nx < N;
 	}
-} // end of class
+}
