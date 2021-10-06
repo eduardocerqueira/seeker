@@ -1,21 +1,11 @@
-#date: 2021-09-29T16:48:45Z
-#url: https://api.github.com/gists/70ee1fef5167e349899291e06353e44c
+#date: 2021-10-06T17:08:25Z
+#url: https://api.github.com/gists/3343d611717db1c15f241a29a4d20653
 #owner: https://api.github.com/users/mypy-play
 
-from typing import TypeVar, Type
-from numbers import Number
-from fractions import Fraction
-from decimal import Decimal
+from typing import Optional
+from dataclasses import dataclass
 
 
-T = TypeVar('T', bound=Number)
-
-
-def foo(bar: T):
-    pass
-
-
-foo(10)
-foo(20)
-foo(0.5)
-foo("A")
+@dataclass
+class A:
+    b: Optional[int] = ...
