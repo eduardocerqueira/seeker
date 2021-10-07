@@ -1,147 +1,91 @@
-#date: 2021-10-04T16:55:23Z
-#url: https://api.github.com/gists/ed6b59b91b5bffabedd940ab84b91f86
-#owner: https://api.github.com/users/Qetlin
+#date: 2021-10-07T16:52:47Z
+#url: https://api.github.com/gists/1db5a92174aae00b12a54420dbb050f3
+#owner: https://api.github.com/users/L3afMe
 
-# Path to your oh-my-zsh configuration.
-export ZSH=$HOME/.oh-my-zsh
+# Setup directories
+__BASE_DIR="$HOME/Public"
 
-# Set name of the theme to load.
-# Look in ~/.oh-my-zsh/themes/
-# Optionally, if you set this to "random", it'll load a random theme each
-# time that oh-my-zsh is loaded.
-#export ZSH_THEME="robbyrussell"
-export ZSH_THEME="zanshin"
+## Config directory
+export XDG_CONFIG_HOME="$__BASE_DIR/Config"
 
-# Set to this to use case-sensitive completion
-# export CASE_SENSITIVE="true"
+## Misc directories
+__MISC_BASE_DIR="$__BASE_DIR/Etc"
+export POWERCORD_DIR="$__BASE_DIR/Programs/powercord"
+export GOPATH="$__MISC_BASE_DIR/Go"
+export PYTHONUSERBASE="$__MISC_BASE_DIR/Python"
 
-# Comment this out to disable weekly auto-update checks
-# export DISABLE_AUTO_UPDATE="true"
+## Xorg directories
+__XORG_BASE_DIR="$__BASE_DIR/Xorg"
 
-# Uncomment following line if you want to disable colors in ls
-# export DISABLE_LS_COLORS="true"
+### Xorg User directories
+export XDG_DESKTOP_DIR="$__XORG_BASE_DIR/Documents"
+export XDG_DOCUMENTS_DIR="$__XORG_BASE_DIR/Documents"
+export XDG_DOWNLOAD_DIR="$__XORG_BASE_DIR/Downloads"
 
-# Uncomment following line if you want to disable autosetting terminal title.
-# export DISABLE_AUTO_TITLE="true"
+### Xorg Media directories
+__XORG_MEDIA_BASE_DIR="$__BASE_DIR/Xorg"
+export XDG_MUSIC_DIR="$__XORG_MEDIA_BASE_DIR/Music"
+export XDG_PICTURES_DIR="$__XORG_MEDIA_BASE_DIR/Pictures"
+export XDG_VIDEOS_DIR="$__XORG_MEDIA_BASE_DIR/Videos"
 
-# Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
-# Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(git textmate osx ruby)
+### Xorg Hidden directories
+__XORG_HIDDEN_BASE_DIR="$__XORG_BASE_DIR/Hidden"
+export XDG_CACHE_HOME="$__XORG_HIDDEN_BASE_DIR/Cache"
+export XDG_DATA_HOME="$__XORG_HIDDEN_BASE_DIR/Data"
+export XDG_STATE_HOME="$__XORG_HIDDEN_BASE_DIR/State"
 
-source $ZSH/oh-my-zsh.sh
+PATH="$PATH:"\
+"/usr/lib/jvm/java-11-graalvm/bin"
 
-# Customize to your needs...
-# added my path 2011.7.19
-export PATH=/usr/local/bin:/usr/local/apache-maven-2.2.1/bin:/usr/local/maven-1.1/bin:/Developer/android/android-sdk-mac_x86/tools:/usr/local/mysql/bin:/usr/local/sbin:~/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/X11/bin:/Users/mark/.rvm/bin
+# Store ZDOTDIR
+ZD=${ZDOTDIR:-$HOME}
 
-# added RVM stuff
-# load RVM
-[[ -s "$HOME/.rvm/scripts/rvm" ]] && . "$HOME/.rvm/scripts/rvm"
+# cd without cd
+setopt autocd
 
-# copied from .bash_aliases 2001.07.19
-# -------------------------------------------------------------------
-# some alias settings, just for fun
-# -------------------------------------------------------------------
-#alias 'today=calendar -A 0 -f ~/calendar/calendar.mark | sort'
-alias 'today=calendar -A 0 -f /usr/share/calendar/calendar.mark | sort'
-alias 'dus=du -sckx * | sort -nr'
-alias 'adventure=emacs -batch -l dunnet'
-alias 'mailsize=du -hs ~/Library/mail'
-alias 'bk=cd $OLDPWD'
-alias 'ttop=top -ocpu -R -F -s 2 -n30'
-alias lh='ls -a | egrep "^\."'
+# Unset some shit
+unsetopt beep extendedglob nomatch notify
 
-# -------------------------------------------------------------------
-# make some commands (potentially) less destructive
-# -------------------------------------------------------------------
-alias 'rm=rm -i'
+# Vim binds
+bindkey -v
 
-# -------------------------------------------------------------------
-# Jboss
-# -------------------------------------------------------------------
-alias 'startjboss=/usr/local/jboss-4.0.5.GA/bin/run.sh &'
-alias 'stopjboss=/usr/local/jboss-4.0.5.GA/bin/shutdown.sh --shutdown'
+# Set prompt
+PROMPT=" %2~ > "
 
-# -------------------------------------------------------------------
-# Mercurial (hg)
-# -------------------------------------------------------------------
-alias 'h=hg status'
-alias 'hc=hg commit'
-alias 'push=hg push'
-alias 'pull=hg pull'
-alias 'clone=hg clone'
+# Setup plugin manager
+ZINITDIR="$ZD/.zinit"
+if [[ ! -d $ZINITDIR ]]; then
+  echo " -- Installing zinit plugin manager --"
+  mkdir $ZINITDIR
+  git clone https://github.com/zdharma/zinit.git $ZINITDIR/bin
+fi
+. $ZINITDIR/bin/zinit.zsh
 
-# -------------------------------------------------------------------
-# Git
-# -------------------------------------------------------------------
-alias ga='git add'
-alias gp='git push'
-alias gl='git log'
-alias gs='git status'
-alias gd='git diff'
-alias gm='git commit -m'
-alias gma='git commit -am'
-alias gb='git branch'
-alias gc='git checkout'
-alias gra='git remote add'
-alias grr='git remote rm'
-alias gpu='git pull'
-alias gcl='git clone'
-alias gta='git tag -a -m'
-alias gf='git reflog'
+# Lazy load plugins
+zinit wait lucid for \
+ atinit"ZINIT[COMPINIT_OPTS]=-C; zicompinit; zicdreplay" \
+    zdharma/fast-syntax-highlighting \
+ blockf \
+    zsh-users/zsh-completions \
+ atload"!_zsh_autosuggest_start" \
+    zsh-users/zsh-autosuggestions
 
-# leverage an alias from the ~/.gitconfig
-alias gh='git hist'
+# Ngl can't remember what this does
+zstyle :compinstall filename '/home/l3af/.zshrc'
 
-# -------------------------------------------------------------------
-# Oddball stuff
-# -------------------------------------------------------------------
-alias 'sloc=/usr/local/sloccount/bin/sloccount'
+# Load completions
+autoload -Uz compinit
+compinit
 
-# necessary to make rake work inside of zsh
-alias rake="noglob rake"
+# Load more plugns (requried after compinit)
+zinit load hlissner/zsh-autopair
 
-# sort files in current directory by the number of words they contain
-alias 'wordy=wc -w * | sort | tail -n10'
-alias 'filecount=ls -aRF | wc -l'
-
-# -------------------------------------------------------------------
-# Functions ported directly from .bashrc
-# -------------------------------------------------------------------
-# turn hidden files on/off in Finder
-function hiddenOn() { defaults write com.apple.Finder AppleShowAllFiles YES ; }
-function hiddenOff() { defaults write com.apple.Finder AppleShowAllFiles NO ; }
-
-# postgres functions
-function psqlstart() { /usr/local/pgsql/bin/pg_ctl -D /usr/local/pgsql/data -l logfile start ; }
-function psqlstop() { /usr/local/pgsql/bin/pg_ctl stop ; }
-
-# view man pages in Preview
-function pman() { ps=`mktemp -t manpageXXXX`.ps ; man -t $@ > "$ps" ; open "$ps" ; }
-
-# apache tomcat functions
-function tomcatup() { /usr/local/tomcat/bin/startup.sh ; }
-function tomcatdown() { /usr/local/tomcat/bin/shutdown.sh ; }
-
-# nice mount (http://catonmat.net/blog/another-ten-one-liners-from-commandlingfu-explained)
-# displays mounted drive information in a nicely formatted manner
-function nicemount() { (echo "DEVICE PATH TYPE FLAGS" && mount | awk '$2="";1') | column -t ; }
-
-# myIP address
-function myip() {
-    ifconfig lo0 | grep 'inet ' | sed -e 's/:/ /' | awk '{print "lo0       : " $2}'
-	ifconfig en0 | grep 'inet ' | sed -e 's/:/ /' | awk '{print "en0 (IPv4): " $2 " " $3 " " $4 " " $5 " " $6}'
-	ifconfig en0 | grep 'inet6 ' | sed -e 's/ / /' | awk '{print "en0 (IPv6): " $2 " " $3 " " $4 " " $5 " " $6}'
-	ifconfig en1 | grep 'inet ' | sed -e 's/:/ /' | awk '{print "en1 (IPv4): " $2 " " $3 " " $4 " " $5 " " $6}'
-	ifconfig en1 | grep 'inet6 ' | sed -e 's/ / /' | awk '{print "en1 (IPv6): " $2 " " $3 " " $4 " " $5 " " $6}'
+# Automatically run ls after cding if less than 20 files
+function cd() {
+  builtin cd $@ && if (( $(ls | wc -l) < 20 )); then ls; fi
 }
 
-#
-## new functions
-#
-s() { pwd > ~/.save_dir ; }
-i() { cd "$(cat ~/.save_dir)" ; }
-
-#
-# finis
-# mhn 2011.7.19
+function paste() {
+  local file=${1:-/dev/stdin}
+  curl --data-binary @${file} https://paste.rs
+}

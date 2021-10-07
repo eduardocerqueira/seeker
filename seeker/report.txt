@@ -1,4 +1,51 @@
 --------------------------------------------------------------------------------
+ 2021-10-07 17:11:20.657034
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   snippet/.zshrc
+	deleted:    snippet/ExceptionResponse.java
+	deleted:    snippet/IndexCreationService.java
+	deleted:    snippet/ValidationErrorResponse.java
+	deleted:    snippet/Violation.java
+	deleted:    snippet/bash-random-password.sh
+	deleted:    snippet/cs.py
+	deleted:    snippet/get_tweets.py
+	deleted:    snippet/gistfile1.sh
+	deleted:    snippet/post-multiple-slack.py
+	deleted:    snippet/prepare-commit-msg.sh
+	deleted:    snippet/request_checker.py
+	deleted:    snippet/run.go
+	deleted:    snippet/search.py
+	deleted:    snippet/task
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/01_countup_groutines_num.go
+	snippet/02_send_and_receive.go
+	snippet/03_sleeping_sender.go
+	snippet/04_sleeping_sender.go
+	snippet/05_sleeping_receiver.go
+	snippet/06_deadlock_no_receiver.go
+	snippet/07_deadlock_no_sender.go
+	snippet/08_deadlock_all_goroutine_blocked.go
+	snippet/Task.java
+	snippet/bash_completion.bash
+	snippet/dir2org.sh
+	snippet/generate-ed25519-ssh-key.sh
+	snippet/getBDManzanas.py
+	snippet/gource_p4.sh
+	snippet/iterate.sh
+	snippet/mysql_secure.sh
+	snippet/tax-soln-num-internal-nodes.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2021-10-06 17:15:10.322954
 --------------------------------------------------------------------------------
   On branch main
