@@ -1,0 +1,61 @@
+#date: 2021-10-11T17:08:51Z
+#url: https://api.github.com/gists/170d90ddee3f28301754274c38b766c2
+#owner: https://api.github.com/users/joeljohnston
+
+#!/bin/bash
+# I Use this to quickly (1min-ish) install a vim editor with plugins on a new machine/instance
+#Remove any existing vi/vim
+sudo apt -y remove --purge vim vim-runtime vim-gnome vim-tiny vim-gui-common
+
+#Kill it with fire just in case
+sudo rm -rf /usr/local/share/vim /usr/bin/vim
+
+#Install all plugin prereqs
+sudo apt install -y liblua5.1-dev luajit libluajit-5.1-dev python3-dev python2.7-dev ruby-dev libperl-dev libncurses5-dev libatk1.0-dev libx11-dev libxpm-dev libxt-dev gcc make
+
+#Determine Python config dirs
+python3version1=`python3 --version | cut -d ' ' -f 2 | cut -d . -f 1`
+python3version2=`python3 --version | cut -d ' ' -f 2 | cut -d . -f 2`
+python3versionFull=${python3version1}.${python3version2}
+python3configdir="/usr/lib/python${python3versionFull}/config-${python3versionFull}-x86_64-linux-gnu"
+echo "Python3 Path: ${python3configdir}"
+
+#Clone the latest Vim Source
+git clone https://github.com/vim/vim ~/vimtemp
+cd ~/vimtemp
+git pull && git fetch
+cd src
+make distclean
+cd ..
+
+./configure \
+  --enable-multibyte \
+  --enable-perlinterp=dynamic \
+  --enable-rubyinterp=dynamic \
+  --with-ruby-command=/usr/bin/ruby \
+  --enable-pythoninterp \
+  --with-python-config-dir=/usr/lib/python2.7/config-x86_64-linux-gnu \
+  --with-python-command=/usr/bin/python2.7 \
+  --enable-python3interp \
+  --with-python3-config-dir=$python3configdir \
+  --with-python3-command=/usr/bin/python3 \
+  --enable-luainterp \
+  --with-luajit \
+  --enable-cscope \
+  --enable-gui=auto \
+  --with-features=huge \
+  --with-x \
+  --enable-fontset \
+  --enable-largefile \
+  --disable-netbeans \
+  --with-compiledby="yourname" \
+  --enable-fail-if-missing
+
+#Build n Install
+make && sudo make install
+sudo mv /usr/bin/vi /usr/bin/vi.old
+sudo ln -s /usr/local/bin/vim /usr/bin/vi
+
+#Install Vundle Latest
+mkdir -p ~/.vim/bundle/
+git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
