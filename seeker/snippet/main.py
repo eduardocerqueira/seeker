@@ -1,11 +1,7 @@
-#date: 2021-10-06T17:08:25Z
-#url: https://api.github.com/gists/3343d611717db1c15f241a29a4d20653
+#date: 2021-10-12T17:06:24Z
+#url: https://api.github.com/gists/d9b2893f3ece632daed18072a84708ca
 #owner: https://api.github.com/users/mypy-play
 
-from typing import Optional
-from dataclasses import dataclass
+from _typeshed import IdentityFunction
 
-
-@dataclass
-class A:
-    b: Optional[int] = ...
+reveal_type(IdentityFunction)
