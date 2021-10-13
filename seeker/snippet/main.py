@@ -1,7 +1,11 @@
-#date: 2021-10-12T17:06:24Z
-#url: https://api.github.com/gists/d9b2893f3ece632daed18072a84708ca
-#owner: https://api.github.com/users/mypy-play
+#date: 2021-10-13T17:08:33Z
+#url: https://api.github.com/gists/fd53fad5906503321b6dbb59b043ff31
+#owner: https://api.github.com/users/pschanely
 
-from _typeshed import IdentityFunction
 
-reveal_type(IdentityFunction)
+def counting_thing(n: int) -> int:
+  '''
+  post: __return__ != 3
+  '''
+  return n.bit_count()
+
