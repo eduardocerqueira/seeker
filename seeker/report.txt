@@ -1,4 +1,53 @@
 --------------------------------------------------------------------------------
+ 2021-10-18 17:18:14.959060
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/AddRemoveXMPMetadata_Java_Add.java
+	deleted:    snippet/AddRemoveXMPMetadata_Java_Read.java
+	deleted:    snippet/AddRemoveXMPMetadata_Java_Remove.java
+	deleted:    snippet/Course1Lab12N1.py
+	deleted:    snippet/Deadlock.java
+	deleted:    snippet/FilesActivity.java
+	deleted:    snippet/One Time Pad Key Generator.py
+	deleted:    snippet/Password Generator.py
+	deleted:    snippet/Pattern.java
+	deleted:    snippet/SyncThread.java
+	deleted:    snippet/ThreadingActivity.java
+	deleted:    snippet/arithmetique.py
+	deleted:    snippet/django_manager_problem.py
+	deleted:    snippet/encryptionPt2.java
+	modified:   snippet/game.py
+	deleted:    snippet/generate_directory_index_caddystyle.py
+	deleted:    snippet/main.py
+	deleted:    "snippet/root\\constinfo.py"
+	deleted:    "snippet/root\\game.py"
+	deleted:    "snippet/root\\interfacemodule.py"
+	deleted:    "snippet/root\\uiminimap.py"
+	deleted:    snippet/update-git.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/ArrayAssert.java
+	snippet/BankAccount.java
+	snippet/Translator.java
+	snippet/devoirs.py
+	snippet/execFile.py
+	snippet/execReturn.py
+	snippet/homebrew-change-user.sh
+	snippet/patch_and_reboot.py
+	snippet/public class LenghtOfAccountNumberException.java
+	snippet/pytest_mark_fixture.py
+	snippet/tracker.py
+	snippet/training_program.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2021-10-15 17:16:47.220036
 --------------------------------------------------------------------------------
   On branch main
