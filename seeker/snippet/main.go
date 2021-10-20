@@ -1,38 +1,53 @@
-//date: 2021-09-01T17:03:56Z
-//url: https://api.github.com/gists/543aef91187a0e68fe0e306c63b0f9ed
-//owner: https://api.github.com/users/takoikatakotako
+//date: 2021-10-20T17:00:07Z
+//url: https://api.github.com/gists/66a9a1541e542699e0fc6bdf9a91d67e
+//owner: https://api.github.com/users/christianfoleide
 
 package main
 
 import (
-	"encoding/json"
-	"io/ioutil"
-	"os"
+	"context"
 	"fmt"
 	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
-type Pokemon struct {
-	Id   int    `json:"id"`
-	Name string `json:"name"`
-}
-
 func main() {
-	// pokemon.json を読み込む
-	pokemonJsonFile, err := os.Open("pokemon.json")
-
-	// pokemon.json の読み込みに失敗した場合
-	if err != nil {
-		log.Fatal(err)
+	
+	mux := http.NewServeMux()
+	
+	mux.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(rw, "Hello, world!")
+	})
+	
+	srv := &http.Server{
+		Addr: "host:port",
+		Handler: mux,
+		ReadTimeout: time.Second * 5,
+		WriteTimeout: time.Second * 5,
+		IdleTimeout: time.Second * 120,
 	}
-
-	// defer で pokemonJsonFile を閉じる
-	defer pokemonJsonFile.Close()
-
-	// pokemonJsonFile を読み込みパースする
-	pokemonByteValue, _ := ioutil.ReadAll(pokemonJsonFile)
-	var pokemon Pokemon
-	json.Unmarshal(pokemonByteValue, &pokemon)
-
-	fmt.Println(pokemon.Id, pokemon.Name)	// 143 Snorlax
+	
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			if err != http.ErrServerClosed {
+				panic(err)
+			}
+		}
+	}()
+	
+	stopChan := make(chan os.Signal, 1)
+	signal.Notify(stopChan, syscall.SIGINT, syscall.SIGTERM)
+	
+	fmt.Printf("received signal: %+v", <-stopChan)
+	
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 30)
+	defer cancel()
+	
+	if err := srv.Shutdown(ctx); err != nil {
+		panic(err)	
+	}
 }
