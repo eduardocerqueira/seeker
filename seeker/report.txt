@@ -1,4 +1,46 @@
 --------------------------------------------------------------------------------
+ 2021-10-22 17:17:27.274389
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/Full_Code.py
+	deleted:    snippet/callapi.sh
+	deleted:    snippet/celery.sh
+	deleted:    snippet/dd_api.sh
+	deleted:    snippet/emr-master-ip.sh
+	deleted:    snippet/how_to_interpret_sensitivity.py
+	deleted:    snippet/ia_busca_star.py
+	deleted:    snippet/knn_regressao.py
+	deleted:    snippet/matplotlib_cosine.py
+	deleted:    snippet/matplotlib_pandas.py
+	deleted:    snippet/music_1.py
+	deleted:    snippet/pjdb.py
+	deleted:    snippet/synapse_actions.py
+	deleted:    snippet/troco.py
+	deleted:    snippet/update_certificate.py
+	deleted:    snippet/weighted_sampling_without_replacement.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/Connectivity.java
+	snippet/OOP_Uebung_01_Aufgabe03_Code.py
+	snippet/Templet.java
+	snippet/bird_species_stratified_split.py
+	snippet/build dockerfile.sh
+	snippet/entrypoint_nginx.sh
+	snippet/fp-skeleton.py
+	snippet/free_ports.sh
+	snippet/main.py
+	snippet/set heroku stack to container.sh
+	snippet/tailscale-install.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2021-10-21 17:19:38.005798
 --------------------------------------------------------------------------------
   On branch main
