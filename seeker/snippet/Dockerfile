@@ -1,13 +1,19 @@
-#date: 2021-09-30T17:06:23Z
-#url: https://api.github.com/gists/b585b346adb03c4ae26c76948737807b
-#owner: https://api.github.com/users/fladago
+#date: 2021-11-02T17:00:18Z
+#url: https://api.github.com/gists/7e7d9fb5f5ed75b9e14b570b4e5fe687
+#owner: https://api.github.com/users/jac18281828
 
-FROM golang:1.17.1-alpine3.14 AS build
-WORKDIR /src/
-COPY go.* /src/
-RUN go mod download
-COPY ./ /src/
-RUN CGO_ENABLED=0 go build -o /bin/demo
-FROM scratch
-COPY --from=build /bin/demo /bin/demo
-ENTRYPOINT [ "/bin/demo" ]
+ARG VERSION=110221
+
+FROM jac18281828/pythondev:${VERSION}
+
+# build project
+ARG PROJECT=subscribe
+WORKDIR /workspaces/${PROJECT}
+
+COPY requirements.txt .
+COPY apikey.key .
+COPY subscribe.py .
+RUN pip3 install --upgrade pip
+RUN pip3 install -r requirements.txt
+ENV PYTHONPATH=.
+CMD python3 subscribe.py apikey.key
