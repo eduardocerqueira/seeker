@@ -1,46 +1,28 @@
-#date: 2021-10-27T17:02:10Z
-#url: https://api.github.com/gists/bf856061904d29dae1d57c17a8ded8d4
-#owner: https://api.github.com/users/dougb
+#date: 2021-11-04T17:10:18Z
+#url: https://api.github.com/gists/4822c694b8e26cb59d9de19ba7cee8dd
+#owner: https://api.github.com/users/jummy123
 
-#!/usr/bin/env python3
-# Base on code from this SO answer https://stackoverflow.com/a/17945009
-from timeit import timeit
-from random import shuffle
+from brownie import *
 
-num = 10000
-# r = 7
+JOETROLLER_ADDRESS = 'dc13687554205E5b89Ac783db14bb5bba4A1eDaC'
 
-r = 10
-
-a = [x for x in range(r)]
-shuffle(a)
+JAVAX_ADDRESS = 'C22F01ddc8010Ee05574028528614634684EC29e'
 
 
-def in_test(iterable):
-     for i in a:
-         if i in iterable:
-             pass
+def main():
+    print('starting account balance: ', accounts[0].balance())
+    contract = FlashloanBorrower.deploy(
+        JOETROLLER_ADDRESS,
+        {'from': accounts[0]}
+    )   
+    print('Contract deployed address: ', contract)
 
+    contract.deposit({'from': accounts[0], 'value': 2e18})
+    print('contract balance ', contract.balance())
+    print('account[0] balance ', accounts[0].balance())
 
-st = timeit(
-    "in_test(iterable)",
-    setup=f"from __main__ import in_test; iterable = set(range({r}))",
-    number=num
-)
-print(f"Set:{st:2.6f} secs range:{r} iterations:{num}")
-
-lt = timeit(
-   "in_test(iterable)",
-    setup=f"from __main__ import in_test; iterable = list(range({r}))",
-    number=num
-)
-print(f"list:{lt:2.6f} secs range:{r} iterations:{num} set is {(lt/st):2.4f} faster.")
-
-
-
-tt = timeit(
-    "in_test(iterable)",
-    setup=f"from __main__ import in_test; iterable = tuple(range({r}))",
-    number=num
-)
-print(f"tuple:{tt:2.6f} secs range:{r} iterations:{num} set is {(tt/st):2.4f} faster.")
+    transaction = contract.doFlashloan(
+        JAVAX_ADDRESS,
+        200000000,
+        {'from': accounts[0]})
+    print('AVAX flash loan transaction sent: ', transaction.info())
