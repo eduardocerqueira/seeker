@@ -1,47 +1,19 @@
-#date: 2021-09-22T17:07:31Z
-#url: https://api.github.com/gists/cfd7979de8ab6f17f8fec144f0882a3d
-#owner: https://api.github.com/users/RaphaelGoutmann
+#date: 2021-11-05T16:49:17Z
+#url: https://api.github.com/gists/19895add83c5cd762d18e6721a2473bb
+#owner: https://api.github.com/users/treyhunner
 
-# rectangle.py
+class Rectangle:
 
-from gameobject import *
-
-class Rectangle(GameObject):
-
-    def __init__(self, name: str, x: int, y: int, width: int, height: int, backgroundColor = color.WHITE):
-        GameObject.__init__(self, name, x, y)
-        self.width, self.height = width, height
-        self.backgroundColor = backgroundColor
-
-    # dimensions 
-
-    def getDimensions(self):
-        return (self.width, self.height)
-
-    def setDimensions(self, width, height):
+    def __init__(self, width, height):
         self.width, self.height = width, height
 
-    def setWidth(self, width: int):
-        self.width = width
+    def __repr__(self):
+        return f"Rectangle({self.width}, {self.height})"
+ 
+    @property
+    def area(self):
+        return self.width * self.height
 
-    def getWidth(self) -> int:
-        return self.width
-
-    def setHeight(self, height: int):
-        self.height = height
-
-    def getHeight(self) -> int:
-        return self.height
-
-    # backgroundColor
-
-    def getBackgroundColor(self):
-        return self.backgroundColor
-
-    def setBackgroundColor(self, backgroundColor):
-        self.backgroundColor = backgroundColor
-
-    # draw
-
-    def draw(self):
-        fill_rect(self.x, self.y, self.width, self.height, self.backgroundColor)
+    @area.setter
+    def area(self, area):
+        self.width *= area/self.area
