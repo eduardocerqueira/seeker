@@ -1,53 +1,62 @@
-//date: 2021-10-20T17:00:07Z
-//url: https://api.github.com/gists/66a9a1541e542699e0fc6bdf9a91d67e
-//owner: https://api.github.com/users/christianfoleide
+//date: 2021-11-08T17:07:48Z
+//url: https://api.github.com/gists/99a9763717b25122aaa5360f6ed31832
+//owner: https://api.github.com/users/dongxuny
 
+// Copyright (c) 2021 rookie-ninja
+//
+// Use of this source code is governed by an Apache-style
+// license that can be found in the LICENSE file.
 package main
 
 import (
 	"context"
 	"fmt"
-	"log"
+	"github.com/gin-gonic/gin"
+	"github.com/rookie-ninja/rk-boot"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 )
 
+// @title RK Swagger for Gin
+// @version 1.0
+// @description This is a greeter service with rk-boot.
+
+// @securityDefinitions.basic BasicAuth
+
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name X-API-Key
+
+// Application entrance.
 func main() {
-	
-	mux := http.NewServeMux()
-	
-	mux.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(rw, "Hello, world!")
+	// Create a new boot instance.
+	boot := rkboot.NewBoot()
+
+	// Register handler
+	boot.GetGinEntry("greeter").Router.GET("/v1/greeter", Greeter)
+
+	// Bootstrap
+	boot.Bootstrap(context.Background())
+
+	// Wait for shutdown sig
+	boot.WaitForShutdownSig(context.Background())
+}
+
+// @Summary Greeter service
+// @Id 1
+// @version 1.0
+// @produce application/json
+// @Param name query string true "Input name"
+// @Security ApiKeyAuth
+// @Security BasicAuth
+// @Success 200 {object} GreeterResponse
+// @Router /v1/greeter [get]
+func Greeter(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, &GreeterResponse{
+		Message: fmt.Sprintf("Hello %s!", ctx.Query("name")),
 	})
-	
-	srv := &http.Server{
-		Addr: "host:port",
-		Handler: mux,
-		ReadTimeout: time.Second * 5,
-		WriteTimeout: time.Second * 5,
-		IdleTimeout: time.Second * 120,
-	}
-	
-	go func() {
-		if err := srv.ListenAndServe(); err != nil {
-			if err != http.ErrServerClosed {
-				panic(err)
-			}
-		}
-	}()
-	
-	stopChan := make(chan os.Signal, 1)
-	signal.Notify(stopChan, syscall.SIGINT, syscall.SIGTERM)
-	
-	fmt.Printf("received signal: %+v", <-stopChan)
-	
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 30)
-	defer cancel()
-	
-	if err := srv.Shutdown(ctx); err != nil {
-		panic(err)	
-	}
+}
+
+// Response.
+type GreeterResponse struct {
+	Message string
 }
