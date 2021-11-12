@@ -1,4 +1,48 @@
 --------------------------------------------------------------------------------
+ 2021-11-12 17:18:11.510143
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/RTPCommand.java
+	deleted:    snippet/Testt.java
+	deleted:    snippet/age calc.py
+	deleted:    snippet/flagr.py
+	deleted:    snippet/marcload_utils.py
+	deleted:    snippet/photopileetdveloppementdurablepy.py
+	deleted:    snippet/random_forest.py
+	deleted:    snippet/read_explore_data.py
+	deleted:    snippet/rpc.py
+	deleted:    snippet/stupid_queue.sh
+	deleted:    snippet/text_replacement.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/ApiForce.java
+	snippet/AppControllerPart1.java
+	snippet/Benchmark.py
+	snippet/HesapMakinesi.java
+	snippet/bday_probability.py
+	snippet/convert_ter.py
+	snippet/global keyword.py
+	snippet/hello.java
+	snippet/make-the-request.sh
+	snippet/nonlocal 2.py
+	snippet/nonlocal.py
+	snippet/pdns-slave-zone-cleanup-sqlite3.sh
+	snippet/pi-pwm-fan.py
+	snippet/python-temel-proje.py
+	snippet/replace_cam_phis.py
+	snippet/script.sh
+	snippet/stay_awake.py
+	snippet/trick 1.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2021-11-11 17:18:47.591913
 --------------------------------------------------------------------------------
   On branch main
