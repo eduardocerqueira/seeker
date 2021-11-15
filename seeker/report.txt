@@ -1,4 +1,51 @@
 --------------------------------------------------------------------------------
+ 2021-11-15 17:18:47.183367
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/ApiForce.java
+	deleted:    snippet/AppControllerPart1.java
+	deleted:    snippet/Benchmark.py
+	deleted:    snippet/HesapMakinesi.java
+	deleted:    snippet/bday_probability.py
+	deleted:    snippet/convert_ter.py
+	deleted:    snippet/global keyword.py
+	deleted:    snippet/hello.java
+	deleted:    snippet/make-the-request.sh
+	deleted:    snippet/nonlocal 2.py
+	deleted:    snippet/nonlocal.py
+	deleted:    snippet/pdns-slave-zone-cleanup-sqlite3.sh
+	deleted:    snippet/pi-pwm-fan.py
+	deleted:    snippet/python-temel-proje.py
+	deleted:    snippet/replace_cam_phis.py
+	deleted:    snippet/script.sh
+	deleted:    snippet/stay_awake.py
+	deleted:    snippet/trick 1.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/CodeSwipeSnippet.go
+	snippet/CodeSwipeSnippet.java
+	snippet/androidResize.sh
+	snippet/constants.py
+	snippet/filereader.py
+	snippet/gradient_centralization.py
+	snippet/main.py
+	snippet/rename.sh
+	snippet/shadded_contour.py
+	snippet/standard_init_linux.go
+	snippet/tables.py
+	snippet/tfpractice.py
+	snippet/view.py
+	snippet/vm_clone.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2021-11-12 17:18:11.510143
 --------------------------------------------------------------------------------
   On branch main
