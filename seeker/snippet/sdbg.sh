@@ -2,7 +2,7 @@
 #url: https://api.github.com/gists/1041e0384619d948e3590190b86584fc
 #owner: https://api.github.com/users/Luiz-Monad
 
-#! /bin/sh
+#!/bin/sh
 
-/usr/sbin/sshd &
-dotnet /app/server/Server.dll
+export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
+/dbg/vsdbg
