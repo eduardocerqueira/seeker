@@ -1,4 +1,38 @@
 --------------------------------------------------------------------------------
+ 2021-11-18 17:16:55.356836
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/CodeSwipeSnippet.go
+	deleted:    snippet/CodeSwipeSnippet.java
+	deleted:    snippet/androidResize.sh
+	deleted:    snippet/constants.py
+	deleted:    snippet/filereader.py
+	deleted:    snippet/gradient_centralization.py
+	deleted:    snippet/main.py
+	deleted:    snippet/rename.sh
+	deleted:    snippet/shadded_contour.py
+	deleted:    snippet/standard_init_linux.go
+	deleted:    snippet/tables.py
+	deleted:    snippet/tfpractice.py
+	deleted:    snippet/view.py
+	deleted:    snippet/vm_clone.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/Youtube-dl-filename.sh
+	snippet/bash.sh
+	snippet/example.sh
+	snippet/windscribebuild.sh
+	snippet/youtube-playlist.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2021-11-17 17:16:11.981238
 --------------------------------------------------------------------------------
   On branch main
