@@ -1,0 +1,53 @@
+#date: 2021-11-19T17:13:27Z
+#url: https://api.github.com/gists/04a06dadb1b6cce9b1ba0c604b2b7958
+#owner: https://api.github.com/users/ngonkalves
+
+#!/bin/bash
+#########################################
+# Source: https://peekread.info/tech/20190716-ssh-login-notifications-with-gotify/
+#
+# file path:
+# /usr/local/bin/ssh-gotify-notif
+###############################################################
+#
+# Run the command to make it executable
+# #chmod +x /usr/local/bin/ssh-gotify-notif
+#
+# In the file /etc/pam.d/sshd add the following line
+#
+# # note optional is set to prevent ssh login failure
+# session optional pam_exec.so /usr/local/bin/ssh-gotify-notif
+###############################################################
+
+exec &> /dev/null #Hide output
+
+Gotify_URL='https://example.tld/gotify'
+Gotify_Token='gotify-app-token'
+
+notify() {
+
+        now=$(date -d "-60 seconds" +%s) #Get current time minus 60 seconds
+        end=$((SECONDS+30)) #Set 30s Timeout for loop
+
+        while [ $SECONDS -lt $end ]; do
+
+                SSHdate=$(date -d "$(who |grep pts|tail -1 | awk '{print $3, $4}')" +%s) #Check for the latest SSH session
+
+                if [ $SSHdate -ge $now ]; then #Once who is updated continue with sending Notification
+
+                        title="SSH Login for $(/bin/hostname -f)"
+                        message="$(/usr/bin/who | grep pts)"
+
+                        /usr/bin/curl -X POST -s \
+                                -F "title=${title}" \
+                                -F "message=${message}" \
+                                -F "priority=5" \
+                                "${Gotify_URL}/message?token=${Gotify_Token}"
+
+                        break
+                fi
+        done
+
+}
+
+notify & #Run in background to prevent holding up the login process
