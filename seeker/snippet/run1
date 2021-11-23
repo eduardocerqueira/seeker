@@ -1,0 +1,20 @@
+#date: 2021-11-23T17:11:33Z
+#url: https://api.github.com/gists/77970ac1f27ebe08388b961e99011fc2
+#owner: https://api.github.com/users/livecode-bot
+
+#!/bin/bash
+set -e -v
+
+### PICK VERSION
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+export PATH=$JAVA_HOME/bin:$PATH
+
+### CHECK VERSION
+java -version
+
+### COMPILE
+cat $1 >Unsound.java
+javac Unsound.java
+
+### RUN
+java Unsound
