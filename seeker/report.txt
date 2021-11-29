@@ -1,4 +1,57 @@
 --------------------------------------------------------------------------------
+ 2021-11-29 17:19:32.725380
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/HttpClientExample.java
+	deleted:    snippet/MaybeMultiple.java
+	deleted:    snippet/coliisoihn oain .py
+	deleted:    snippet/download_latest_docker_compose.sh
+	deleted:    snippet/image_steganography.py
+	deleted:    snippet/neoguess.py
+	deleted:    snippet/panorama-process-media-fix.py
+	deleted:    snippet/panorama-yolox-postprocess.py
+	deleted:    snippet/panorama-yolox-preprocess.py
+	deleted:    snippet/parsing_known_output.py
+	deleted:    snippet/your_templatetags_file.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/Dockerfile
+	snippet/Prefix sum.java
+	snippet/bench_knn_scalability.py
+	snippet/better_try_except.py
+	snippet/corona-schleswig-flensburg.py
+	snippet/henis.sh
+	snippet/json_dot_notation_accessor.py
+	snippet/question17.py
+	snippet/question18.py
+	snippet/question19.py
+	snippet/question21.py
+	snippet/question22.py
+	snippet/question24.py
+	snippet/question25.py
+	snippet/question26.py
+	snippet/question27.py
+	snippet/question28.py
+	snippet/question29.py
+	snippet/question30.py
+	snippet/question43.py
+	snippet/run.sh
+	snippet/show_icons.py
+	snippet/subscribe_filter.py
+	snippet/suri.sh
+	snippet/udp.go
+	snippet/us_state_abbrev.py
+	snippet/wine_colors_from_gtk.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2021-11-26 17:18:28.016935
 --------------------------------------------------------------------------------
   On branch main

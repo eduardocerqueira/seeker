@@ -1,0 +1,30 @@
+#date: 2021-11-29T16:56:22Z
+#url: https://api.github.com/gists/4a3e32848fba919f8c4b328920034506
+#owner: https://api.github.com/users/pigmonchu
+
+['Three',
+ 'Rings',
+ 'for',
+ 'the',
+ 'Elven',
+ 'Lords',
+ 'under',
+ 'the',
+ 'Sky',
+ 'Seven',
+ 'for',
+ 'the',
+ 'Dwarf',
+ 'Lords',
+ 'in',
+ 'their',
+ 'halls',
+ 'of',
+ 'Stone',
+ 'Nine',
+ 'for',
+ 'Mortal',
+ 'Men',
+ 'doomed',
+ 'to',
+ 'die']
