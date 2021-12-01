@@ -1,36 +1,40 @@
-#date: 2021-11-30T17:12:50Z
-#url: https://api.github.com/gists/ab83fa66c36d27f6f87e2b711241c73c
-#owner: https://api.github.com/users/elydev01
+#date: 2021-12-01T17:09:04Z
+#url: https://api.github.com/gists/f6f7e5ddb30f56291db3b0c67945da64
+#owner: https://api.github.com/users/mypy-play
 
-import time, os
-from pydub import AudioSegment
-from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
+from typing import Dict, List, Any
+import select
+import sys
+
+class _epoll():
+		""" #!if windows
+		Create a epoll() implementation that simulates the epoll() behavior.
+		This so that the rest of the code doesn't need to worry weither we're using select() or epoll().
+		"""
+		def __init__(self) -> None:
+			self.sockets: Dict[str, Any] = {}
+			self.monitoring: Dict[int, Any] = {}
+
+		def unregister(self, fileno :int, *args :List[Any], **kwargs :Dict[str, Any]) -> None:
+			try:
+				del(self.monitoring[fileno])
+			except:
+				pass
+
+		def register(self, fileno :int, *args :List[Any], **kwargs :Dict[str, Any]) -> None:
+			self.monitoring[fileno] = True
+
+		def poll(self, timeout: float = 0.05, *args :List[Any], **kwargs :Dict[str, Any]) -> List[Any]:
+			try:
+				return [[fileno, 1] for fileno in select.select(list(self.monitoring.keys()), [], [], timeout)[0]]
+			except OSError:
+				return []
 
 
-VIDEO_EXTENSIONS = ["MP4","MOV","WMV","AVI","AVCHD","FLV","F4V","SWF","MKV","WEBM"]
-AUDIO_EXTENSIONS = ["MP3","M4A","WAV","WMA","AAC","FLAC"]
-
-
-files_path = input('Indicate source file: ')
-file_path, file = os.path.split(files_path)
-file_name, _extension = os.path.splitext(file)
-extension = _extension.lstrip(".")
-
-duration = int(input("Duration (in seconds): "))
-
-startTime = 0
-
-targetname = f'{file_name}-extract-{time.strftime("%d%Y%m%M%H%S")}.{extension}'
-
-
-if extension.upper() in AUDIO_EXTENSIONS:
-    endTime = duration * 1000
-    song = AudioSegment.from_file(files_path)
-    extract = song[startTime:endTime]
-
-    if extension.lower() == "m4a":
-        extension = "ipod"
-    extract.export(targetname, format=extension.lower())
+if sys.platform != "win32":
+	from select import epoll, EPOLLIN, EPOLLHUP
 else:
-    endTime = duration / 60
-    ffmpeg_extract_subclip(files_path, startTime, endTime, targetname=targetname)
+	EPOLLIN: Final = 0
+	EPOLLHUP: Final = 0
+	epoll = _epoll
+	select.__dict__['epoll'] = _epoll
