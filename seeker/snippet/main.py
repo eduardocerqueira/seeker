@@ -1,40 +1,51 @@
-#date: 2021-12-01T17:09:04Z
-#url: https://api.github.com/gists/f6f7e5ddb30f56291db3b0c67945da64
+#date: 2021-12-02T16:47:26Z
+#url: https://api.github.com/gists/d5c65cf0752e54b72252256aff9de8f7
 #owner: https://api.github.com/users/mypy-play
 
-from typing import Dict, List, Any
-import select
-import sys
-
-class _epoll():
-		""" #!if windows
-		Create a epoll() implementation that simulates the epoll() behavior.
-		This so that the rest of the code doesn't need to worry weither we're using select() or epoll().
-		"""
-		def __init__(self) -> None:
-			self.sockets: Dict[str, Any] = {}
-			self.monitoring: Dict[int, Any] = {}
-
-		def unregister(self, fileno :int, *args :List[Any], **kwargs :Dict[str, Any]) -> None:
-			try:
-				del(self.monitoring[fileno])
-			except:
-				pass
-
-		def register(self, fileno :int, *args :List[Any], **kwargs :Dict[str, Any]) -> None:
-			self.monitoring[fileno] = True
-
-		def poll(self, timeout: float = 0.05, *args :List[Any], **kwargs :Dict[str, Any]) -> List[Any]:
-			try:
-				return [[fileno, 1] for fileno in select.select(list(self.monitoring.keys()), [], [], timeout)[0]]
-			except OSError:
-				return []
+from typing_extensions import Literal
+from typing import Tuple, Union
+from typing import overload
 
 
-if sys.platform != "win32":
-	from select import epoll, EPOLLIN, EPOLLHUP
-else:
-	EPOLLIN: Final = 0
-	EPOLLHUP: Final = 0
-	epoll = _epoll
-	select.__dict__['epoll'] = _epoll
+
+@overload
+def bar(name: str, *, return_length: Literal[True] = ...) -> Tuple[str, int]:
+    ...
+
+@overload
+def bar(name: str, *, return_length: Literal[False]) -> str:
+    ...
+    
+@overload
+def bar(name: str, *, return_length: bool = ...) -> Union[str, Tuple[str, int]]:
+    ...
+
+def bar(name: str, *, return_length: bool = True) -> Union[str, Tuple[str, int]]:
+    if return_length:
+        return name, len(name)
+    else:
+        return name
+
+
+x = bar("anthonk", return_length=True)
+reveal_type(x)  # Revealed type is "Tuple[builtins.str, builtins.int]" (as expected)
+y = bar("anthonk", return_length=False)
+reveal_type(y)  # Revealed type is "builtins.str" (as expected)
+
+
+@overload
+def baz(name: str, *, return_length: Literal[True] = ...) -> Tuple[str, int]:
+    ...
+
+@overload
+def baz(name: str, *, return_length: Literal[False]) -> str:
+    ...
+    
+@overload
+def baz(name: str, *, return_length: bool) -> Union[str, Tuple[str, int]]:
+    ...
+
+def baz(name: str, *, return_length: bool = True) -> Union[str, Tuple[str, int]]:
+    new_name = name.upper()
+    result = bar(new_name, return_length=return_length)  # mypy throws this : No overload variant of "bar" matches argument types "str", "bool"
+    return result

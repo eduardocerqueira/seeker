@@ -1,4 +1,65 @@
 --------------------------------------------------------------------------------
+ 2021-12-02 17:19:30.150868
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/Prefix sum.java
+	deleted:    snippet/bench_knn_scalability.py
+	deleted:    snippet/better_try_except.py
+	deleted:    snippet/corona-schleswig-flensburg.py
+	deleted:    snippet/henis.sh
+	deleted:    snippet/json_dot_notation_accessor.py
+	modified:   snippet/main.py
+	deleted:    snippet/question17.py
+	deleted:    snippet/question18.py
+	deleted:    snippet/question19.py
+	deleted:    snippet/question21.py
+	deleted:    snippet/question22.py
+	deleted:    snippet/question24.py
+	deleted:    snippet/question25.py
+	deleted:    snippet/question26.py
+	deleted:    snippet/question27.py
+	deleted:    snippet/question28.py
+	deleted:    snippet/question29.py
+	deleted:    snippet/question30.py
+	deleted:    snippet/question43.py
+	deleted:    snippet/run.sh
+	deleted:    snippet/show_icons.py
+	deleted:    snippet/subscribe_filter.py
+	deleted:    snippet/suri.sh
+	deleted:    snippet/udp.go
+	deleted:    snippet/us_state_abbrev.py
+	deleted:    snippet/wine_colors_from_gtk.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/AstractFactory.java
+	snippet/cinema.py
+	snippet/crawler.py
+	snippet/django-transitions.py
+	snippet/feature_interaction_correlation.py
+	snippet/fm_gen.go
+	snippet/fmgen_src.go
+	snippet/fnm-arm64.sh
+	snippet/functions.java
+	snippet/heenna.py
+	snippet/m_s.py
+	snippet/m_snumworksversion.py
+	snippet/nouveau.py
+	snippet/order-model.py
+	snippet/order-status.py
+	snippet/proxy.sh
+	snippet/relatable.java
+	snippet/replaceJSONTags.py
+	snippet/upgrade-15.4-alpha.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2021-12-01 17:20:07.434190
 --------------------------------------------------------------------------------
   On branch main
