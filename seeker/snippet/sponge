@@ -1,0 +1,34 @@
+#date: 2021-12-03T17:07:18Z
+#url: https://api.github.com/gists/1f19d031989e146fcc77aa237ea84cde
+#owner: https://api.github.com/users/Matroxt
+
+#!/bin/sh
+append=false
+
+while getopts 'a' opt; do
+    case $opt in
+        a) append=true ;;
+        *) echo error; exit 1
+    esac
+done
+shift "$(( OPTIND - 1 ))"
+
+outfile=$1
+
+tmpfile=$(mktemp "$(dirname "$outfile")/tmp-sponge.XXXXXXXX") &&
+cat >"$tmpfile" &&
+if "$append"; then
+    cat "$tmpfile" >>"$outfile"
+else
+    if [ -f "$outfile" ]; then
+        chmod --reference="$outfile" "$tmpfile"
+    fi
+    if [ -f "$outfile" ]; then
+        mv "$tmpfile" "$outfile"
+    elif [ -n "$outfile" ] && [ ! -e "$outfile" ]; then
+        cat "$tmpfile" >"$outfile"
+    else
+        cat "$tmpfile"
+    fi
+fi &&
+rm -f "$tmpfile"

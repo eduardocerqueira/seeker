@@ -1,51 +1,52 @@
-#date: 2021-12-02T16:47:26Z
-#url: https://api.github.com/gists/d5c65cf0752e54b72252256aff9de8f7
-#owner: https://api.github.com/users/mypy-play
+#date: 2021-12-03T17:08:17Z
+#url: https://api.github.com/gists/bde6495826835d6154d01e69545c1726
+#owner: https://api.github.com/users/k8scat
 
-from typing_extensions import Literal
-from typing import Tuple, Union
-from typing import overload
+import random
+import string
+import time
 
-
-
-@overload
-def bar(name: str, *, return_length: Literal[True] = ...) -> Tuple[str, int]:
-    ...
-
-@overload
-def bar(name: str, *, return_length: Literal[False]) -> str:
-    ...
-    
-@overload
-def bar(name: str, *, return_length: bool = ...) -> Union[str, Tuple[str, int]]:
-    ...
-
-def bar(name: str, *, return_length: bool = True) -> Union[str, Tuple[str, int]]:
-    if return_length:
-        return name, len(name)
-    else:
-        return name
+from selenium import webdriver
+from selenium.webdriver.chrome.webdriver import WebDriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webelement import WebElement
 
 
-x = bar("anthonk", return_length=True)
-reveal_type(x)  # Revealed type is "Tuple[builtins.str, builtins.int]" (as expected)
-y = bar("anthonk", return_length=False)
-reveal_type(y)  # Revealed type is "builtins.str" (as expected)
+def wait(d: WebDriver):
+    d.implicitly_wait(30)
 
 
-@overload
-def baz(name: str, *, return_length: Literal[True] = ...) -> Tuple[str, int]:
-    ...
+def main():
+    driver = webdriver.Chrome()
 
-@overload
-def baz(name: str, *, return_length: Literal[False]) -> str:
-    ...
-    
-@overload
-def baz(name: str, *, return_length: bool) -> Union[str, Tuple[str, int]]:
-    ...
+    try:
+        driver.get('http://192.168.8.1/html/index.html')
+        wait(driver)
 
-def baz(name: str, *, return_length: bool = True) -> Union[str, Tuple[str, int]]:
-    new_name = name.upper()
-    result = bar(new_name, return_length=return_length)  # mypy throws this : No overload variant of "bar" matches argument types "str", "bool"
-    return result
+        # login hilink
+        password_input: WebElement = driver.find_element(by=By.ID, value='login_password')
+        password_input.send_keys('Holdon@7868')
+        login_btn: WebElement = driver.find_element(by=By.ID, value='login_btn')
+        login_btn.click()
+        time.sleep(5)
+
+        driver.get('http://192.168.8.1/html/content.html#wifieasy')
+        wait(driver)
+
+        # update wifi password
+        wifi_password_input: WebElement = driver.find_element(by=By.ID, value='wifi_2g_wpa_key')
+        wifi_password_input.clear()
+        wifi_random_password = ''.join(random.sample(string.digits + string.ascii_letters, 20))
+        print(wifi_random_password)
+        wifi_password_input.send_keys(wifi_random_password)
+        wifisettings_save_btn: WebElement = driver.find_element(by=By.ID, value='wifi_btn_save')
+        wifisettings_save_btn.click()
+
+        time.sleep(10)
+    finally:
+        print('Closing driver')
+        driver.quit()
+
+
+if __name__ == '__main__':
+    main()
