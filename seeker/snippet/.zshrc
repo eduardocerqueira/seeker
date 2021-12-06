@@ -1,91 +1,49 @@
-#date: 2021-10-07T16:52:47Z
-#url: https://api.github.com/gists/1db5a92174aae00b12a54420dbb050f3
-#owner: https://api.github.com/users/L3afMe
+#date: 2021-12-06T17:08:38Z
+#url: https://api.github.com/gists/fd29b54de6423448af274e77437e23b5
+#owner: https://api.github.com/users/cereda
 
-# Setup directories
-__BASE_DIR="$HOME/Public"
+# directory to store all antigen stuff -- optional,
+# I just like to keep things out of my home dir
+ADOTDIR=/opt/paulo/applications/antigen/payload
 
-## Config directory
-export XDG_CONFIG_HOME="$__BASE_DIR/Config"
+# source to the antigen script, obtained from
+# curl -L git.io/antigen > antigen.zsh
+source /opt/paulo/applications/antigen/antigen.zsh
 
-## Misc directories
-__MISC_BASE_DIR="$__BASE_DIR/Etc"
-export POWERCORD_DIR="$__BASE_DIR/Programs/powercord"
-export GOPATH="$__MISC_BASE_DIR/Go"
-export PYTHONUSERBASE="$__MISC_BASE_DIR/Python"
+# tell antigen to use the omz framework
+antigen use oh-my-zsh
 
-## Xorg directories
-__XORG_BASE_DIR="$__BASE_DIR/Xorg"
+# set the theme, antigen will fetch it for us
+antigen theme spaceship-prompt/spaceship-prompt
 
-### Xorg User directories
-export XDG_DESKTOP_DIR="$__XORG_BASE_DIR/Documents"
-export XDG_DOCUMENTS_DIR="$__XORG_BASE_DIR/Documents"
-export XDG_DOWNLOAD_DIR="$__XORG_BASE_DIR/Downloads"
+# these are plugins from omz
+antigen bundle git
+antigen bundle colored-man-pages
+antigen bundle colorize
+antigen bundle common-aliases
+antigen bundle copyfile
 
-### Xorg Media directories
-__XORG_MEDIA_BASE_DIR="$__BASE_DIR/Xorg"
-export XDG_MUSIC_DIR="$__XORG_MEDIA_BASE_DIR/Music"
-export XDG_PICTURES_DIR="$__XORG_MEDIA_BASE_DIR/Pictures"
-export XDG_VIDEOS_DIR="$__XORG_MEDIA_BASE_DIR/Videos"
+# these are custom plugins from GitHub repos
+antigen bundle zsh-users/zsh-syntax-highlighting
+antigen bundle zsh-users/zsh-autosuggestions
 
-### Xorg Hidden directories
-__XORG_HIDDEN_BASE_DIR="$__XORG_BASE_DIR/Hidden"
-export XDG_CACHE_HOME="$__XORG_HIDDEN_BASE_DIR/Cache"
-export XDG_DATA_HOME="$__XORG_HIDDEN_BASE_DIR/Data"
-export XDG_STATE_HOME="$__XORG_HIDDEN_BASE_DIR/State"
+# then I simply apply antigen
+antigen apply
 
-PATH="$PATH:"\
-"/usr/lib/jvm/java-11-graalvm/bin"
+# my general omz customization
+CASE_SENSITIVE="true"
+DISABLE_AUTO_UPDATE="true"
+COMPLETION_WAITING_DOTS="true"
 
-# Store ZDOTDIR
-ZD=${ZDOTDIR:-$HOME}
+# this is for the spaceship theme -- I like
+# to have those shown in my terminal
+SPACESHIP_USER_SHOW=always
+SPACESHIP_HOST_SHOW=always
 
-# cd without cd
-setopt autocd
-
-# Unset some shit
-unsetopt beep extendedglob nomatch notify
-
-# Vim binds
-bindkey -v
-
-# Set prompt
-PROMPT=" %2~ > "
-
-# Setup plugin manager
-ZINITDIR="$ZD/.zinit"
-if [[ ! -d $ZINITDIR ]]; then
-  echo " -- Installing zinit plugin manager --"
-  mkdir $ZINITDIR
-  git clone https://github.com/zdharma/zinit.git $ZINITDIR/bin
+# fortune cookies, yay!
+if [ -f /usr/bin/fortune ]; then
+    /usr/bin/fortune
 fi
-. $ZINITDIR/bin/zinit.zsh
 
-# Lazy load plugins
-zinit wait lucid for \
- atinit"ZINIT[COMPINIT_OPTS]=-C; zicompinit; zicdreplay" \
-    zdharma/fast-syntax-highlighting \
- blockf \
-    zsh-users/zsh-completions \
- atload"!_zsh_autosuggest_start" \
-    zsh-users/zsh-autosuggestions
-
-# Ngl can't remember what this does
-zstyle :compinstall filename '/home/l3af/.zshrc'
-
-# Load completions
-autoload -Uz compinit
-compinit
-
-# Load more plugns (requried after compinit)
-zinit load hlissner/zsh-autopair
-
-# Automatically run ls after cding if less than 20 files
-function cd() {
-  builtin cd $@ && if (( $(ls | wc -l) < 20 )); then ls; fi
-}
-
-function paste() {
-  local file=${1:-/dev/stdin}
-  curl --data-binary @${file} https://paste.rs
-}
+# to update everything (theme and plugins)
+# just run antigen update

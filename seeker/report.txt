@@ -1,4 +1,71 @@
 --------------------------------------------------------------------------------
+ 2021-12-06 17:10:34.564593
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   snippet/.zshrc
+	deleted:    snippet/FastExponentiation.java
+	deleted:    snippet/Google.py
+	deleted:    snippet/MainActivity.java
+	deleted:    snippet/MyApp.java
+	deleted:    snippet/__init__.py
+	deleted:    snippet/_internal.py
+	deleted:    snippet/build_libqalculate.sh
+	deleted:    snippet/cli.py
+	deleted:    snippet/config.py
+	deleted:    snippet/enviar_email.py
+	deleted:    snippet/fastgql.py
+	deleted:    snippet/formatter.py
+	deleted:    snippet/future.py
+	deleted:    snippet/gather.py
+	deleted:    snippet/get_url.py
+	deleted:    snippet/gistfile1.sh
+	deleted:    snippet/goroutines.go
+	deleted:    snippet/goroutines_without_races.go
+	deleted:    snippet/headers_cookies.py
+	deleted:    snippet/help_omg.py
+	deleted:    snippet/idealtest.java
+	deleted:    snippet/importcompletion.py
+	deleted:    snippet/install.sh
+	deleted:    snippet/keys.py
+	deleted:    snippet/main.py
+	deleted:    snippet/maxProfit.py
+	deleted:    snippet/pager.py
+	deleted:    snippet/post.py
+	deleted:    snippet/rcp_server.go
+	deleted:    snippet/recover1.go
+	deleted:    snippet/reddit.py
+	deleted:    snippet/responses.py
+	deleted:    snippet/run.sh
+	deleted:    snippet/simple_channels.go
+	deleted:    snippet/sponge
+	deleted:    snippet/status_code.py
+	deleted:    snippet/tasks.py
+	deleted:    snippet/time_test.py
+	deleted:    snippet/unbuffered_buffered_channels.go
+	deleted:    snippet/unikey_and_colemak.sh
+	deleted:    snippet/value_or_pointer_receivers.go
+	deleted:    snippet/workers_with_fatal_error.go
+	deleted:    snippet/workers_without_fatal_error.go
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/Tree.java
+	snippet/conda.py
+	snippet/day6.py
+	snippet/leap-seconds.py
+	snippet/pandas-explode.py
+	snippet/postgres_array.go
+	snippet/titanium_aliases.zsh
+	snippet/with_tabulate.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2021-12-03 17:19:31.383851
 --------------------------------------------------------------------------------
   On branch main
