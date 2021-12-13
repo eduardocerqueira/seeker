@@ -1,0 +1,54 @@
+#date: 2021-12-13T17:07:00Z
+#url: https://api.github.com/gists/c7c77a12c287c96182f3c036836ad531
+#owner: https://api.github.com/users/campolloram
+
+#!/usr/bin/python
+"""
+    Pre-commit hook for git written in Python.
+    Check if there is any migration number used more than one in each
+    migrations folder of South or Django >= 1.7.
+
+    You can install this pre-hook by executing the command:
+        ln -s ./git-pre-commit-hook .git/hooks/pre-commit
+        chmod +x .git/hooks/pre-commit
+
+    Or by calling the current script or check_migrations_files() in your
+    own file.
+
+    By Maxime Lorant <maxime.lorant@gmail.com> Free for any use (BSD)
+"""
+import sys
+import subprocess
+from collections import defaultdict, Counter
+
+def check_migrations_files():
+    """ Check if migrations names does not clash (e.g. two with the same number) """
+
+    # Get migrations files in a list
+    migrations = subprocess.check_output("git ls-files -- $(find -type d -iname migrations)", shell=True)
+    migrations = migrations.split('\n')
+
+    by_folders = defaultdict(list)
+    for migration in migrations:
+        # Skip empty lines and __init__ file
+        if '/' in migration:
+            path, filename = migration.rsplit('/', 1)
+            if filename != '__init__.py':
+                # Filename format: xxxx_name_of_the_migration. We keep only `xxxx`
+                number, _ = filename.split('_', 1)
+                by_folders[path].append(number)
+
+    # For each folder we get the list of items
+    for key, lst in by_folders.items():
+        duplicates = [x for x, y in Counter(lst).items() if y > 1]
+
+        # Check if there is any duplicate
+        if duplicates:
+            print("At least two migrations has the same number in \033[1m{}\033[0m. Please fix this before "
+                  "committing your changes.".format(key))
+            print("Following migrations numbers need to be check: {}".format(','.join(duplicates)))
+
+            sys.exit(-1)
+
+if __name__ == "__main__":
+    check_migrations_files()

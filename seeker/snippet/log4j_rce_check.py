@@ -1,6 +1,6 @@
-#date: 2021-12-10T16:55:24Z
-#url: https://api.github.com/gists/4ea28cf4a865d173f4b27b8e0acbd110
-#owner: https://api.github.com/users/dutchcyberguy
+#date: 2021-12-13T16:56:20Z
+#url: https://api.github.com/gists/77cc24e89338506bb8f19411d0e3fe56
+#owner: https://api.github.com/users/uid-root
 
 #! /usr/bin/env python3
 
