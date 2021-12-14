@@ -1,6 +1,7 @@
-#date: 2021-11-11T17:03:02Z
-#url: https://api.github.com/gists/2d201be56231ccee6f722103b252d933
-#owner: https://api.github.com/users/samalkani
+#date: 2021-12-14T17:16:25Z
+#url: https://api.github.com/gists/f4b9df9597444c4a44a87969b8ecf301
+#owner: https://api.github.com/users/raouldeheer
 
-JAVA_HOME=/path/to/java
-export JAVA_HOME
+function winget { cmd.exe /c "winget $1 $2 $3";}
+function sshl { cmd.exe /c "ssh root@$1.raoulhosting.nl";}
+alias ll="ls -all"
