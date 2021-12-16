@@ -1,4 +1,58 @@
 --------------------------------------------------------------------------------
+ 2021-12-16 17:19:24.826518
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/296dd408-3c74-42ef-ac5a-b8674eae5c09.py
+	deleted:    snippet/2b102ceb-dfb3-4760-be3b-1f4e90025f59.py
+	deleted:    snippet/4ea806c8-1a9d-4cad-9d4e-69afd3148475.py
+	deleted:    snippet/54931841-b659-4e2c-b8ec-71605a326c81.py
+	deleted:    snippet/5e4485f7-aeaf-47b7-8265-e5ef60e687b3.py
+	deleted:    snippet/9b8cb937-8364-4b29-abb5-5b664acdf6e2.py
+	modified:   snippet/Dockerfile
+	deleted:    snippet/advent_2021_day12.py
+	modified:   snippet/app.py
+	deleted:    snippet/b027a521-e3d5-43c7-ab92-c76f3549a4e2.py
+	deleted:    snippet/bubble_sort.go
+	deleted:    snippet/c094b170-d8d3-47c3-8a68-8a84dcfbfed3.py
+	deleted:    snippet/celerynews.py
+	deleted:    snippet/check.sh
+	modified:   snippet/example.py
+	deleted:    snippet/get-portfolio-query.py
+	deleted:    snippet/git-pre-commit-hook-django
+	deleted:    snippet/log4j_rce_check.py
+	deleted:    snippet/logging.sh
+	modified:   snippet/main.go
+	deleted:    snippet/newsapi.py
+	deleted:    snippet/opentelemetry_exporter_prometheus_remote_write.py
+	deleted:    snippet/pastebin.py
+	deleted:    snippet/port.sh
+	deleted:    snippet/torrserv_install.sh
+	deleted:    snippet/vm.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/HostRecon.py
+	snippet/StackOrHeapAllocation.java
+	snippet/bits.py
+	snippet/comments.py
+	snippet/django_tinymce_non_input_form.py
+	snippet/ex008.py
+	snippet/example_tti_2021_12_16.py
+	snippet/file1.java
+	snippet/log4j-replace-classes.sh
+	snippet/nordvpn_genmon.py
+	snippet/pump_detector.py
+	snippet/test.py
+	snippet/waygrade_gpa_calculator.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2021-12-15 17:19:37.620795
 --------------------------------------------------------------------------------
   On branch main
