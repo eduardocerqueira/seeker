@@ -1,4 +1,52 @@
 --------------------------------------------------------------------------------
+ 2021-12-20 17:22:04.802502
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/BubbleSort.java
+	deleted:    snippet/CVE-2021-44228.sh
+	deleted:    snippet/Largest Sum Contiguous Subarray.py
+	deleted:    snippet/Mac.sh
+	deleted:    snippet/QuickSort.java
+	deleted:    snippet/c-euler.py
+	deleted:    snippet/corsair_headset_linux.bash
+	deleted:    snippet/createWidgets.py
+	deleted:    snippet/git-tree-files.bash
+	modified:   snippet/install.sh
+	deleted:    snippet/load_dataset_1.py
+	deleted:    snippet/main.py
+	deleted:    snippet/pysets.py
+	deleted:    snippet/retype.Dockerfile
+	deleted:    snippet/taylor_polynomial.py
+	deleted:    snippet/translate_desktop_files.sh
+	deleted:    snippet/tweet_listener.py
+	deleted:    snippet/verifsympl.py
+	deleted:    snippet/z_matrix_sequence.py
+	deleted:    "snippet/\344\275\234\346\245\255\345\215\201\350\247\243\347\255\224.py"
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/Streamlit_Dynamcially_show_training_results.py
+	snippet/Streamlit_Files_explorer.py
+	snippet/Streamlit_Login_screen.py
+	snippet/Streamlit_Run_long_parallel_calculations.py
+	snippet/Streamlit_Save_work_for_later_use.py
+	snippet/Streamlit_Use_models_from_different environemnts.py
+	snippet/Stremalit_Multi_pages.py
+	snippet/connection.py
+	snippet/git-branches-by-commit-date.sh
+	snippet/micro_prototype.py
+	snippet/min-char-rnn.py
+	snippet/rotate_screenshot_splash.py
+	snippet/sum.go
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2021-12-17 17:18:38.270405
 --------------------------------------------------------------------------------
   On branch main
