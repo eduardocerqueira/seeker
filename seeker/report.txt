@@ -1,4 +1,42 @@
 --------------------------------------------------------------------------------
+ 2021-12-24 17:20:38.080154
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/Scracth.java
+	deleted:    snippet/collect_data.py
+	deleted:    snippet/convert-dwg-to-jpg-using-java.java
+	deleted:    snippet/dask_groupby.py
+	deleted:    snippet/day17.py
+	deleted:    snippet/ex2.py
+	deleted:    snippet/firebase_auth_graphql.py
+	deleted:    snippet/git-ignore
+	deleted:    snippet/hachathon.java
+	deleted:    snippet/nsrdb_test.py
+	deleted:    snippet/pw_one_line.sh
+	deleted:    snippet/two_dicts_from_tuple.py
+	deleted:    snippet/virtualCalculator.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/LeetCode-Stack-NextGreaterElementII.py
+	snippet/alpine-nspawn.sh
+	snippet/audacity.sh
+	snippet/class_boundary_visualisation_ML.py
+	snippet/day19.py
+	snippet/main.py
+	snippet/random_pacman.py
+	snippet/test_EBproperties.py
+	snippet/unique_sorting.py
+	snippet/updateCloud.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2021-12-23 17:20:55.190911
 --------------------------------------------------------------------------------
   On branch main
