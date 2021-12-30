@@ -1,4 +1,80 @@
 --------------------------------------------------------------------------------
+ 2021-12-30 17:20:58.345833
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/Jewellers_Lib_UserDict.py
+	deleted:    snippet/Jewellers_Lib__abcoll.py
+	deleted:    snippet/Jewellers_Lib__weakrefset.py
+	deleted:    snippet/Jewellers_Lib_abc.py
+	deleted:    snippet/Jewellers_Lib_codecs.py
+	deleted:    snippet/Jewellers_Lib_copy_reg.py
+	deleted:    snippet/Jewellers_Lib_distutils___init__.py
+	deleted:    snippet/Jewellers_Lib_encodings___init__.py
+	deleted:    snippet/Jewellers_Lib_encodings_aliases.py
+	deleted:    snippet/Jewellers_Lib_encodings_ascii.py
+	deleted:    snippet/Jewellers_Lib_encodings_base64_codec.py
+	deleted:    snippet/Jewellers_Lib_encodings_big5.py
+	deleted:    snippet/Jewellers_Lib_encodings_big5hkscs.py
+	deleted:    snippet/Jewellers_Lib_encodings_bz2_codec.py
+	deleted:    snippet/Jewellers_Lib_encodings_charmap.py
+	deleted:    snippet/Jewellers_Lib_encodings_cp037.py
+	deleted:    snippet/Jewellers_Lib_encodings_cp1006.py
+	deleted:    snippet/Jewellers_Lib_encodings_cp1026.py
+	deleted:    snippet/Jewellers_Lib_encodings_cp1140.py
+	deleted:    snippet/Jewellers_Lib_encodings_cp1250.py
+	deleted:    snippet/Jewellers_Lib_encodings_cp1251.py
+	deleted:    snippet/Jewellers_Lib_encodings_cp1252.py
+	deleted:    snippet/Jewellers_Lib_encodings_cp1253.py
+	deleted:    snippet/Jewellers_Lib_encodings_cp1254.py
+	deleted:    snippet/Jewellers_Lib_encodings_cp1255.py
+	deleted:    snippet/Jewellers_Lib_encodings_cp1256.py
+	deleted:    snippet/Jewellers_Lib_encodings_cp1257.py
+	deleted:    snippet/Jewellers_Lib_encodings_cp1258.py
+	deleted:    snippet/Jewellers_Lib_encodings_cp424.py
+	deleted:    snippet/Jewellers_Lib_encodings_cp437.py
+	deleted:    snippet/Jewellers_Lib_encodings_cp500.py
+	deleted:    snippet/Jewellers_Lib_encodings_cp720.py
+	deleted:    snippet/Jewellers_Lib_encodings_cp737.py
+	deleted:    snippet/Jewellers_Lib_encodings_cp775.py
+	deleted:    snippet/Main.java
+	deleted:    snippet/boy.py
+	deleted:    snippet/cam_resize.py
+	deleted:    snippet/deltastreamer_artists_1x.sh
+	deleted:    snippet/deltastreamer_artists_continuous.sh
+	deleted:    snippet/embedding.py
+	deleted:    snippet/import pandas.py
+	deleted:    snippet/indent.go
+	deleted:    snippet/ios_clean.sh
+	deleted:    snippet/myscript.sh
+	deleted:    snippet/pd.read.excel.py
+	deleted:    snippet/recognition.py
+	deleted:    snippet/rem.py
+	deleted:    snippet/sealvalue.go
+	deleted:    snippet/send_sms.py
+	deleted:    snippet/yrok.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/BubbleSortAlgorithm.java
+	snippet/PythonInterfaceSmart.py
+	snippet/SortAlgorithm.java
+	snippet/defer.go
+	snippet/festive.py
+	snippet/gistfile1.py
+	snippet/ispy.py
+	snippet/pneumonia_classification.py
+	snippet/read_folder_path_until_valid.sh
+	snippet/setup-multiple-kafka.sh
+	snippet/xtea.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2021-12-29 17:20:47.581728
 --------------------------------------------------------------------------------
   On branch main
