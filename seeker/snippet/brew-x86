@@ -1,0 +1,7 @@
+#date: 2022-01-03T17:21:36Z
+#url: https://api.github.com/gists/cdec4ef88fce5ccdce1f92bc64ff67b4
+#owner: https://api.github.com/users/jevinskie
+
+#!/bin/sh
+
+/usr/bin/arch -arch x86_64 /opt/homebrew-x86/bin/brew $@
