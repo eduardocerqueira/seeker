@@ -1,0 +1,36 @@
+#date: 2022-01-04T17:17:20Z
+#url: https://api.github.com/gists/56ed2c522728e17b1ec5b603d19f90bb
+#owner: https://api.github.com/users/shamer
+
+#!/bin/bash
+set -xeo pipefail
+ZFSROOT=rpool
+FS_ROOT=$(pwd)
+
+mkdir vol first-snap second-snap
+
+zfs create -o mountpoint=${FS_ROOT}/vol ${ZFSROOT}/tmp-stat-test
+mkdir vol/a-mnt vol/foo
+zfs create -o mountpoint=${FS_ROOT}/vol/a-mnt ${ZFSROOT}/tmp-stat-test/vol-a
+mkdir vol/a-mnt/bar
+
+echo "file in the root volume" > vol/some_file.txt
+echo "file in the a-volume" > vol/a-mnt/another_file.txt
+echo "file in a subdirectory of the root volume" > vol/foo/sub_file.txt
+echo "file in a subdirectory of the a-volume" > vol/a-mnt/bar/another_sub_file.txt
+
+# create mount the snapshot and sub-volumes
+zfs snapshot -r ${ZFSROOT}/tmp-stat-test@first
+mount -t zfs ${ZFSROOT}/tmp-stat-test@first first-snap
+mount -t zfs ${ZFSROOT}/tmp-stat-test/vol-a@first first-snap/a-mnt
+
+# update all of the files
+echo "now with updates" >> vol/some_file.txt
+echo "now with updates" >> vol/a-mnt/another_file.txt
+echo "now with updates" >> vol/foo/sub_file.txt
+echo "now with updates" >> vol/a-mnt/bar/another_sub_file.txt
+
+# create mount the second snapshot and sub-volumes
+zfs snapshot -r ${ZFSROOT}/tmp-stat-test@second
+mount -t zfs ${ZFSROOT}/tmp-stat-test@second second-snap
+mount -t zfs ${ZFSROOT}/tmp-stat-test/vol-a@second second-snap/a-mnt
