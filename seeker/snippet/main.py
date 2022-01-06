@@ -1,25 +1,11 @@
-#date: 2022-01-05T16:57:29Z
-#url: https://api.github.com/gists/6d0602bfa939a01844f645c608afb85a
-#owner: https://api.github.com/users/vrslev
+#date: 2022-01-06T17:00:28Z
+#url: https://api.github.com/gists/8aecd937094dd6e2090d0a6639aafbe7
+#owner: https://api.github.com/users/jason-gumbs
 
-import os
+arr = [57,62,11,516,17,12,81] #create array 
 
-import arel
-from fastapi import FastAPI, Request
-from fastapi.templating import Jinja2Templates
+half_arr =  int(len(arr) / 2) #get the middle index of the array
 
-app = FastAPI()
-templates = Jinja2Templates("templates")
-
-if _debug := os.getenv("DEBUG"):
-    hot_reload = arel.HotReload(paths=[arel.Path(".")])
-    app.add_websocket_route("/hot-reload", route=hot_reload, name="hot-reload")
-    app.add_event_handler("startup", hot_reload.startup)
-    app.add_event_handler("shutdown", hot_reload.shutdown)
-    templates.env.globals["DEBUG"] = _debug
-    templates.env.globals["hot_reload"] = hot_reload
-
-
-@app.get("/")
-def index(request: Request):
-    return templates.TemplateResponse("index.html", context={"request": request})
+for index, value in enumerate(arr): #loop over array to find middle index
+  if(index == half_arr):  #find index in the array 
+    print(value)        #print index in array
