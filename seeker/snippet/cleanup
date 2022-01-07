@@ -1,8 +1,0 @@
-#date: 2022-01-04T17:17:20Z
-#url: https://api.github.com/gists/56ed2c522728e17b1ec5b603d19f90bb
-#owner: https://api.github.com/users/shamer
-
-#!/bin/bash
-umount vol/a-mnt vol first-snapshot/a-mnt first-snapshot second-snapshot/a-mnt second-snapshot
-rm -r vol first-snapshot second-snapshot
-echo Destroy the test volume with '"zfs destroy -r rpool/tmp-stat-test"'
