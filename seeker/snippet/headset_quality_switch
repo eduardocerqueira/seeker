@@ -1,0 +1,20 @@
+#date: 2022-01-10T17:01:02Z
+#url: https://api.github.com/gists/418ff6f6ff9f3c0ea5adc22fcf43d65b
+#owner: https://api.github.com/users/tyjak
+
+#!/bin/zsh
+# switch a2dp ot hfh codec for bluetooth headset to have quality sound or mic
+# GistID: 418ff6f6ff9f3c0ea5adc22fcf43d65b
+
+HEADSET=$1
+
+HIGH_QUALITY=$(pacmd list-cards | grep -B5 -A20 -c -e 'active profile: <a2dp_sink>' -e 'device.description = "'$HEADSET'"')
+echo "test:  $HIGH_QUALITY"
+
+QUALITY=a2dp_sink
+if [ $HIGH_QUALITY -eq 2 ]
+then
+    QUALITY=handsfree_head_unit
+fi
+
+pacmd set-card-profile $(pacmd list-cards | grep -B5 'device.description = "'$HEADSET'"' | head -1 | cut -d":" -f2 | tr -d " ") $QUALITY

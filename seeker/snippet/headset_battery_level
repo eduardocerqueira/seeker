@@ -1,0 +1,23 @@
+#date: 2022-01-10T16:58:36Z
+#url: https://api.github.com/gists/abb0acf1bfd890713aadeef7e46fe834
+#owner: https://api.github.com/users/tyjak
+
+#!/bin/zsh
+# utility to get level battery for i3pystatus
+# need the device name as argument
+# GistID: abb0acf1bfd890713aadeef7e46fe834
+
+MAC=$(bluetoothctl devices | grep "$1" | cut -d" " -f2)
+LEVEL=$(bluetoothctl info $MAC | grep -q Connected && based-connect $MAC -b)
+
+if [ $LEVEL ]
+then
+    echo " ${LEVEL}%"
+    if [ $LEVEL -lt 11 ]
+    then
+        exit 1
+    fi
+else
+    echo ""
+    exit 0
+fi

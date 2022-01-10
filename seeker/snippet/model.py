@@ -1,29 +1,43 @@
-#date: 2021-10-27T17:16:17Z
-#url: https://api.github.com/gists/e28bbe12e1c8c832cb3d907aa0ddb243
-#owner: https://api.github.com/users/lego5621
+#date: 2022-01-10T17:17:33Z
+#url: https://api.github.com/gists/c47336a526c619fd13d54df5776d4ede
+#owner: https://api.github.com/users/starovoitovs
 
-class Post(models.Model):
-    STATUS_CHOICES = (
-        ('draft', 'Draft'),
-        ('published', 'Published'),
-    )
-    title = models.CharField(max_length=250)
-    slug = models.SlugField(max_length=250, unique_for_date='publish')
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blog_posts')
-    body = models.TextField()
-    publish = models.DateTimeField(default=timezone.now)
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
-    tags = TaggableManager()
+import numpy as np
+from sklearn.model_selection import train_test_split
+from keras import Model
+from keras.layers import Input, LSTM, Conv1D, Conv2D, Reshape, Dense, BatchNormalization, Dropout, concatenate
+from keras.callbacks import ModelCheckpoint
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
-    objects = models.Manager() 
-    published = PublishedManager() 
 
-    class Meta:
-        ordering = ('-publish',)
+def build_model(window_size, n_features, depth):
 
-    def __str__(self):
-        return self.title
+    input_layer1 = Input(shape=(window_size, depth * 4, 1))
+    input_layer2 = Input(shape=(window_size, n_features))
 
-    def get_absolute_url(self):
+    x = Conv2D(16, kernel_size=(1, 2), strides=(1, 2), activation='relu')(input_layer1)
+    x = Conv2D(16, kernel_size=(4, 1), activation='relu', padding='same')(x)
+    x = Conv2D(16, kernel_size=(4, 1), activation='relu', padding='same')(x)
+    
+    x = Conv2D(16, kernel_size=(1, 2), strides=(1, 2), activation='relu')(x)
+    x = Conv2D(16, kernel_size=(4, 1), activation='relu', padding='same')(x)
+    x = Conv2D(16, kernel_size=(4, 1), activation='relu', padding='same')(x)
+    
+    x = Conv2D(16, kernel_size=(1, depth), activation='relu')(x)
+    x = Conv2D(16, kernel_size=(4, 1), activation='relu', padding='same')(x)
+    x = Conv2D(16, kernel_size=(4, 1), activation='relu', padding='same')(x)
+
+    x = Reshape((window_size, 16))(x)
+
+    x = concatenate([x, input_layer2])
+
+    lstm_layer = LSTM(64)(x)
+    bn_layer = BatchNormalization()(lstm_layer)
+    dropout_layer = Dropout(0.8)(bn_layer)
+    output_layer = Dense(3, activation='softmax')(dropout_layer)
+
+    model = Model([input_layer1, input_layer2], output_layer)
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+    return model
