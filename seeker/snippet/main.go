@@ -1,50 +1,111 @@
-//date: 2021-12-22T17:05:06Z
-//url: https://api.github.com/gists/c76215e28153a79e53d49e26d6879a0f
-//owner: https://api.github.com/users/nicolai86
+//date: 2022-01-11T17:19:51Z
+//url: https://api.github.com/gists/7800d5acad123c75c3e3262f3f4f4779
+//owner: https://api.github.com/users/wahabmk
 
 package main
 
 import (
+	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-config-inspect/tfconfig"
-	"log"
+	"io"
 	"os"
+	"os/exec"
 	"strings"
+	"sync"
+	"syscall"
 )
 
-func checkForViolations(dir string) ([]string, error) {
-	module, diags := tfconfig.LoadModule(dir)
-	if diags.HasErrors() {
-		return nil, diags.Err()
+const (
+	FillBomUID  = 1001
+	ScanUID     = 1002
+	SynopsysGID = 101
+)
+
+func command(ctx context.Context, cred *syscall.Credential, command string, args []string, params map[string]string) *exec.Cmd {
+	cmd := exec.CommandContext(ctx, command, args...)
+	cmd.SysProcAttr = &syscall.SysProcAttr{Credential: cred}
+	cmd.Env = os.Environ()
+	for k, v := range params {
+		env := fmt.Sprintf("%s=%s", strings.ToUpper(k), v)
+		cmd.Env = append(cmd.Env, env)
 	}
-	violations := []string{}
-	for name, module := range module.ModuleCalls {
-		nested, err := checkForViolations(dir + "/" + module.Source)
-		if err != nil {
-			return nil, fmt.Errorf("failed checking module %s: %w", name, err)
-		}
-		for _, violation := range nested {
-			violations = append(violations, fmt.Sprintf("module.%s.%s", name, violation))
-		}
-	}
-	for name, resource := range module.ManagedResources {
-		if strings.Contains(name, "-") {
-			violations = append(violations, fmt.Sprintf("%s.%s", resource.Type, resource.Name))
-		}
-	}
-	return violations, nil
+	return cmd
 }
 
 func main() {
-	dir := os.Args[1]
-	violations, err := checkForViolations(dir)
+	ctx := context.Background()
+	checkUserAndGroup := &syscall.Credential{Uid: FillBomUID, Gid: SynopsysGID, NoSetGroups: true}
+	params := map[string]string{
+		"PYTHONHASHSEED":     "0",
+		"APPCHECK_NO_SYSLOG": "1",
+		"PGSSLKEY":           "/tmp/postgres-client.1690483872.key",
+		"POSTGRES_DBNAME":    "fuzzomatic",
+		"POSTGRES_HOST":      "",
+		"POSTGRES_PORT":      "",
+		"POSTGRES_USER":      "",
+		"POSTGRES_PASSWORD":  "",
+	}
+
+	cmd := command(ctx, checkUserAndGroup,
+		"python3", []string{"/check/manage.py", "fillbom"}, params,
+	)
+	result, err := checkBOM(cmd, "/check/scan_results/_sha256:7b1a6ab2e44dbac178598dabe7cff59bd67233dba0b27e4fbd1f9d4b3c877a54.json")
 	if err != nil {
-		log.Fatalf("failed to check for violations: %s\n", err)
+		fmt.Printf("Error for /check/manage.py fillbom: %s\n", err)
+	} else {
+		fmt.Println(result)
 	}
-	for _, violation := range violations {
-		fmt.Printf("%s is not snake_cased\n", violation)
+
+	fmt.Println("============================================================")
+
+	cmd = command(ctx, nil, "cat", nil, nil)
+	result, err = checkBOM(cmd, "")
+	if err != nil {
+		fmt.Printf("Error for cat: %s\n", err)
+	} else {
+		fmt.Printf("Output from cat: %s\n", result)
 	}
-	if len(violations) > 0 {
-		os.Exit(1)
+}
+
+func checkBOM(cmd *exec.Cmd, bomFile string) (string, error) {
+	var err error
+	input := []byte("hello world")
+	if bomFile != "" {
+		input, err = os.ReadFile(bomFile)
+		if err != nil {
+			return "", fmt.Errorf("Could not read file: %s", err)
+		}
 	}
+
+	// ctx := context.Background()
+	// args := []string{"/check/manage.py", "fillbom"}
+	// args := []string{"hello world"}
+	// cmd := command(ctx, checkUserAndGroup, "python3", args, params)
+	// cmd := command(ctx, nil, cmnd, args, params)
+
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		return "", fmt.Errorf("Error create stdin pipe: %w", err)
+	}
+
+	var writeErr error
+	var wg sync.WaitGroup
+	go func() {
+		wg.Add(1)
+		defer wg.Done()
+		defer stdin.Close()
+		_, writeErr = io.WriteString(stdin, string(input))
+	}()
+
+	wg.Wait()
+	checkBytes, err := cmd.Output()
+
+	if err != nil {
+		return "", fmt.Errorf("Error reading check data for layer, error: %w", err)
+	}
+	if writeErr != nil {
+		return "", fmt.Errorf("Error writing to stdin pipe: %w", writeErr)
+	}
+
+	return string(checkBytes), nil
 }
