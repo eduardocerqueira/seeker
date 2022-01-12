@@ -1,4 +1,46 @@
 --------------------------------------------------------------------------------
+ 2022-01-12 17:19:36.171339
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/ChainOfResponsability.java
+	snippet/Command.java
+	snippet/Iterator.java
+	snippet/Mediator.java
+	snippet/Memento.java
+	snippet/acc.py
+	snippet/asserts.sh
+	snippet/aver_pca.py
+	snippet/bc.py
+	snippet/car-prediction-new-year.py
+	snippet/check_image.py
+	snippet/corr.py
+	snippet/data.py
+	snippet/dfs_group.py
+	snippet/gaussian_elimination_pivot.py
+	snippet/hedline_bert.py
+	snippet/initialize.sh
+	snippet/inp_csv.py
+	snippet/join_fin_sent.py
+	snippet/lr_res.py
+	snippet/out_read.py
+	snippet/pandas_dataframes_are_equal.py
+	snippet/pca.py
+	snippet/plot_sent.py
+	snippet/pos_install_RASP.sh
+	snippet/pval_coef.py
+	snippet/pyspark_union_multiple_dfs.py
+	snippet/read_sents.py
+	snippet/sent_class.py
+	snippet/total_hashrate.py
+	snippet/typecheck.py
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+--------------------------------------------------------------------------------
  2022-01-11 17:23:02.099793
 --------------------------------------------------------------------------------
   On branch main
