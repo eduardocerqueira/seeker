@@ -1,7 +1,42 @@
-#date: 2022-01-11T17:12:35Z
-#url: https://api.github.com/gists/0822d253bf6c92283d8cc7eac1d208b9
-#owner: https://api.github.com/users/kononovarseniy
+#date: 2022-01-13T16:53:06Z
+#url: https://api.github.com/gists/85c90e5a70e6f85fd8da6b4a3ea552e8
+#owner: https://api.github.com/users/Aniket-508
 
-import constants
+import tweepy
+import logging
+from config import create_api
+import time
 
-print(constants.hello, constants.world)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
+
+def check_mentions(api, keywords, since_id):
+    logger.info("Retrieving mentions")
+    new_since_id = since_id
+    for tweet in tweepy.Cursor(api.mentions_timeline,
+        since_id=since_id).items():
+        new_since_id = max(tweet.id, new_since_id)
+        if tweet.in_reply_to_status_id is not None:
+            continue
+        if any(keyword in tweet.text.lower() for keyword in keywords):
+            logger.info(f"Answering to {tweet.user.name}")
+
+            if not tweet.user.following:
+                tweet.user.follow()
+
+            api.update_status(
+                status="Please reach us via DM",
+                in_reply_to_status_id=tweet.id,
+            )
+    return new_since_id
+
+def main():
+    api = create_api()
+    since_id = 1
+    while True:
+        since_id = check_mentions(api, ["help", "support"], since_id)
+        logger.info("Waiting...")
+        time.sleep(60)
+
+if __name__ == "__main__":
+    main()
