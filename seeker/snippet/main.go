@@ -1,75 +1,46 @@
-//date: 2022-01-17T17:09:53Z
-//url: https://api.github.com/gists/e296c09082b65ba3931aecbc118876ba
-//owner: https://api.github.com/users/VirusBreeder
-
-package main
-
-import (
-	"fmt"
-	"log"
-	"net"
-	"time"
-)
-
-func accept_connection(conn net.Conn) {
-	err := conn.SetReadDeadline(time.Now().Add(5 * time.Second))
-	if err != nil {
-		panic(err)
-	}
-	bb := make([]byte, 1024)
-	_, err = conn.Read(bb[:])
-	if err != nil {
-		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
-			panic(err)
-		} else {
-			panic(err)
-		}
-	}
-	err = conn.Close()
-	if err != nil {
-		log.Println(err)
-	}
-	log.Printf("IMCOMMING MESSAGE: %s", string(bb))
-}
-
-func listen() {
-	ln, err := net.Listen("tcp", "127.0.0.1:8081")
-	if err != nil {
-		panic(err)
-	}
-	for {
-		conn, err := ln.Accept()
-		if err != nil {
-			panic(err)
-		}
-		go accept_connection(conn)
-	}
-}
-
-func dial(message []byte) {
-	conn, err := net.Dial("tcp", "127.0.0.1:8081")
-	if err != nil {
-		panic(err)
-	}
-	_, err = conn.Write(message)
-	if err != nil {
-		panic(err)
-	}
-	err = conn.Close()
-	if err != nil {
-		panic(err)
-	}
-}
-
-func sleep(duration float64) {
-	time.Sleep(time.Millisecond * time.Duration(duration*1000))
-}
+//date: 2022-01-18T17:19:49Z
+//url: https://api.github.com/gists/c532dd285d3f985fd3027dbbcfff7d56
+//owner: https://api.github.com/users/fulviodenza
 
 func main() {
-	go listen()
-	sleep(0.1)
-	for i := 0; i < 10; i++ {
-		dial([]byte(fmt.Sprintf("hello world %d", i)))
-		sleep(0.3)
+
+	// Setup The AWS Region and AWS session
+	conf := &aws.Config{Region: aws.String("eu-west-1")}
+	mySession := session.Must(session.NewSession(conf))
+
+	// Fill App structure with environment keys and session generated
+	a := App{
+		CognitoClient:   cognito.New(mySession),
+		UserPoolID:      os.Getenv("COGNITO_USER_POOL_ID"),
+		AppClientID:     os.Getenv("COGNITO_APP_CLIENT_ID"),
+		AppClientSecret: os.Getenv("COGNITO_APP_CLIENT_SECRET"),
 	}
+
+	// Echo stuff
+	e := echo.New()
+	validate := &CustomValidator{validator: validator.New()}
+	validate.validator.RegisterStructValidation(validateUser, User{})
+
+	e.Validator = validate
+
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+	}))
+
+	registerFunc := func(c echo.Context) error {
+		return a.Register(c, *validate.validator)
+	}
+	e.POST("/auth/register", registerFunc)
+	e.POST("/auth/login", a.Login)
+	e.POST("/auth/otp", a.OTP)
+	e.GET("/auth/forgot", a.ForgotPassword)
+
+	confirmForgotPasswordFunc := func(c echo.Context) error {
+		return a.ConfirmForgotPassword(c, *validate.validator)
+	}
+	e.POST("/auth/confirmforgot", confirmForgotPasswordFunc)
+	e.Logger.Fatal(e.Start(":1323"))
 }
