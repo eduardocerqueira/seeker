@@ -1,0 +1,123 @@
+#date: 2022-01-24T17:08:41Z
+#url: https://api.github.com/gists/94e24a0ef4775b92b757599908be2215
+#owner: https://api.github.com/users/MAProsper
+
+#!/bin/bash
+
+#CONSTANTS
+SCRIPT_NAME="$(basename "$0")"
+snaps=()
+
+#FUNCTIONS
+function notify() {
+    echo "$SCRIPT_NAME: $@" >&2
+}
+
+function snap_remove() {
+    local snap="${snaps[$1]}"
+    array_remove 'snaps' "$1"
+
+    rm -r "$snap"
+    rmdir -p "$(dirname "$snap")" 2>/dev/null
+}
+
+function interrupt() {
+    kill -INT "$@" 2>/dev/null
+    wait "$@"
+}
+
+function tmp_remove() {
+    rm -r $tmp 2>/dev/null
+}
+
+function abort() {
+    interrupt $(jobs -pr)
+    tmp_remove
+    notify 'snapshot error, aborted'
+    exit 1
+}
+
+#Check: format
+if [ $# -lt 2 ]; then
+    echo "$SCRIPT_NAME [option] src... dst (local)" >&2
+    echo -e '\toption\t(man rsync.option)' >&2
+    echo -e '\tsrc\t(man rsync.src)' >&2
+    echo -e '\tdst\t(man date.format)' >&2
+    exit 1
+fi
+
+#Get arguments
+dst="${SCRIPT_ARGS[-1]}"; array_remove 'SCRIPT_ARGS' '-1'
+
+#Current snapshot (check if existing)
+current="$(date +"$dst")"
+first=$(test -e "$current"; echo $?)
+
+#Get all snapshots
+FORMATS='s/%[_:#EO0^-]*[%[:alpha:]]/*/g'
+snaps=($(printf %q "$dst" | sed "$FORMATS"))
+if [ $first -eq $TRUE ]; then snaps+=("$current"); fi
+
+#AWK scripts
+MONITOR_OUT='1; END {exit(!NR)}'
+MONITOR_ERR='/^(mkdir|rsync):.+?: No space left on device( \(28\))?$/ {exit(1)}; 1'
+
+#Starting process
+notify "snapshot started, $current"
+code=1; trap abort INT TERM
+
+retry=$TRUE
+while [ $retry = $TRUE ]; do
+    retry=$FALSE
+
+    #Setup temporary resources
+    tmp=$(mktemp -d)
+    mkfifo $tmp/{out,err}
+
+    #Previous snapshot for hard-linking
+    if [ ${#snaps[@]} -le 1 ]; then previous='.'
+    else previous="$(realpath -m --relative-to="$current" "${snaps[-2]}")"; fi
+
+    #Start snapshoting and monitors
+    {
+        export LANG=C
+        mkdir -p "$(dirname "$current")"
+        rsync -ai --link-dest="$previous" "${SCRIPT_ARGS[@]}" "$current"
+    } >$tmp/out 2>$tmp/err & job_sync=$!
+
+    #WARN awk -W interactive for older GNU
+    awk "$MONITOR_OUT" <$tmp/out & job_out=$!
+    awk "$MONITOR_ERR" <$tmp/err >&2 & job_err=$!
+
+    #Error checking (early)
+    if ! wait $job_err; then
+        interrupt $job_out $job_rsync
+        if [ ${#snaps[@]} -gt 1 ]; then
+            notify 'space insufficient, removing oldest snapsnot'
+            snap_remove 0
+            retry=$TRUE
+        else
+            notify 'snapshot error, target too small'
+        fi
+
+    #Error checking (late)
+    elif wait $job_sync; then
+        msg='snapsnot finished'
+        code=0
+        if wait $job_out; then
+            notify "$msg, successfully"
+        else
+            notify "$msg, nothing changed"
+            if [ $first = $TRUE ]; then snap_remove '-1'; fi
+        fi
+    else
+        code=$?
+        wait $job_out
+        notify "snapshot error, code $code"
+    fi
+
+    #Takedown temporary resources
+    tmp_remove
+done
+
+exit $code
