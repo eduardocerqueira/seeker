@@ -1,130 +1,46 @@
-#date: 2022-01-25T17:04:48Z
-#url: https://api.github.com/gists/998412101d392d7e5cd3364760034e03
-#owner: https://api.github.com/users/haosenge
+#date: 2022-01-26T17:03:33Z
+#url: https://api.github.com/gists/e0ab366fc0dbc092c1a5946b30caa9a0
+#owner: https://api.github.com/users/brunomsantiago
 
-# -*- coding: utf-8 -*-
-# app.py
-
-from flask import Flask, render_template
-from flask_sqlalchemy import SQLAlchemy
-from flask_wtf import FlaskForm
-from wtforms import Form, FieldList, FormField, IntegerField, SelectField, \
-        StringField, TextAreaField, SubmitField
-from wtforms import validators
+import streamlit as st
+import streamlit.components.v1 as components
 
 
-class LapForm(Form):
-    """Subform.
+def left_callback():
+    st.write('Left button was clicked')
 
-    CSRF is disabled for this subform (using `Form` as parent class) because
-    it is never used by itself.
+
+def right_callback():
+    st.write('Right button was clicked')
+
+
+left_col, right_col, _ = st.columns([1, 1, 3])
+
+with left_col:
+    st.button('LEFT', on_click=left_callback)
+
+with right_col:
+    st.button('RIGHT', on_click=right_callback)
+
+components.html(
     """
-    runner_name = StringField(
-        'Runner name',
-        validators=[validators.InputRequired(), validators.Length(max=100)]
-    )
-    lap_time = IntegerField(
-        'Lap time',
-        validators=[validators.InputRequired(), validators.NumberRange(min=1)]
-    )
-    category = SelectField(
-        'Category',
-        choices=[('cat1', 'Category 1'), ('cat2', 'Category 2')]
-    )
-    notes = TextAreaField(
-        'Notes',
-        validators=[validators.Length(max=255)]
-    )
-
-
-class MainForm(FlaskForm):
-    """Parent form."""
-    laps = FieldList(
-        FormField(LapForm),
-        min_entries=1,
-        max_entries=20
-    )
-
-
-# Create models
-db = SQLAlchemy()
-
-
-class Race(db.Model):
-    """Stores races."""
-    __tablename__ = 'races'
-
-    id = db.Column(db.Integer, primary_key=True)
-
-
-class Lap(db.Model):
-    """Stores laps of a race."""
-    __tablename__ = 'laps'
-
-    id = db.Column(db.Integer, primary_key=True)
-    race_id = db.Column(db.Integer, db.ForeignKey('races.id'))
-
-    runner_name = db.Column(db.String(100))
-    lap_time = db.Column(db.Integer)
-    category = db.Column(db.String(4))
-    notes = db.Column(db.String(255))
-
-    # Relationship
-    race = db.relationship(
-        'Race',
-        backref=db.backref('laps', lazy='dynamic', collection_class=list)
-    )
-
-
-
-# Initialize app
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'sosecret'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
-db.init_app(app)
-db.create_all(app=app)
-
-
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    form = MainForm()
-    template_form = LapForm(prefix='laps-_-')
-
-    if form.validate_on_submit():
-        # Create race
-        new_race = Race()
-
-        db.session.add(new_race)
-
-        for lap in form.laps.data:
-            new_lap = Lap(**lap)
-
-            # Add to race
-            new_race.laps.append(new_lap)
-
-        db.session.commit()
-
-
-    races = Race.query
-
-    return render_template(
-        'index.html',
-        form=form,
-        races=races,
-        _template=template_form
-    )
-
-
-@app.route('/<race_id>', methods=['GET'])
-def show_race(race_id):
-    """Show the details of a race."""
-    race = Race.query.filter_by(id=race_id).first()
-
-    return render_template(
-        'show.html',
-        race=race
-    )
-
-
-if __name__ == '__main__':
-    app.run()
+<script>
+const doc = window.parent.document;
+buttons = Array.from(doc.querySelectorAll('button[kind=primary]'));
+const left_button = buttons.find(el => el.innerText === 'LEFT');
+const right_button = buttons.find(el => el.innerText === 'RIGHT');
+doc.addEventListener('keydown', function(e) {
+    switch (e.keyCode) {
+        case 37: // (37 = left arrow)
+            left_button.click();
+            break;
+        case 39: // (39 = right arrow)
+            right_button.click();
+            break;
+    }
+});
+</script>
+""",
+    height=0,
+    width=0,
+)

@@ -1,0 +1,55 @@
+#date: 2022-01-26T17:05:58Z
+#url: https://api.github.com/gists/bdc85494725bd1c1443b4db0f7f306e4
+#owner: https://api.github.com/users/PhilZ-cwm6
+
+#!/bin/sh
+
+# Download this file
+# cd /usr/local/etc/rc.d && fetch --no-verify-peer https://gist.githubusercontent.com/PieterScheffers/1ecd70a1bfe640afb98f3cac9630814b/raw/326033ce1c243fd7ecd018684e748234668cf9ff/vncserver
+#
+# Make the file executable with:
+# /usr/local/etc/rc.d/vncserver (chmod +x)
+#
+# add to /etc/rc.conf
+#
+# vncserver_enable="YES"
+# vncserver_user="vncserver"
+# vncserver_display="1"
+
+
+# PROVIDE: vncserver
+# REQUIRE: NETWORKING SERVERS DAEMON ldconfig resolv
+#
+ 
+. /etc/rc.subr
+ 
+name=vncserver
+rcvar=vncserver_enable
+ 
+VNCSERVER=/usr/local/bin/vncserver
+ 
+load_rc_config $name
+ 
+start_cmd="vncserver_start"
+stop_cmd="vncserver_stop"
+restart_cmd="vncserver_restart"
+ 
+: ${vncserver_user="vncserver"}
+: ${vncserver_enable="NO"}
+: ${vncserver_display="1"}
+: ${vncserver_depth="24"}
+: ${vncserver_geometry="1280x800"}
+ 
+vncserver_start()
+{
+        CMD="$VNCSERVER -depth ${vncserver_depth} -geometry ${vncserver_geometry} -nolisten tcp :${vncserver_display}"
+        su -l ${vncserver_user} -c "${CMD}"
+}
+ 
+vncserver_stop()
+{
+        CMD="$VNCSERVER -kill :${vncserver_display}"
+        su -l ${vncserver_user} -c "${CMD}"
+}
+ 
+run_rc_command "$1"
