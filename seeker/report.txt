@@ -1,4 +1,52 @@
 --------------------------------------------------------------------------------
+ 2022-01-27 17:15:07.070554
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/OpenCV3.2withContrib.sh
+	deleted:    snippet/docker-aliases.sh
+	deleted:    snippet/index.py
+	deleted:    snippet/main.go
+	modified:   snippet/main.py
+	deleted:    snippet/oneline.sh
+	deleted:    snippet/rsnap
+	modified:   snippet/train.py
+	deleted:    snippet/triangular1.py
+	deleted:    snippet/triangular2.py
+	deleted:    snippet/triangular3.py
+	deleted:    snippet/triangular4.py
+	deleted:    snippet/triangular5.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/.zshrc
+	snippet/FindPivotIndex.java
+	snippet/QuickPane.py
+	snippet/aws_lambda_gremlin.py
+	snippet/containsDuplicate.java
+	snippet/exel_2.py
+	snippet/findMin_1.java
+	snippet/first_sketch.pyde
+	snippet/gmodmsgs.sh
+	snippet/importacao_knn.py
+	snippet/install-docker.sh
+	snippet/lib_knn.py
+	snippet/maxProduct_1.java
+	snippet/modelo_knn.py
+	snippet/music.py
+	snippet/performance_knn.py
+	snippet/processamento_knn.py
+	snippet/productExceptSelf.java
+	snippet/splitKonsole.py
+	snippet/threeSum.java
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2022-01-26 17:15:18.993466
 --------------------------------------------------------------------------------
   On branch main
