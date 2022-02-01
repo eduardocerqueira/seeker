@@ -1,4 +1,34 @@
 --------------------------------------------------------------------------------
+ 2022-02-01 17:16:01.395608
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/candidate.py
+	snippet/demo_ansi_colors.py
+	snippet/forecast_model_ML.py
+	snippet/forecast_model_NN.py
+	snippet/forecasting_model_statistical.py
+	snippet/generate_modified_data.py
+	snippet/holamundo.py
+	snippet/kmeans.py
+	snippet/leer.xml.dian._2.py
+	snippet/leer.xml.dian.py
+	snippet/lwa.py
+	snippet/mac-setup.sh
+	snippet/metrics.py
+	snippet/myscript.sh
+	snippet/prepare_data.py
+	snippet/readJSON.py
+	snippet/regex.py
+	snippet/tokens.py
+	snippet/utilities.py
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+--------------------------------------------------------------------------------
  2022-01-31 17:12:07.234868
 --------------------------------------------------------------------------------
   On branch main
