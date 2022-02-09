@@ -1,20 +1,24 @@
-#date: 2022-02-03T16:59:16Z
-#url: https://api.github.com/gists/12961ec25f126406256d31c84b39ae08
+#date: 2022-02-09T17:12:36Z
+#url: https://api.github.com/gists/4c241aae7d38307e5d8f02af1fcb60b8
 #owner: https://api.github.com/users/mypy-play
 
-from typing import NoReturn
+class ExtraValuemixin:
+    def __init__(self, value, *args, **kwargs):
+        super().__init__(value, *args, **kwargs)
 
-class Foo:
-    def __enter__(self) -> NoReturn:
-        pass
-
-    def __exit__(self, *args) -> None:
-        pass
-    
-
-def with_statement() -> NoReturn:
-    with Foo(): pass
+    def retrieve_extra_value(self):
+        return self.value
 
 
-def call_method() -> NoReturn:
-    Foo().__enter__()
+class ParentObj:
+    def __init__(self, value):
+        self.value = value
+
+
+class ChildObj(ExtraValuemixin, ParentObj):
+    pass
+
+
+obj = ChildObj(value=5)
+
+print(obj.retrieve_extra_value())
