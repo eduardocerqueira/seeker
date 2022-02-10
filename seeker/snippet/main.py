@@ -1,24 +1,37 @@
-#date: 2022-02-09T17:12:36Z
-#url: https://api.github.com/gists/4c241aae7d38307e5d8f02af1fcb60b8
-#owner: https://api.github.com/users/mypy-play
+#date: 2022-02-10T16:52:27Z
+#url: https://api.github.com/gists/a12d0c51fb852e679f0fc8b653d4d2eb
+#owner: https://api.github.com/users/adriangb
 
-class ExtraValuemixin:
-    def __init__(self, value, *args, **kwargs):
-        super().__init__(value, *args, **kwargs)
+""" Snippet that demonstrates how to use Uvicorn in code.
 
-    def retrieve_extra_value(self):
-        return self.value
+Feel free to run:
 
+- `python main.py`
+"""
+import asyncio
 
-class ParentObj:
-    def __init__(self, value):
-        self.value = value
-
-
-class ChildObj(ExtraValuemixin, ParentObj):
-    pass
+import uvicorn
+from pydantic import BaseSettings
+from xpresso import Path, App
 
 
-obj = ChildObj(value=5)
+class Config(BaseSettings):
+    port: int
 
-print(obj.retrieve_extra_value())
+
+async def home(config: Config) -> str:
+    return f"Hello World from {config.port}!"
+
+
+home_path_item = Path("/", get=home)
+
+
+async def main() -> None:
+    config = Config()
+    app = App(routes=[home_path_item])
+    app.dependency_overrides[Config] = lambda: config
+    await uvicorn.Server(uvicorn.Config(app, port=config.port)).serve()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

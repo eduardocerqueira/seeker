@@ -1,16 +1,11 @@
-#date: 2022-01-27T17:00:04Z
-#url: https://api.github.com/gists/18017d12c3812650330e06b20a6c06b6
-#owner: https://api.github.com/users/Roytangrb
+#date: 2022-02-10T16:43:00Z
+#url: https://api.github.com/gists/cec1d4ecfb729ad95c788d53df8dd7f1
+#owner: https://api.github.com/users/oirodolfo
 
-# Adapted from: https://frantic.im/notify-on-completion/
-
-# rmb to chmod +x ~/notifyme.scpt
-alias notifyme="~/notifyme.scpt"
-
-function f_notifyme {
-  LAST_EXIT_CODE=$?
-  CMD=$(fc -ln -1)
-  notifyme "$CMD" "$LAST_EXIT_CODE" &
+# Reusable bash function you can add to your ~/.zshrc or ~/.bashrc file
+#
+# Usage: pkg-script start "node index.js"
+#
+function pkg-script () {
+  echo $(jq --arg key "${1}" --arg val "${2}" '.scripts[$key]=$val' package.json) | jq . | > package.json
 }
-
-export PS1='$(f_notifyme)'$PS1

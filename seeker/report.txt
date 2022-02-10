@@ -1,4 +1,65 @@
 --------------------------------------------------------------------------------
+ 2022-02-10 17:12:53.267019
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   snippet/.zshrc
+	deleted:    snippet/0_beautifulsoup.py
+	deleted:    snippet/10_basic.py
+	deleted:    snippet/15_make_soup.py
+	deleted:    snippet/18_output.py
+	deleted:    snippet/20_search.py
+	deleted:    snippet/25_navigation.py
+	deleted:    snippet/30_edit.py
+	deleted:    snippet/40_encoding.py
+	deleted:    snippet/50_parse_only_part.py
+	deleted:    snippet/Dockerfile
+	deleted:    snippet/contatempos.py
+	deleted:    snippet/example.py
+	deleted:    snippet/gistfile1.sh
+	modified:   snippet/main.py
+	deleted:    snippet/ordenador.py
+	deleted:    snippet/pid_test.sh
+	deleted:    snippet/post-install_fedora-35.py
+	deleted:    snippet/pysimplegui_minimal_demo.py
+	deleted:    snippet/reading_chunks.py
+	modified:   snippet/script.py
+	deleted:    snippet/test_ordenador.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/InheritancePractice10.java
+	snippet/ListEditStateCommitOnFocusLost.java
+	snippet/OOPInheritance.java
+	snippet/Prototype-v0.py
+	snippet/Q1.java
+	snippet/Q2.java
+	snippet/Q3.java
+	snippet/ais.py
+	snippet/creating_zip.py
+	snippet/design-parking-system.py
+	snippet/importing.py
+	snippet/linux_gl.py
+	snippet/opencvdetectandblurface.py
+	snippet/redirector.go
+	snippet/replace.py
+	snippet/save-transparent-gif-image.java
+	snippet/save-transparent-image.java
+	snippet/save-transparent-tiff-image.java
+	snippet/save-transparent-webp-image.java
+	snippet/save_df_to_s3.py
+	snippet/script-instance-generation.sh
+	snippet/signal.sh
+	snippet/tool-transform.py
+	snippet/update_package.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2022-02-09 17:15:24.566936
 --------------------------------------------------------------------------------
   On branch main
