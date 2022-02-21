@@ -1,4 +1,61 @@
 --------------------------------------------------------------------------------
+ 2022-02-21 17:12:45.380200
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/Start.sh
+	deleted:    snippet/cnpj_generator.py
+	deleted:    snippet/crack_postcode.py
+	deleted:    snippet/delete.py
+	deleted:    snippet/fonts.sh
+	deleted:    snippet/for_renat.py
+	deleted:    snippet/geocode
+	deleted:    snippet/gkiss.sh
+	deleted:    snippet/goodby.sh
+	deleted:    snippet/hello.sh
+	deleted:    snippet/nvm_use
+	deleted:    snippet/proxmox ubuntu 20.04 template
+	deleted:    snippet/rabin_karp.java
+	deleted:    snippet/run.sh
+	deleted:    snippet/scratches_PyIngA1.1_Temp_Eingabe_Fahrenheit.py
+	deleted:    snippet/scratches_PyIngA1.2_Fahrenh_nach_Celsius.py
+	deleted:    snippet/scratches_PyIngA1.3_WinkelGrad_in_cos_sin.py
+	deleted:    snippet/scratches_PyIngA1.4_Python_Shell_logik.py
+	deleted:    snippet/scratches_PyIngA1.4_Zahl_zu_Formel.py
+	deleted:    snippet/scratches_PyIngA1.5_Eing_Name_Ausg.py
+	deleted:    snippet/scratches_PyIngA1.6_geomFormenTurtle.py
+	deleted:    snippet/torrc-change-bridges
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/AuditTrailListenerSimlified.java
+	snippet/Euler4_Gist2.py
+	snippet/OpenInTerminal.py
+	snippet/TestUnoCard.py
+	snippet/acronym_two_wrds.py
+	snippet/add_permisions.py
+	snippet/cho.py
+	snippet/combination(without repetition).py
+	snippet/geometry.py
+	snippet/hoeffding.py
+	snippet/importdata.py
+	snippet/jupyter-shell-alias.sh
+	snippet/kali-chroot.sh
+	snippet/mount_qcow.sh
+	snippet/pasos-previos-para-entender-rebase.sh
+	snippet/python-shell-aliases.sh
+	snippet/rocker
+	snippet/rocky_kde_minimal.sh
+	snippet/transcribe_ted_talks.py
+	snippet/tsocks.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2022-02-18 17:13:03.037750
 --------------------------------------------------------------------------------
   On branch main

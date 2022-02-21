@@ -1,0 +1,27 @@
+#date: 2022-02-21T16:54:06Z
+#url: https://api.github.com/gists/8040dc7d07c21ad2528b6a6c6a00bc06
+#owner: https://api.github.com/users/kamakazix
+
+#!/bin/bash
+xhost +local:root >/dev/null
+clear
+if [ $# -eq 2 ]
+then
+	docker run \
+	--shm-size=4g
+	-it \
+	--hostname=$1 \
+	--name=$1 \
+	--net=host \
+	--privileged \
+	-e DISPLAY \
+    	--workdir="/root" \
+	--volume="/rocker/$1:/root" \
+	$2 /bin/bash
+elif [ $# -eq 1 ]
+then
+	docker start $1 >/dev/null
+	docker attach $1
+fi
+xhost -local:root >/dev/null
+clear
