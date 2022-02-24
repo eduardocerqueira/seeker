@@ -1,4 +1,54 @@
 --------------------------------------------------------------------------------
+ 2022-02-24 17:13:24.969230
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/AuditTrailListenerSimlified.java
+	modified:   snippet/Dockerfile
+	deleted:    snippet/Euler4_Gist2.py
+	deleted:    snippet/OpenInTerminal.py
+	deleted:    snippet/TestUnoCard.py
+	deleted:    snippet/acronym_two_wrds.py
+	deleted:    snippet/add_permisions.py
+	deleted:    snippet/cho.py
+	deleted:    snippet/combination(without repetition).py
+	deleted:    snippet/geometry.py
+	deleted:    snippet/hoeffding.py
+	deleted:    snippet/importdata.py
+	deleted:    snippet/jupyter-shell-alias.sh
+	deleted:    snippet/kali-chroot.sh
+	deleted:    snippet/mount_qcow.sh
+	deleted:    snippet/pasos-previos-para-entender-rebase.sh
+	deleted:    snippet/python-shell-aliases.sh
+	deleted:    snippet/rocker
+	deleted:    snippet/rocky_kde_minimal.sh
+	deleted:    snippet/transcribe_ted_talks.py
+	deleted:    snippet/tsocks.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/adamasmaca.py
+	snippet/app_build_generated_source_buildConfig_debug_br_luzca_imc_calc_app_BuildConfig.java
+	snippet/buildTree_preorder.java
+	snippet/dig-my-ip.sh
+	snippet/display_element.py
+	snippet/find_elements.py
+	snippet/isSubtree.java
+	snippet/isValidBST.java
+	snippet/kthSmallest.java
+	snippet/lowestCommonAncestor.java
+	snippet/maxPathSum.java
+	snippet/new_element.py
+	snippet/random_robot.py
+	snippet/xstartup
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2022-02-23 17:15:03.381786
 --------------------------------------------------------------------------------
   On branch main
