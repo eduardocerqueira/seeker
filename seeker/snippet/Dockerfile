@@ -1,41 +1,17 @@
-#date: 2022-02-24T17:05:31Z
-#url: https://api.github.com/gists/4ce78240dea6937d73dd69d7e9158125
-#owner: https://api.github.com/users/iameli
+#date: 2022-02-25T16:46:00Z
+#url: https://api.github.com/gists/1d58f69384f68aaa1300271524cfef7e
+#owner: https://api.github.com/users/bschuele
 
-FROM ubuntu:20.04
+FROM ethereum/client-go:v1.10.1
 
-RUN apt update
-RUN DEBIAN_FRONTEND=noninteractive apt install -y cmake build-essential git
+ARG ACCOUNT_PASSWORD
 
-RUN git clone -b dtls_srtp_support --depth=1 https://github.com/livepeer/mbedtls.git /build/mbedtls \
-  && cd /build/mbedtls \
-  && mkdir build \
-  && cd build \
-  && cmake .. \
-  && make install \
-  && rm -rf /build/mbedtls
+COPY genesis.json /tmp
 
-RUN git clone https://github.com/cisco/libsrtp.git /build/libsrtp \
-  && cd /build/libsrtp \
-  && mkdir build \
-  && cd build \
-  && cmake .. \
-  && make install \
-  && rm -rf /build/libsrtp
+RUN geth init /tmp/genesis.json \
+    && rm -f ~/.ethereum/geth/nodekey \
+    && echo ${ACCOUNT_PASSWORD} > /tmp/password \
+    && geth account new --password /tmp/password \
+    && rm -f /tmp/password
 
-RUN git clone https://github.com/Haivision/srt.git /build/srt \
-  && cd /build/srt \
-  && mkdir build \
-  && cd build \
-  && cmake .. -D USE_ENCLIB=mbedtls -D ENABLE_SHARED=false \
-  && make install \
-  && rm -rf /build/srt
-
-WORKDIR /build/mist
-ADD . .
-RUN mkdir build \
-  && cd build \
-  && cmake -DPERPETUAL=1 .. \
-  && make MistController \
-  && make \
-  && make install
+ENTRYPOINT ["geth"]
