@@ -1,0 +1,90 @@
+#date: 2022-03-03T17:03:54Z
+#url: https://api.github.com/gists/7b3b93258ca7eff0a99454c33cb20c77
+#owner: https://api.github.com/users/Chrissi2812
+
+#!/bin/bash
+#
+
+ARGS=()
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+## Set ARGUMENTS
+if [[ $2 == -* ]]; then
+	ARGS+=($1)
+else
+	ARGS+=($1 $2)
+fi
+
+case $key in
+	--skip-png)
+	skipPNG="true"
+	shift
+	;;
+	--low-quality)
+	crf=31
+	qmin=16
+	qmax=63
+	shift
+	;;
+	--medium-quality)
+	crf=18
+	qmin=16
+	qmax=58
+	shift
+	;;
+	--high-quality)
+	crf=6
+	qmin=16
+	qmax=53
+	shift
+	;;
+	-F|--fast)
+	processor="$NUMBER_OF_PROCESSORS"
+	shift
+	;;
+	-crf)
+	crf="$2"
+	shift
+	shift
+	;;
+	-qmin)
+	qmin="$2"
+	shift
+	shift
+	;;
+	-qmax)
+	qmax="$2"
+	shift
+	shift
+	;;
+    -P|--processor)
+    processor="$2"
+    shift # past argument
+    shift # past value
+    ;;
+    *)    # unknown option
+    POSITIONAL+=("$1") # save it in an array for later
+    shift # past argument
+    ;;
+esac
+done
+set -- "${POSITIONAL[@]}" #
+
+
+if [ -z "$1" ]; then
+	find -maxdepth 1 \( -iname '*.gif' \)  -print0 | xargs -0 -I{} basename {} | xargs -I{} -P${processor-$NUMBER_OF_PROCESSORS} gif2mp4 "${ARGS[@]}" "{}"
+else
+	filename=$(basename -- "$1")
+	EXT="${filename##*.}"
+	FILENAME="${filename%.*}"
+
+	ffmpeg -y -f gif -i $1 \
+		-vcodec libx264    -pix_fmt yuv420p -b:v 0 -crf ${crf-18} -qmin ${qmin-16} -qmax ${qmax-63} -vf "fps=30,scale=trunc(iw/2)*2:trunc(ih/2)*2" -an $FILENAME.mp4 \
+		-vcodec libvpx-vp9 -pix_fmt yuv420p -b:v 0 -crf ${crf-18} -qmin ${qmin-16} -qmax ${qmax-63} -vf "fps=30,scale=trunc(iw/2)*2:trunc(ih/2)*2" -an $FILENAME-vp9.webm \
+		-vcodec libvpx     -pix_fmt yuv420p -b:v 0 -crf ${crf-18} -qmin ${qmin-16} -qmax ${qmax-63} -vf "fps=30,scale=trunc(iw/2)*2:trunc(ih/2)*2" -an $FILENAME.webm
+
+fi

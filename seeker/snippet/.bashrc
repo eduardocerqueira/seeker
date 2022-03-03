@@ -1,14 +1,15 @@
-#date: 2022-01-26T17:11:42Z
-#url: https://api.github.com/gists/1f05e6786e73f1e99604cc61d1fc09a3
-#owner: https://api.github.com/users/ChristianGrimberg
+#date: 2022-03-03T16:54:20Z
+#url: https://api.github.com/gists/18db9c4e9b1fe7d4a658ddfcbb9bcb79
+#owner: https://api.github.com/users/LaurierRoy
 
-# Add this lines al te end of the file \\wsl.localhost\{disribution}\home\{username}\.bashrc
+# If you work with git, you've probably had that nagging sensation of not knowing what branch you are on. Worry no longer!
 
-# enable GPG signing
-export GPG_TTY=$(tty)
+export PS1="\\w:\$(git branch 2>/dev/null | grep '^*' | colrm 1 2)\$ "
 
-if [ ! -f ~/.gnupg/S.gpg-agent ]; then
-    eval $( gpg-agent --daemon --options ~/.gnupg/gpg-agent.conf &>/dev/null )
-fi
+# This will change your prompt to display not only your working directory but also your current git branch, if you have one. Pretty nifty!
 
-export GPG_AGENT_INFO=${HOME}/.gnupg/S.gpg-agent:0:1
+# ~/code/web:beta_directory$ git checkout master
+# Switched to branch "master"
+# ~/code/web:master$ git checkout beta_directory
+# Switched to branch "beta_directory"
+# ~/code/web:beta_directory$ 
