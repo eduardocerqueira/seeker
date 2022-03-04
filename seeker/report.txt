@@ -1,4 +1,66 @@
 --------------------------------------------------------------------------------
+ 2022-03-04 17:14:12.910923
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   snippet/.bashrc
+	deleted:    snippet/.custom_commands.sh
+	deleted:    "snippet/BOJ 2258\353\262\210 \354\240\225\354\234\241\354\240\220.java"
+	deleted:    snippet/Dockerfile
+	deleted:    snippet/MaiorNumero.go
+	deleted:    snippet/_2017__STUPID.py
+	deleted:    snippet/_2019_razia_bokep_kls_11_multimedia_2_.py
+	deleted:    snippet/__main__.py
+	deleted:    snippet/aliases.sh
+	deleted:    snippet/blablablablabla.py
+	deleted:    snippet/clean-docker-for-mac.sh
+	deleted:    snippet/create-user.sh
+	deleted:    snippet/ctwp_params.sh
+	deleted:    snippet/ctwp_simple.sh
+	deleted:    snippet/dash4.py
+	deleted:    snippet/do_init.txt
+	deleted:    snippet/identify-after.sh
+	deleted:    snippet/identify.sh
+	deleted:    snippet/init.sh
+	deleted:    snippet/nba_play_by_play.py
+	deleted:    snippet/reproduce.py
+	deleted:    snippet/run-once.sh
+	modified:   snippet/script.sh
+	deleted:    snippet/setup.sh
+	deleted:    snippet/t_2017__.py
+	deleted:    snippet/weird_stanza_constituency_parse_output.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/01-docker-tls.sh
+	snippet/02-configure-docker-systemd-socket.sh
+	snippet/03-configure-docker-NO-systemd-socket.sh
+	snippet/04-tls-local-test.sh
+	snippet/05-tl-remote-test.sh
+	snippet/10-insecure-registry.sh
+	snippet/20-dockercoins-build-ship.sh
+	snippet/21-dockercoins-run.sh
+	snippet/GLM vs OLS Lasso penalty.py
+	snippet/SCS_to_Onyx.py
+	snippet/external_storage_fix_android_11.sh
+	snippet/gifsicle.sh
+	snippet/guessthenumbergame.py
+	snippet/init_model.py
+	snippet/install-github-runner.sh
+	snippet/livecd-iso-to-disk.sh
+	snippet/main.go
+	snippet/mediaBackup.py
+	snippet/mkwin9xfs.sh
+	snippet/save_local_weights.py
+	snippet/somefile.java
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2022-03-03 17:15:01.048620
 --------------------------------------------------------------------------------
   On branch main
