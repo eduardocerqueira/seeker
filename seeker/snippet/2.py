@@ -1,7 +1,25 @@
-#date: 2022-03-03T17:08:50Z
-#url: https://api.github.com/gists/53dc2ba761cda7bf231270bc1a874945
-#owner: https://api.github.com/users/MiguelOyarzo
+#date: 2022-03-09T17:12:27Z
+#url: https://api.github.com/gists/e0bac515e5856bd384905869b7480efc
+#owner: https://api.github.com/users/bengchew-lab
 
-#Se selecciona año 2019 y sólo la categoría "Ambos Sexos" de la variable DIM1. Se ordenan los países según la tasa cruda de suicidio anual.
-df2019=df[(df["Period"]=="2019")&(df["Dim1"]=="Both sexes")].sort_values("FactValueNumeric", ascending=False)
-df2019.head(10)
+class OneHotEncodercustom(BaseEstimator, TransformerMixin):
+    def __init__(self, variables):
+        self.variables = variables
+        self.ohe = OneHotEncoder(drop='first', handle_unknown = 'ignore')
+  
+    def fit(self, X, y = None):
+        X_ = X.loc[:,self.variables]
+        self.ohe.fit(X_)
+        return self
+      
+    def transform(self, X):
+        X_ = X.loc[:,self.variables]
+        # get one-hot encoded feature in df format
+        X_transformed = pd.DataFrame(self.ohe.transform(X_).toarray(), columns= self.ohe.get_feature_names_out())
+        
+        # Remove columns that are one hot encoded in original df
+        X.drop(self.variables, axis= 1, inplace=True)
+        
+        # Add one hot encoded feature to original df
+        X[self.ohe.get_feature_names_out()] = X_transformed[self.ohe.get_feature_names_out()].values
+        return X

@@ -1,7 +1,15 @@
-#date: 2022-03-03T16:51:48Z
-#url: https://api.github.com/gists/1df3a806e1a3a600b389a148b17ea28e
-#owner: https://api.github.com/users/MiguelOyarzo
+#date: 2022-03-09T17:11:36Z
+#url: https://api.github.com/gists/5fdf2a363340e01c7c4c3adfdc418beb
+#owner: https://api.github.com/users/bengchew-lab
 
-#Se consideran todos los años de la base y sólo la categoría "Ambos Sexos" de la variable DIM1. Se ordenan los países según la tasa cruda de suicidio anual.
-dftotal=df[df["Dim1"]=="Both sexes"].sort_values("FactValueNumeric", ascending=False)
-dftotal.head(10)
+from sklearn.base import BaseEstimator, TransformerMixin
+
+class DropFeatureSelector(BaseEstimator, TransformerMixin):
+    def __init__(self, variables):
+        self.variables = variables
+    def fit(self, X, y = None):
+        return self
+    def transform(self, X):
+        X_dropped = X.drop(self.variables, axis = 1)
+        self.columns = X_dropped.columns
+        return X_dropped
