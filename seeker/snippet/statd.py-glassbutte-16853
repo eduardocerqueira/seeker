@@ -1,0 +1,3572 @@
+#date: 2022-03-14T16:49:41Z
+#url: https://api.github.com/gists/fce868b876010ca7b0fe8ab2bc550d1f
+#owner: https://api.github.com/users/mariadb-arturoochoa
+
+#!/usr/bin/env python
+
+# XXX To Do for Prometheus (in no particular order):
+# - Simultaneous query support
+#   - Until then, this is prevented with a lock
+# - gzip payload?
+
+import time
+import math
+import sys
+import optparse
+import string
+import os
+import getpass
+import traceback
+import threading
+import re
+try:
+    import itertools.izip as zip
+except ImportError:
+    # Python 3 has the i implementation of zip by default
+    pass
+
+try:
+    range = xrange
+except NameError:
+    # Python 3 has the x implementation of range by default
+    pass
+
+try:
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+    from socketserver import ThreadingMixIn
+except ImportError:
+    # Python 2 needs manual definition of ThreadingHTTPServer:
+    from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+    from SocketServer import ThreadingMixIn
+
+class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
+    daemon_threads = True
+    server_version= "XPAND_STATD/glassbutte-16853:71c56aebab5fe788"
+
+try:
+    import _mysql_exceptions
+except ImportError:
+    # For mysqlclient-python:
+    from MySQLdb import _exceptions as _mysql_exceptions
+
+import MySQLdb
+#XXX We can probably find a better way than DictCursor:
+from MySQLdb.cursors import DictCursor
+
+# alters to partitioned statd_history table should be fast; if they are more
+# than this threshold then an error is logged
+PARTITION_ALTER_THRESHOLD = 3 # In seconds
+
+DAY_S = 24 * 60 * 60 # Seconds in a day, we use it a lot
+VERSION = 'glassbutte-16853:71c56aebab5fe788'
+DBNAME = 'clustrix_statd'
+DBNAME_FOR_TEST = 'clustrix_statd_testonly'
+POLLING_INTERVAL_S = 30
+UPTIME_SINCE = time.time()
+PROM_PREFIX = "mariadb_xpand"
+
+# Find the SQL Port to use from the config file:
+SQL_PORT = 3306
+conf_exception = None
+for conf_path in ('/etc/xpand/xpdnode.conf', '/etc/clustrix/clxnode.conf'):
+    if os.path.exists(conf_path):
+        with open(conf_path) as conf:
+            for line in conf.readlines():
+                if not line.strip().startswith("MYSQL_PORT"):
+                    continue
+                try:
+                    SQL_PORT = int(line.split('=')[1].strip())
+                except Exception as e:
+                    # Save this for later
+                    conf_exception = e
+                break
+        break # If one file exists don't look in the rest
+
+# I give in, global options are good enough:
+parser = optparse.OptionParser()
+parser.add_option("-H", "--hostname", dest="hostname", default="127.0.0.1",
+                   help="any hostname for a MariaDB Xpand system")
+parser.add_option("-P", "--port", dest="port", type="int",
+                  help="port to connect to", default=SQL_PORT)
+parser.add_option("-u", "--user", dest="user",
+                  help="database user to connect as",
+                  default=getpass.getuser())
+parser.add_option("-p", "--password", help="account password",
+                  dest="password", default="")
+parser.add_option("-e", "--elect-override", dest="elect_override",
+                  default=False, action="store_true")
+parser.add_option("--print-intervals", dest="print_intervals", default=False,
+                  action="store_true", help="Print gatherer intervals")
+parser.add_option("-D", "--stats-database", dest="dbname",
+                  default=DBNAME, help=optparse.SUPPRESS_HELP)
+parser.add_option("--debug", dest="debug", action="store_true",
+                  default=False, help=optparse.SUPPRESS_HELP)
+parser.add_option("--statname-test", dest="statname_test",
+                  default=False, action="store_true",
+                  help=optparse.SUPPRESS_HELP)
+parser.add_option("--query-test", dest="query_test",
+                  default=False, action="store_true",
+                  help=optparse.SUPPRESS_HELP)
+parser.add_option("--quit-on-except", dest="quit_on_except",
+                  default=False, action="store_true",
+                  help=optparse.SUPPRESS_HELP)
+parser.add_option("--version", dest='version', help='Print statd.py version information.',
+                  default=False, action="store_true")
+parser.add_option("--prometheus", dest="prom_mode", action="store_true",
+                  default=False, help="Run statd in Prometheus exporter mode.")
+parser.add_option("--prometheus-port", dest="prom_port", type="int",
+                  default=8080, help="HTTP listen port for Prometheus exporter mode.")
+
+opts, args = parser.parse_args()
+
+if opts.hostname == 'localhost':
+    # Disable the confusing hostname means unix socket connection behavior
+    opts.hostname = '127.0.0.1'
+
+if opts.debug and conf_exception:
+    print("Exception reading MYSQL_PORT from %s: %s" % (conf_path, conf_exception))
+
+class DTime(object):
+    def __init__(self, name):
+        self.name = name
+    def __enter__(self):
+        self.t0 = time.time()
+    def __exit__(self, *args):
+        if opts.debug:
+            print("--- %s took %0.3f s" % (self.name, time.time() - self.t0))
+
+if opts.version:
+    print("statd.py version: %s" % VERSION)
+    sys.exit(0)
+
+if opts.statname_test:
+    # Configure other options to suit this test
+    if opts.dbname == DBNAME:
+        # We can't use the default statd database here
+        opts.dbname = DBNAME_FOR_TEST
+        print("Set database name to: %s" % opts.dbname)
+
+if opts.debug:
+    print("Running with Python %s" % sys.version.split()[0])
+
+def mkexc():
+    # Format a string for the current exception
+    return "%s: %s" % (sys.exc_info()[0].__name__, sys.exc_info()[1])
+
+def log_event(message):
+    # Assume this output is captured in nanny.log, which gives us a
+    #   timestamp, hostname, and process name automatically
+    sys.stdout.write("%s\n" % message)
+    sys.stdout.flush()
+
+def read_smaps(key):
+    result = 0
+    with open('/proc/self/smaps') as smaps:
+        for line in smaps.readlines():
+            line = line.strip()
+            if line.startswith('%s:' % key):
+                result += int(line.split()[1])
+    return result
+
+def col_names(cursor, skip=0):
+    # Extract column names from a MySQLdb cursor, optionally
+    #   skipping some at the beginning of the list
+    return [d[0] for d in cursor.description[skip:]]
+
+def zip_cols(cursor, row=None, skip=0):
+    # Return tuple of (col_name, value) tuples from a MySQL cursor and
+    #   row, optionally skipping some at the beginning. If no row is
+    #   specified, use cursor.fetchone() (This does not support skipping)
+    if row:
+        return zip(col_names(cursor, skip), row[skip:])
+    return zip(col_names(cursor), cursor.fetchone())
+
+def gen_cols(cursor, idxcols=0):
+    # Yields tuples of (idxcol[0]...idxcol[n], col_name, col_value)
+    #   for every row and non-index column in cursor.fetchall()
+    for row in cursor.fetchall():
+        idx = tuple(row[:idxcols])
+        for name, value in zip_cols(cursor, row, idxcols):
+            yield idx + (name, value)
+
+def prom_float(value, scale=1):
+    # Return a string representation of int/float `value` in prometheus-friendly format
+    if value is None:
+        return "NaN"
+    value = value * scale
+    if abs(value) >= 100000000:
+        # switch to exponential format after eight digits
+        return "%e" % value
+    # Float with trailing zeroes stripped:
+    return ("%f" % value).rstrip('0').rstrip('.')
+
+
+class Unit(object):
+    def __init__(self, name, match_sets):
+        # match_sets is a dict of match string: scale pairs
+        self.name = name
+        self.match_sets = match_sets
+    def match(self, metric_name):
+        for match in self.match_sets:
+            if re.search('[._]%s([._].*)?$' % match, metric_name):
+                metric_name = "%s_%s" % (re.sub('[._]%s([._]|$)' % match, '\g<1>', metric_name),  self.name)
+                return self.match_sets[match], metric_name
+        return None, metric_name
+
+class Histogram(object):
+    # See this link for Prometheus format:
+    # https://github.com/prometheus/docs/blob/master/content/docs/instrumenting/exposition_formats.md#histograms-and-summaries
+    def __init__(self, cumulative_input=False):
+        self.values = {}
+        self.cumulative = cumulative_input
+        self.h_sum = None
+    def add_bucket(self, upper_limit, quantity):
+        # Bucket values may come through as string types, float them:
+        self.values[float(upper_limit)] = quantity
+    def from_rows(self, rows):
+        for row in rows:
+            if row[0] == 'sum':
+                self.h_sum = row[1]
+                continue
+            self.add_bucket(*row)
+    def prom_format(self, stat_name, timestamp):
+        output = []
+        total = 0
+        if not self.values:
+            # If we didn't get any values don't continue
+            return output
+        top_bucket = sorted(self.values.keys())[-1]
+        for bucket in sorted(self.values.keys()):
+            if not self.cumulative:
+                # Prometheus wants all le=X buckets to include the previous counts:
+                total += self.values[bucket]
+            else:
+                total = self.values[bucket]
+            if bucket == top_bucket:
+                prom_bucket = "+Inf"
+            else:
+                prom_bucket = prom_float(bucket)
+            output.append("%s_%s_bucket{le=\"%s\"} %s %d" %(PROM_PREFIX, stat_name, prom_bucket, prom_float(total),
+                            int(timestamp*1000)))
+        if self.h_sum is not None:
+            # Optional? Sum of all values
+            output.append("%s_%s_sum %s %d" % (PROM_PREFIX, stat_name, prom_float(self.h_sum), int(timestamp*1000)))
+        # We're required to repeat the +Inf line with a different label:
+        output.append("%s_%s_count %s %d" % (PROM_PREFIX, stat_name, prom_float(total), int(timestamp*1000)))
+        output.append("") # Blank line after each histogram
+        return output
+    def row_format(self, stat_id, ts):
+        # XXX Unsupported, skip for now
+        return None
+
+class Samples(object):
+    """Store stat values and timestamps as tuples indexed by stat ID"""
+    complex_types = (Histogram,)
+    def __init__(self, clustrixdb):
+        self.cdb = clustrixdb
+        self.stat_by_id = {}
+
+    def __bool__(self):
+        return len(self.stat_by_id) > 0
+    __nonzero__ = __bool__ # Python 2 uses this for truthiness
+
+    def _add(self, stat_name, raw_value, **kwargs):
+        stat_id = self.cdb.get_stat_id(stat_name, True, **kwargs)
+        if self.cdb.mode == 'prometheus':
+            if kwargs != self.cdb.stat_args_by_name[stat_name]:
+                if opts.debug:
+                    print("Reprocessing stat %d - %s on arg change" % (stat_id, stat_name))
+                self.cdb.process_stat_name(stat_id, stat_name, **kwargs)
+                self.cdb.stat_args_by_name[stat_name] = kwargs
+        if type(raw_value) in self.complex_types:
+            value = raw_value
+        else:
+            try:
+                value = float(raw_value)
+            except:
+                value = None
+        self.stat_by_id[stat_id] = (value, time.time())
+        return stat_id
+
+    def add_gauge(self, *args, **kwargs):
+        stat_id = self._add(*args, **kwargs)
+        self.cdb.set_stat_type(stat_id, 'gauge')
+
+    def add_counter(self, *args, **kwargs):
+        stat_id = self._add(*args, **kwargs)
+        self.cdb.set_stat_type(stat_id, 'counter')
+
+    def add_histogram(self, *args, **kwargs):
+        stat_id = self._add(*args, **kwargs)
+        self.cdb.set_stat_type(stat_id, 'histogram')
+
+    def fill_in(self, other):
+        for key in other.stat_by_id:
+            if key not in self.stat_by_id:
+                self.stat_by_id[key] = other.stat_by_id[key]
+
+    def has_stat(self, stat_name):
+        # We need to translate to stat id here
+        return self.cdb.get_stat_id(stat_name) in self.stat_by_id
+
+    def get_stat(self, stat_name):
+        # Translate to stat id and return (value, ts) tuple
+        return self.stat_by_id[self.cdb.get_stat_id(stat_name)]
+
+    def get_value(self, stat_name, default=None):
+        try:
+            return self.get_stat(stat_name)[0]
+        except KeyError:
+            return default
+
+    def row_format(self):
+        """Return SQL-formatted rows in a list"""
+        rows = []
+        for stat_id in self.stat_by_id:
+            value, ts = self.stat_by_id[stat_id]
+            try:
+                # Attempt to use a complex type row-format method:
+                # May return None
+                row = value.row_format(stat_id, ts)
+                if row is not None:
+                    rows.append(row)
+            except AttributeError:
+                ts = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(ts))
+                if value is None or math.isnan(value):
+                    rows.append('(%d, "%s", NULL)' % (stat_id, ts))
+                else:
+                    rows.append('(%d, "%s", %s)' % (stat_id, ts, value))
+        return rows
+
+    def prom_format(self):
+        # Return Prometheus-format data
+        data = []
+        # Process all stats in all metrics that have at least one stat in this set:
+        for metric in sorted(set(self.cdb.get_metric_name(stat_id) for stat_id in self.stat_by_id)):
+            scale = self.cdb.get_scale_for_metric(metric)
+            data.append("# TYPE %s_%s %s" % (PROM_PREFIX, metric, self.cdb.get_metric_type(metric)))
+            for stat_id in self.cdb.get_ids_for_metric(metric):
+                if stat_id not in self.stat_by_id:
+                    # Prometheus wants placeholder values
+                    value = None
+                    ts = time.time()
+                else:
+                    value, ts = self.stat_by_id[stat_id]
+                try:
+                    # Data type with its own format method:
+                    data += value.prom_format(metric, ts)
+                except AttributeError:
+                    # Standard float/int value:
+                    data.append("%s_%s{%s} %s %d" %
+                                (PROM_PREFIX, metric, self.cdb.get_label_str(stat_id),
+                                prom_float(value, scale), int(ts*1000)))
+            data.append("") # Blank line between blocks of metrics
+        return data
+
+    def update(self, other):
+        self.stat_by_id.update(other.stat_by_id)
+
+
+class ExplicitTransaction(object):
+    def __init__(self, cur):
+        self.cur = cur
+    def __enter__(self):
+        if opts.debug: print("Beginning explicit transaction")
+        self.cur.execute("BEGIN")
+    def __exit__(self, etype, *args):
+        if etype == None:
+            if opts.debug: print("Commiting explicit transaction")
+            self.cur.execute("COMMIT")
+        else:
+            if opts.debug: print("Rolling back explicit transaction")
+            self.cur.execute("ROLLBACK")
+        return False # Automatically re-raises any exceptions
+
+
+class ClustrixDB:
+    mode = "clustrix_native"
+    def __init__(self, dbname=None):
+        self.dbname = dbname
+        self.nid = None
+        self.group = None
+
+    def native_mode(self):
+        return isinstance(self, ClustrixDB)
+
+    def prometheus_mode(self):
+        return isinstance(self, Prometheus)
+
+    def cursor(self, *args, **kwargs):
+        if self.db:
+            return self.db.cursor(*args, **kwargs)
+
+    def db_connect(self):
+        if not self.dbname:
+            raise Exception("Tried to connect with no database name")
+        while True:
+            try:
+                db = MySQLdb.connect(host=opts.hostname,
+                                     db="system",
+                                     port=opts.port,
+                                     user=opts.user,
+                                     passwd=opts.password)
+                db.autocommit(True)
+                cur = db.cursor()
+                # We don't want to log stats related SQL activity
+                cur.execute("set sql_log_bin = 0")
+                # Session timezone UTC so we can use time.gmtime()
+                cur.execute("set time_zone = 'UTC'")
+                cur.execute("set names utf8")
+                cur.execute("select hidden from databases where name = %s", (self.dbname,))
+                db_hidden = cur.fetchone()
+                if not db_hidden:
+                    if opts.debug:
+                        print("Creating database %s" % self.dbname)
+                    cur.execute("create database %s" % self.dbname)
+                    set_hidden = True
+                else:
+                    set_hidden = not db_hidden[0]
+                if set_hidden:
+                    cur.execute("alter database %s set hidden = true" % self.dbname)
+                db.select_db(self.dbname)
+                db.autocommit(True)
+                self.db = db # At this point other code can get cursors
+                break
+            except:
+                if opts.debug:
+                    print("do_connect caught: %s" % mkexc())
+                    traceback.print_exc()
+                    print("re-trying database connection in %d seconds" % POLLING_INTERVAL_S)
+                # sleep for a while until next connection attempt
+                time.sleep(POLLING_INTERVAL_S)
+
+        cur.execute("select membership()")
+        self.group = cur.fetchone()[0]
+        self.gtmnid() # Fill out the nid cache
+
+        self.stats = self.get_sample_dict()
+
+    def is_elected(self):
+        if opts.elect_override:
+            return True
+
+        cur = self.db.cursor()
+        try:
+            cur.execute("select min(nodeid) = gtmnid() from system.nodeinfo")
+        except:
+            # This is the only place we check for a dead database connection, and we only connect at
+            #   the beginning of the script, so to reconnect we must quit here.
+            sys.stderr.write("Caught exception (%s) in election check, quitting to restart and reconnect." % mkexc())
+            sys.stderr.flush()
+            exit(1)
+        return cur.fetchone()[0]
+
+    def gtmnid(self):
+        # This doesn't change during a single execution, cache it
+        if not self.nid:
+            try:
+                cur = self.db.cursor()
+                cur.execute("select gtmnid()")
+                self.nid = cur.fetchone()[0]
+            except AttributeError:
+                # self.db doesn't exist yet
+                return None
+        return self.nid
+
+    def get_pnid(self):
+        # This also doesn't change during a single execution, or until
+        #   the node is formatted
+        if not self.pnid:
+            try:
+                cur = self.db.cursor()
+                cur.execute("select pnid from system.nodeinfo where nodeid=gtmnid()")
+                self.pnid = cur.fetchone()[0]
+            except AttributeError:
+                # self.db doesn't exist yet
+                return None
+        return self.pnid
+
+    def same_group(self):
+        if not self.group:
+            return False
+        try:
+            cur = self.db.cursor()
+            cur.execute("select membership()")
+            return self.group == cur.fetchone()[0]
+        except (_mysql_exceptions.OperationalError, _mysql_exceptions.InternalError):
+            # Usually "MySQL Server Gone Away" or "Group change during GTM operation"
+            return False
+
+    def read_config(self):
+        cur = self.db.cursor()
+        cur.execute("select name, value from statd_config")
+        return cur.fetchall()
+
+    def write_config(self, conf):
+        cur = self.db.cursor()
+        cur.executemany("INSERT INTO statd_config values (%s, %s)", conf)
+
+    def slices(self):
+        """Calculate the number of slices for the non-current tables.
+        May be overridden with the statd_config variable 'table_slices'."""
+        try:
+            cur = self.db.cursor()
+            if cur.execute("select value from %s.statd_config where name='table_slices'" % self.dbname):
+                # Found a value, sanity check and return:
+                slice_count = int(cur.fetchone()[0])
+                if slice_count >= 1:
+                    if opts.debug:
+                        print("Using slice count %d from statd_config" % slice_count)
+                    return slice_count
+        except:
+            # statd_config table probably doesn't exist yet
+            if opts.debug:
+                print("Caught %s in ClustrixDB.slices() statd_config" % mkexc())
+        try:
+            # Either we got no value from statd_config or it was <=1, calculate a sane value:
+            cur.execute("select count(*) from system.membership")
+            slice_count = max(3, 3 + (cur.fetchone()[0] - 2) / 2)
+            if opts.debug:
+                print("Using calculated slice count %d" % slice_count)
+            return slice_count
+        except:
+            if opts.debug:
+                print("Caught %s in ClustrixDB.slices() calculate" % mkexc())
+            return 3 # Safest  default
+
+    def init_tables(self):
+        """Create or alter tables if missing or out-of-date"""
+        cur = self.db.cursor()
+        # Ensure that tables we create have at least 3 slices,
+        # important b/c we create statd tables as cluster of 1 node:
+        cur.execute("set hash_dist_min_slices = %d" % self.slices())
+        cur.execute("show tables")
+        tables = [r[0] for r in cur.fetchall()]
+        if "statd_metadata" not in tables:
+            cur.execute("create table statd_metadata"
+                        "  (id int unsigned not null primary key auto_increment,"
+                        "   name varchar(256) not null,"
+                        "   unique (name)) replicas=allnodes");
+                        #"   stat_type enum('counter','gauge')," # For use later, maybe
+        #else:
+            # Not used yet
+            #self.metadata_upgrade_table()
+
+        if "statd_current" not in tables:
+            cur.execute("create table statd_current"
+                        "  (id int unsigned not null,"
+                        "   `timestamp` timestamp default current_timestamp,"
+                        "   value double,"
+                        "   primary key (id) distribute = 1)"
+                        "   replicas = 1"
+                        "   container = layered")
+
+        if "statd_config" not in tables:
+            cur.execute("CREATE TABLE statd_config ("
+                        "       `name` VARCHAR(256) NOT NULL,"
+                        "       `value` INT(11),"
+                        "       PRIMARY KEY (`name`)) REPLICAS=ALLNODES")
+
+        if 'statd_history' not in tables:
+            # Make a new history table, with partitions
+            self.create_history_table()
+
+        if 'qpc_history' not in tables:
+            cur.execute("create table qpc_history"
+                        "  (query_key bigint unsigned not null,"
+                        "   `timestamp` timestamp not null,"
+                        "   database varchar(256),"
+                        "   statement varchar(8196),"
+                        "   exec_count int unsigned,"
+                        "   exec_ms bigint unsigned,"
+                        "   avg_exec_ms double,"
+                        "   min_exec_ms double,"
+                        "   max_exec_ms double,"
+                        "   compile_count int unsigned,"
+                        "   compile_ms bigint unsigned,"
+                        "   rows_read bigint unsigned,"
+                        "   avg_rows_read double,"
+                        "   rows_written bigint unsigned,"
+                        "   avg_rows_written double,"
+                        "   rows_inserted bigint unsigned,"
+                        "   avg_rows_inserted double,"
+                        "   rows_replaced bigint unsigned,"
+                        "   avg_rows_replaced double,"
+                        "   rows_deleted bigint unsigned,"
+                        "   avg_rows_deleted double,"
+                        "   rows_output bigint unsigned,"
+                        "   avg_rows_output double,"
+                        "   forwards bigint unsigned,"
+                        "   avg_forwards double,"
+                        "   broadcasts bigint unsigned,"
+                        "   avg_broadcasts double,"
+                        "   lockman_waits bigint unsigned,"
+                        "   avg_lockman_waits double,"
+                        "   lockman_waittime_ms bigint unsigned,"
+                        "   avg_lockman_waittime_ms double,"
+                        "   trxstate_waits bigint unsigned,"
+                        "   avg_trxstate_waits double,"
+                        "   trxstate_waittime_ms bigint unsigned,"
+                        "   avg_trxstate_waittime_ms double,"
+                        "   wal_perm_waittime_ms bigint unsigned,"
+                        "   avg_wal_perm_waittime_ms double,"
+                        "   bm_perm_waittime_ms bigint unsigned,"
+                        "   avg_bm_perm_waittime_ms double,"
+                        "   bm_waittime_ns bigint unsigned,"
+                        "   avg_bm_waittime_ns double,"
+                        "   bm_fixes bigint unsigned,"
+                        "   avg_bm_fixes double,"
+                        "   bm_loads bigint unsigned,"
+                        "   avg_bm_loads double,"
+                        "   sigmas bigint unsigned,"
+                        "   avg_sigmas double,"
+                        "   sigma_fallbacks bigint unsigned,"
+                        "   avg_sigma_fallbacks double,"
+                        "   cpu_runtime_ns bigint unsigned,"
+                        "   avg_cpu_runtime_ns double,"
+                        "   cpu_waits bigint unsigned,"
+                        "   avg_cpu_waits double,"
+                        "   cpu_waittime_ns bigint unsigned,"
+                        "   avg_cpu_waittime_ns double,"
+                        "   fragment_executions bigint unsigned,"
+                        "   avg_fragment_executions double,"
+                        "   barriers bigint unsigned,"
+                        "   avg_barriers double,"
+                        "   barrier_forwards bigint unsigned,"
+                        "   avg_barrier_forwards double,"
+                        "   barrier_flushes bigint unsigned,"
+                        "   avg_barrier_flushes double,"
+                        "   row_store_creates bigint unsigned,"
+                        "   avg_row_store_creates double,"
+                        "   row_store_insreps bigint unsigned,"
+                        "   avg_row_store_insreps double,"
+                        "   avg_opt_cost bigint unsigned,"
+                        "   rank int unsigned,"
+                        "   is_rollup tinyint default 0,"
+                        "   primary key (query_key, timestamp, is_rollup) distribute = 3,"
+                        "   unique key (timestamp, query_key, is_rollup) distribute = 3,"
+                        "   key (is_rollup,timestamp) distribute = 3)");
+        if "qpc_current" not in tables:
+            cur.execute("create table qpc_current"
+                        "  (query_key bigint unsigned not null,"
+                        "   `timestamp` timestamp not null,"
+                        "   database varchar(256),"
+                        "   statement varchar(8196),"
+                        "   exec_count int unsigned,"
+                        "   exec_ms bigint unsigned,"
+                        "   avg_exec_ms double,"
+                        "   compile_count int unsigned,"
+                        "   compile_ms bigint unsigned,"
+                        "   rows_read bigint unsigned,"
+                        "   avg_rows_read double,"
+                        "   rows_written bigint unsigned,"
+                        "   avg_rows_written double,"
+                        "   rows_inserted bigint unsigned,"
+                        "   avg_rows_inserted double,"
+                        "   rows_replaced bigint unsigned,"
+                        "   avg_rows_replaced double,"
+                        "   rows_deleted bigint unsigned,"
+                        "   avg_rows_deleted double,"
+                        "   rows_output bigint unsigned,"
+                        "   avg_rows_output double,"
+                        "   forwards bigint unsigned,"
+                        "   avg_forwards double,"
+                        "   broadcasts bigint unsigned,"
+                        "   avg_broadcasts double,"
+                        "   lockman_waits bigint unsigned,"
+                        "   avg_lockman_waits double,"
+                        "   lockman_waittime_ms bigint unsigned,"
+                        "   avg_lockman_waittime_ms double,"
+                        "   trxstate_waits bigint unsigned,"
+                        "   avg_trxstate_waits double,"
+                        "   trxstate_waittime_ms bigint unsigned,"
+                        "   avg_trxstate_waittime_ms double,"
+                        "   wal_perm_waittime_ms bigint unsigned,"
+                        "   avg_wal_perm_waittime_ms double,"
+                        "   bm_perm_waittime_ms bigint unsigned,"
+                        "   avg_bm_perm_waittime_ms double,"
+                        "   bm_waittime_ns bigint unsigned,"
+                        "   avg_bm_waittime_ns double,"
+                        "   bm_fixes bigint unsigned,"
+                        "   avg_bm_fixes double,"
+                        "   bm_loads bigint unsigned,"
+                        "   avg_bm_loads double,"
+                        "   sigmas bigint unsigned,"
+                        "   avg_sigmas double,"
+                        "   sigma_fallbacks bigint unsigned,"
+                        "   avg_sigma_fallbacks double,"
+                        "   cpu_runtime_ns bigint unsigned,"
+                        "   avg_cpu_runtime_ns double,"
+                        "   cpu_waits bigint unsigned,"
+                        "   avg_cpu_waits double,"
+                        "   cpu_waittime_ns bigint unsigned,"
+                        "   avg_cpu_waittime_ns double,"
+                        "   fragment_executions bigint unsigned,"
+                        "   avg_fragment_executions double,"
+                        "   barriers bigint unsigned,"
+                        "   avg_barriers double,"
+                        "   barrier_forwards bigint unsigned,"
+                        "   avg_barrier_forwards double,"
+                        "   barrier_flushes bigint unsigned,"
+                        "   avg_barrier_flushes double,"
+                        "   row_store_creates bigint unsigned,"
+                        "   avg_row_store_creates double,"
+                        "   row_store_insreps bigint unsigned,"
+                        "   avg_row_store_insreps double,"
+                        "   avg_opt_cost bigint unsigned,"
+                        "   rank int unsigned,"
+                        "   primary key (query_key) distribute = 1,"
+                        "   key (rank) distribute = 2)"
+                        "   container = btree")
+
+        self.qpc_upgrade_tables()
+
+        if 'hotness_history' not in tables:
+            cur.execute("create table hotness_history"
+                        "  (`timestamp` timestamp default current_timestamp,"
+                        "   read_rank int unsigned,"
+                        "   write_rank int unsigned,"
+                        "   node int unsigned,"
+                        "   `database` varchar(256),"
+                        "   `table` varchar(256),"
+                        "   `index` varchar(256),"
+                        "   reads int unsigned,"
+                        "   writes int unsigned,"
+                        "   replicas int unsigned,"
+                        "   ranked_replicas int unsigned," # No-longer used
+                        "   total_replicas int unsigned,"
+                        "   PRIMARY KEY (`timestamp`,`node`,`database`,"
+                        "                `table`,`index`) distribute = 5,"
+                        "   key (`timestamp`, read_rank) distribute = 2,"
+                        "   key (`timestamp`, write_rank) distribute = 2)"
+                        "   CONTAINER='btree'")
+
+        if 'hotness_current' not in tables:
+            cur.execute("create view hotness_current as"
+                        "  select *"
+                        "    from hotness_history"
+                        "    where timestamp = (select max(timestamp)"
+                        "                         from hotness_history)")
+
+    def get_sample_dict(self):
+        """return a Samples object to store stats with timestamps"""
+        return Samples(self)
+
+    def populate_stat_ids(self):
+        """fill out self.stat_id_by_name from statd_metadata"""
+        cur = self.db.cursor()
+        # Strip leading clustrix. from all stats:
+        cur.execute("select trim(leading 'clustrix.' from name), id from statd_metadata")
+        #self.stat_id_by_name = dict([(n, id) for n, id in cur.fetchall()])
+        self.stat_id_by_name = dict(cur.fetchall())
+
+    def get_stat_id(self, stat_name, create=False, **kwargs):
+        try:
+            return self.stat_id_by_name[stat_name]
+        except KeyError:
+            if create:
+                return self.add_stat_id(stat_name, **kwargs)
+            raise
+
+    def add_stat_id(self, stat_name, **kwargs):
+        """Adds a stat_name to statd_metadata if it doesn't exist"""
+        cur = self.db.cursor()
+        if stat_name not in self.stat_id_by_name:
+            db_stat_name = 'clustrix.' + stat_name
+            try:
+                cur.execute("insert into statd_metadata (name) values (%s)",
+                            (db_stat_name,))
+                stat_id = cur.lastrowid
+            except _mysql_exceptions.IntegrityError as e:
+                if not "Duplicate key in container" in e[1]:
+                    # this is not the exception we're looking for
+                    raise
+                # We got a dupe key because someone recreated their slave with
+                # different capitalization (bug 21192,) so reuse the
+                # stat id, but update the name to reflect the new capitalization
+                cur.execute("select id from statd_metadata where name=%s", (db_stat_name,))
+                stat_id = cur.fetchone()[0]
+                cur.execute("update statd_metadata set name=%s where id=%s", (db_stat_name, stat_id))
+            self.stat_id_by_name[stat_name] = stat_id
+            return stat_id
+
+    def set_stat_type(self, stat_id, stat_type):
+        # Prometheus only
+        pass
+
+    def update_current_stats(self, newstats):
+        self.stats.update(newstats)
+        self.current_needs_sync = True
+
+    def sync_current_stats(self):
+        """Delete rows from statd_current and re-fill it with self.stats"""
+        if not self.current_needs_sync:
+            # No new stats since last run
+            return
+        cur = self.db.cursor()
+
+        cur.execute("delete from statd_current")
+        cur.execute("insert into statd_current (id, `timestamp`, value) "
+                        "values %s" % ','.join(self.stats.row_format()))
+        self.current_needs_sync = False
+
+    def store_history(self, newstats):
+        """Insert newstats into statd_history table"""
+        # XXX Maybe do some sort of queueing/batching here?
+        cur = self.db.cursor()
+        # MySQLdb executemany() ends up copying lots of strings and attempting
+        #   to escape values which we already know don't need escapes, so it's
+        #   faster to just build the query ourselves:
+        rows = newstats.row_format()
+        if not rows:
+            # Depending on the Gatherer, a sample may contain zero values
+            return
+        try:
+            cur.execute("insert into statd_history (id, `timestamp`, value) "
+                            "values %s" % ','.join(rows))
+        except _mysql_exceptions.OperationalError as e:
+            if "Table has no partition for value" in e.args[1]:
+                self.repartition_history()
+                cur.execute("insert into statd_history (id, `timestamp`, value) "
+                                "values %s" % ','.join(rows))
+            else:
+                raise
+
+    def delete_unused_metadata(self):
+        # This is rather expensive, only run after a partition drop
+        cur = self.db.cursor()
+        cur.execute("delete from statd_metadata"
+                    "  where id not in (select id from statd_history)")
+        # Keep our copy of stat IDs consistent with the database:
+        self.populate_stat_ids()
+
+    def metadata_upgrade_table(self):
+        return # Not used currently
+        cur = self.db.cursor()
+        cur.execute("show columns from statd_metadata")
+        current_cols = [row[0] for row in cur.fetchall()]
+        # Added in Glass Butte:
+        new_cols = [("stat_type", "enum('counter','gauge')")]
+
+        alters = []
+
+        for col_name, col_def in new_cols:
+            if col_name not in current_cols:
+                alters.append("add column `%s` %s" % (col_name, col_def))
+
+        if alters:
+            cur.execute("alter table statd_metadata %s" % ', '.join(alters))
+
+    def qpc_upgrade_tables(self):
+        cur = self.db.cursor()
+        cur.execute("SHOW CREATE TABLE qpc_history")
+        tabledef = cur.fetchone()[1].lower()
+        hist_sql = []
+        curr_sql = []
+
+        def maybe_add_col(colname):
+            if colname not in tabledef:
+                log_event("Adding qpc_queries column %s to qpc aggregation." % colname)
+                if colname.startswith("avg"):
+                    curr_sql.append(" ADD COLUMN %s bigint unsigned," % colname)
+                else:
+                    curr_sql.append(" ADD COLUMN %s bigint unsigned,"
+                                    " ADD COLUMN avg_%s double"
+                                        % (colname, colname))
+
+        # These three are included in baker+
+        new_cols = ['rows_inserted', 'rows_replaced', 'rows_deleted']
+        # This batch added in Fredonyer:
+        new_cols += ['forwards', 'broadcasts', 'lockman_waits', 'lockman_waittime_ms',
+                      'trxstate_waits', 'trxstate_waittime_ms', 'wal_perm_waittime_ms',
+                      'bm_perm_waittime_ms', 'bm_waittime_ns', 'bm_fixes', 'bm_loads',
+                      'sigmas', 'sigma_fallbacks', 'cpu_runtime_ns', 'cpu_waits',
+                      'cpu_waittime_ns', 'fragment_executions', 'barriers',
+                      'barrier_forwards', 'barrier_flushes', 'row_store_creates',
+                      'row_store_insreps', 'avg_opt_cost']
+
+        for colname in new_cols:
+            maybe_add_col(colname)
+
+        if hist_sql or curr_sql:
+            cur.execute("ALTER TABLE qpc_history %s" % ",".join(hist_sql + curr_sql))
+            # Move rank and is_rollup to the end of the table
+            cur.execute("SHOW COLUMNS FROM qpc_history")
+            last_col = cur.fetchall()[-1][0]
+            cur.execute("ALTER TABLE qpc_history MODIFY `rank` int AFTER `%s`" % last_col)
+            cur.execute("ALTER TABLE qpc_history MODIFY `is_rollup` tinyint(4) default 0 AFTER `rank`")
+
+        if curr_sql:
+            cur.execute("ALTER TABLE qpc_current %s" % ",".join(curr_sql))
+            # Move rank to the end of the table
+            cur.execute("SHOW COLUMNS FROM qpc_current")
+            last_col = cur.fetchall()[-1][0]
+            cur.execute("ALTER TABLE qpc_current MODIFY `rank` int AFTER `%s`" % last_col)
+
+    def get_db_time(self, cursor):
+        cursor.execute("SELECT UNIX_TIMESTAMP()")
+        return cursor.fetchone()[0]
+
+    def create_history_table(self):
+        """Create the statd_history table with partitions, including a
+        partitions for the current database time and one for the day after.
+        """
+
+        cur = self.db.cursor()
+        db_time = self.get_db_time(cur)
+        cur.execute("CREATE TABLE statd_history"
+                    "       (`id` INT UNSIGNED NOT NULL,"
+                    "        `timestamp` TIMESTAMP NOT NULL,"
+                    "        `value` DOUBLE,"
+                    "        PRIMARY KEY (id, timestamp) distribute = 2,"
+                    "        UNIQUE KEY (timestamp, id, value) distribute = 2)"
+                    "  PARTITION BY RANGE (UNIX_TIMESTAMP(timestamp)) (%s)"
+                       % ",".join((self.partition_clause(db_time),
+                                  self.partition_clause(db_time + DAY_S))))
+
+    def repartition_history(self):
+        """Add and Drop partitions to/from statd_history if necessary.
+        db_time is the current unix time."""
+
+        def log_long_alter(alter_start, alter_complete):
+            """Log an event if an alter takes too long"""
+            if alter_complete - alter_start > PARTITION_ALTER_THRESHOLD:
+                log_event("Warning: alter table operation on statd_history "
+                          "took %0.2f s (threshold: %d s)" % (alter_complete - alter_start,
+                                PARTITION_ALTER_THRESHOLD))
+
+        cur = self.db.cursor()
+        db_time = self.get_db_time(cur)
+        # And the current DDL for statd_history:
+        cur.execute("SHOW CREATE TABLE statd_history;")
+        tabledef = cur.fetchall()[0][1]
+        # Find existing partitions from table definition::
+        partitions_started = False
+        partitions_to_drop = []
+        partition_delete_threshold = db_time - (DAY_S * StatsCfg().get_conf('stat_retention_days'))
+        newest_partition_time = 0
+        for line in tabledef.split('\n'):
+            line = line.strip()
+            if not line:
+                continue
+            if line.startswith('PARTITION BY RANGE'):
+                partitions_started = True
+                continue
+            if not partitions_started:
+                continue
+            if not line.startswith('PARTITION'):
+                continue
+            # We have a partition definition line
+            # Ex: PARTITION p2016_04_22 VALUES LESS THAN (1461369600),
+            #     PARTITION p2018_06_28 VALUES LESS THAN (1530230400) /*$ SLICES=5 */,
+            partition_name = line.split()[1]
+            partition_time = int(line.split('(')[1].split(')')[0])
+            if partition_time < partition_delete_threshold:
+                partitions_to_drop.append(partition_name)
+            newest_partition_time = max(newest_partition_time, partition_time)
+
+        partitions_to_add = []
+
+        if newest_partition_time < db_time:
+            # We need a partition to store current stats
+            # Usually we create this ahead of time, but not if, eg, statd
+            #   hasn't been running for a couple days
+            partitions_to_add.append(self.partition_clause(db_time))
+
+        if newest_partition_time < (db_time + DAY_S):
+            # We need to add a new partition to write into tomorrow, so
+            #   we never try to write past the last partition
+            partitions_to_add.append(self.partition_clause(db_time + DAY_S))
+
+        if partitions_to_add:
+            if opts.debug:
+                log_event("alter statd_history add partition(s): %s" %
+                                                        partitions_to_add)
+            alter_start = time.time()
+            cur.execute("ALTER TABLE statd_history ADD PARTITION (%s)"
+                                                % ', '.join(partitions_to_add))
+            log_long_alter(alter_start, time.time())
+
+        if partitions_to_drop:
+            if opts.debug:
+                log_event("alter statd_history drop partition(s): %s" %
+                                                        partitions_to_drop)
+            alter_start = time.time()
+            cur.execute("ALTER TABLE statd_history DROP PARTITION %s" %
+                                                ', '.join(partitions_to_drop))
+            log_long_alter(alter_start, time.time())
+            self.delete_unused_metadata()
+
+    def partition_clause(self, t):
+        """Returns a partition clause suitable for CREATE or ALTER TABLE
+        for the day which includes unix time t"""
+        # Find struct_time for the midnight before t:
+        day = time.struct_time(time.gmtime(t)[0:3] + ((0,)*6))
+        return ("PARTITION %s VALUES LESS THAN (%d)" %
+                    (time.strftime('p%Y_%m_%d', day),
+                     time.mktime(day) + DAY_S))
+
+class Prometheus(ClustrixDB):
+    # An alternate DB object for use with Prometheus, in read-only DB mode
+    mode = "prometheus"
+    units = (Unit('seconds', {'s': None, 'ms': 1e-3, 'us': 1e-6, 'sec': None}),
+             Unit('bytes', {'bytes': None, 'kB': 1000}),
+             Unit('bytes_per_second', {'MBs': 1024**2, 'mbps': (1024**2)/8}),
+             Unit('runtime_seconds', {'runtime': 1./(2**32)}), # runtime units are 'whens', 1/2^32 seconds each
+            )
+    numeric_label_names = ('node', 'cpu', 'vdev')
+
+    def __init__(self):
+        self.may_be_up = False
+        self.connect_lock = threading.Lock()
+        self.nid = None
+        self.pnid = None
+        self.group = None
+        self.zoneid = None
+        self.next_stat_id = 1
+        self.populate_stat_ids()
+
+    def db_connect(self):
+        # threaded wrapper for the actual connect method
+        t = threading.Thread(target=self.do_connect)
+        t.daemon = True
+        t.start()
+
+    def do_connect(self):
+        # This should be entirely read-only
+        if not self.connect_lock.acquire(False):
+            # There's another connect thread running, don't do anything here
+            if opts.debug:
+                print("connect_lock already in use, skipping db_connect")
+            return
+
+        if opts.debug:
+            print("connect_lock acquired, starting db_connect")
+
+        try:
+            del self.db
+        except AttributeError:
+            pass
+        self.group = None
+
+        while True:
+            try:
+                db = MySQLdb.connect(host=opts.hostname,
+                                     db="system",
+                                     port=opts.port,
+                                     user=opts.user,
+                                     passwd=opts.password)
+                db.autocommit(True)
+                cur = db.cursor()
+                # Session timezone UTC so we can use time.gmtime()
+                cur.execute("set time_zone = 'UTC'")
+                cur.execute("set names utf8")
+                self.db = db # At this point other code can get cursors
+                break
+            except:
+                exc_msg = sys.exc_info()[1].args[1]
+                if ('No such database: "system"' in exc_msg or
+                    "Unknown database 'system'" in exc_msg or
+                    "Unknown or incorrect time zone:" in exc_msg):
+                    # Attempted to connect to the wrong sort of database
+                    print("Connect Exception: %s" % mkexc())
+                    print("Error: Found non-Xpand Database at %s:%s, aborting." % (opts.hostname, opts.port))
+                    # Since this is run in a thread we can't just use sys.exit:
+                    os.kill(os.getpid(), 15)
+                if opts.debug:
+                    print("do_connect caught: %s" % mkexc())
+                    traceback.print_exc()
+                    print("re-trying database connection in %d seconds" % POLLING_INTERVAL_S)
+                # sleep for a while until next connection attempt
+                time.sleep(POLLING_INTERVAL_S)
+
+        cur.execute("select membership()")
+        self.group = cur.fetchone()[0]
+
+        self.gtmnid() # Fill in the cache
+        self.get_zoneid()
+
+        self.populate_node_ids()
+
+        self.stats = self.get_sample_dict()
+        if self.is_elected():
+            Scheduler.prom_collect() # load an initial set of metrics, for delta calculation
+
+        self.connect_lock.release()
+        if opts.debug:
+            print("db_connect complete, connect_lock released")
+
+    def maybe_reconnect(self):
+        try:
+            if self.connect_lock.locked():
+                # Currently re-connecting
+                return False
+            if not self.same_group():
+                self.db_connect()
+                return False
+            return True
+        except:
+            if opts.debug:
+                print("maybe_reconnect caught Exception %s" % mkexc())
+                traceback.print_exc()
+            self.db_connect()
+            return False
+
+    def get_zoneid(self):
+        # This may change, but it needs to be available when clxnode isn't accessible
+        # Returns None if there hasn't been a chance to cache the value yet
+        try:
+            cur = self.db.cursor()
+            cur.execute("select zone from system.nodeinfo where nodeid=gtmnid()")
+            self.zoneid = cur.fetchone()[0]
+        except:
+            if opts.debug: print(mkexc())
+        return self.zoneid
+
+    def read_config(self):
+        # We don't use a statd_config table here
+        return tuple()
+
+    def write_config(self, conf):
+        # We don't use a statd_config table here
+        return
+
+    def init_tables(self):
+        # Prometheus doesn't use any tables of its own
+        pass
+
+    def populate_node_ids(self):
+        cur = self.db.cursor()
+        cur.execute('select nodeid, hostname from system.nodeinfo')
+        self.host_by_nid = {}
+        for nid, fqdn in cur.fetchall():
+            self.host_by_nid[str(nid)] = fqdn.split('.')[0] # Just get the base hostname
+
+    def get_host_for_nid(self, nid):
+        try:
+            return self.host_by_nid[str(nid)]
+        except KeyError:
+            return str(nid)
+
+    def populate_stat_ids(self):
+        # Just set up empty dicts, they will be filled out when the stats show up
+        self.stat_id_by_name = {} # Native, unique clustrix stat names here
+        self.stat_args_by_name = {}
+        self.metric_name_by_id = {}
+        self.ids_for_metric = {}
+        self.stat_type_by_metric = {}
+        self.labels_by_id = {}
+        self.scale_by_metric = {}
+
+    def set_stat_type(self, stat_id, stat_type):
+        metric_name = self.get_metric_name(stat_id)
+        if metric_name not in self.stat_type_by_metric:
+            self.stat_type_by_metric[metric_name] = stat_type
+        elif stat_type != self.get_metric_type(metric_name):
+            log_event("Warning: Non-matching stat type for metric_name %s" % metric_name)
+
+    def get_metric_type(self, metric_name):
+        return self.stat_type_by_metric[metric_name]
+
+    def get_metric_name(self, stat_id):
+        return self.metric_name_by_id[stat_id]
+
+    def get_label_str(self, stat_id):
+        return ",".join(['%s="%s"' % lab for lab in self.labels_by_id[stat_id]])
+
+    def get_ids_for_metric(self, metric_name):
+        return self.ids_for_metric[metric_name]
+
+    def get_scale_for_metric(self, metric_name):
+        try:
+            return self.scale_by_metric[metric_name]
+        except KeyError:
+            return 1
+
+    def gen_stat_id(self):
+        # Generate sequential stat ids, to track stats similarly to the
+        #   native Clustrix method
+        stat_id = self.next_stat_id
+        self.next_stat_id += 1
+        return stat_id
+
+    def process_stat_name(self, stat_id, stat_name, extra_label_names=None, extra_labels=None,
+        prefix_labels=None, unit=None, autoagg=False):
+        # Convert Clustrix-native stat names into all the things Prometheus wants
+        def labvalues(mn, lab):
+            return [v.split('.')[1] for v in mn.split(lab) if v.startswith('.')]
+
+        metric_name = stat_name
+        labels = []
+
+        if autoagg:
+            for agg in ('min', 'max', 'avg'):
+                if agg in metric_name:
+                    extra_labels = extra_labels + (('agg', agg),) if extra_labels else (('agg', agg),)
+
+        if extra_labels:
+            # Tuple of (label, value) pairs
+            # Each pair is always applied, with the value stripped from the metric name if found
+            for label, value in extra_labels:
+                metric_name = re.sub('[._]%s([._]|$)' % value, '\g<1>', metric_name)
+                if label == 'node':
+                    # Convert nid to hostname
+                    value = self.get_host_for_nid(value)
+                labels.append((label, value))
+
+        if extra_label_names:
+            for label_name in extra_label_names:
+                if (".%s." % label_name) not in metric_name:
+                    continue
+                try:
+                    value = labvalues(metric_name, label_name)[0]
+                    labels.append((label_name, value))
+                    metric_name = metric_name.replace('%s.%s' % labels[-1], '')
+                except IndexError:
+                    # No values found for specified label
+                    continue
+
+        if prefix_labels:
+            for label_name, prefix in prefix_labels:
+                if (".%s." % label_name) not in metric_name:
+                    continue
+                try:
+                    value = [v for v in labvalues(metric_name, label_name) if v.startswith(prefix)][0]
+                    labels.append((label_name, value))
+                    metric_name = metric_name.replace('%s.%s' % labels[-1], '')
+                except IndexError:
+                    # No value matching prefix found for specified label
+                    continue
+
+        for label_name in self.numeric_label_names:
+            if (".%s." % label_name) not in metric_name:
+                continue
+            for value in labvalues(metric_name, label_name):
+                try:
+                    int(value)
+                except ValueError:
+                    continue
+                metric_name = metric_name.replace('%s.%s' % (label_name, value), '')
+                if label_name == 'node':
+                    # Convert nid to hostname
+                    value = self.get_host_for_nid(value)
+                labels.append((label_name, value))
+                break
+
+        if unit:
+            metric_name += '.%s' % unit[0]
+            scale = unit[1]
+        else:
+            for unit_type in self.units:
+                scale, metric_name = unit_type.match(metric_name)
+                if scale:
+                    break
+            else:
+                scale = None
+        metric_name = metric_name.replace('.', '_').replace('-', '_')
+        # Remove repeated underscores:
+        metric_name = '_'.join([x for x in metric_name.split('_') if x])
+        if metric_name not in self.ids_for_metric:
+            self.ids_for_metric[metric_name] = [stat_id]
+            if scale:
+                self.scale_by_metric[metric_name] = scale
+        else:
+            base_labels = sorted([lab[0] for lab in self.labels_by_id[self.ids_for_metric[metric_name][0]]])
+            this_labels = sorted([lab[0] for lab in labels])
+            if this_labels != base_labels:
+                log_event("Tag mis-match for stat %s labels %s, metric %s (stat %s), base labels %s" %
+                            (stat_name, this_labels, metric_name,
+                            [name for (name, ix) in self.stat_id_by_name.items()
+                                if ix in self.ids_for_metric[metric_name]][0], base_labels))
+            if stat_id not in self.ids_for_metric[metric_name]:
+                self.ids_for_metric[metric_name].append(stat_id)
+        self.metric_name_by_id[stat_id] = metric_name
+        self.labels_by_id[stat_id] = tuple(labels)
+
+    def add_stat_id(self, stat_name, **kwargs):
+        # Stat ids aren't persistent in Prometheus mode
+        if stat_name not in self.stat_id_by_name:
+            stat_id = self.gen_stat_id()
+            self.stat_id_by_name[stat_name] = stat_id
+            self.process_stat_name(stat_id, stat_name, **kwargs)
+            self.stat_args_by_name[stat_name] = kwargs
+            #print("%s - %s" % (stat_id, stat_name))
+            return stat_id
+        return self.stat_id_by_name[stat_name]
+
+    def prom_current(self):
+        # Turn self.stats into Prometheus data and reset
+        prom_data = '\n'.join(self.stats.prom_format()).encode('utf-8')
+        self.stats = self.get_sample_dict()
+        return prom_data
+
+    def sync_current_stats(self):
+        print("Don't call sync_current_stats in prometheus mode")
+        # Eventually get here:
+        raise Exception("Not Implemented in this mode")
+
+    def store_history(self, newstats):
+        #print self.prom_current() # XXX DEBUG
+        # Will be too hard to keep this from being called, just noop instead
+        return
+
+    def delete_unused_metadata(self):
+        raise Exception("Not Implemented in this mode")
+
+    def qpc_upgrade_tables(self):
+        raise Exception("Not Implemented in this mode")
+
+    def create_history_table(self):
+        raise Exception("Not Implemented in this mode")
+
+    def repartition_history(self):
+        raise Exception("Not Implemented in this mode")
+
+class PromHTTPRequestHandler(BaseHTTPRequestHandler):
+    client_lock = threading.Lock()
+    @classmethod
+    def set_promdb(cls, promdb):
+        cls.promdb = promdb
+    def do_GET(self):
+        self.send_response(200)
+        if self.path != "/metrics":
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.end_headers()
+            self.wfile.write("<html><body><a href='/metrics'>"
+                                "MariaDB Xpand Metrics</a>\r\n"
+                                "</body></html>".encode('utf-8'))
+        else:
+            with self.client_lock:
+                self.send_header('Content-Type', 'text/plain; charset=utf-8')
+                self.end_headers()
+                t_start = time.time()
+                session_samples = self.promdb.get_sample_dict()
+                session_samples.add_gauge('prom.nid', self.promdb.gtmnid()) # Available even with db down
+                if self.promdb.maybe_reconnect():
+                    zoneid = self.promdb.get_zoneid()
+                    if zoneid:
+                        zonelab = '{zoneid="%d"}' % zoneid
+                    else:
+                        zonelab = '{}'
+                    self.wfile.write(("#TYPE mariadb_up gauge\nmariadb_up%s 1\n\n" % zonelab).encode('utf-8'))
+                    session_samples.add_gauge('group.id', self.promdb.group,
+                                                extra_labels=(('pnid', self.promdb.get_pnid()),))
+                    session_samples.add_gauge('prom.is.elected', int(self.promdb.is_elected()))
+                    if self.promdb.is_elected():
+                        t_run = time.time()
+                        Scheduler.prom_collect()
+                        t_collect = time.time()
+                        response = self.promdb.prom_current()
+                        t_build = time.time()
+                        if self.promdb.maybe_reconnect():
+                            self.wfile.write(response)
+                        else:
+                            # We lost the node during metric collection, do not return them to the client
+                            session_samples.add_gauge('madiadb_up', 0)
+                            session_samples.add_gauge('prom.is.elected', 0)
+                        t_respond = time.time()
+                        session_samples.add_gauge('prom.lockwait.seconds', t_run - t_start,
+                                                    extra_labels=(('phase', 'lockwait'),))
+                        session_samples.add_gauge('prom.collect.seconds', t_collect - t_run,
+                                                    extra_labels=(('phase', 'collect'),))
+                        session_samples.add_gauge('prom.build.seconds', t_build - t_collect,
+                                                    extra_labels=(('phase', 'build'),))
+                        session_samples.add_gauge('prom.response.seconds', t_respond - t_build,
+                                                    extra_labels=(('phase', 'response'),))
+                    else: # Not elected
+                        session_samples.add_gauge('prom.response.seconds', time.time() - t_start,
+                                                    extra_labels=(('phase', 'response'),))
+                else: # node not up
+                    self.wfile.write("#TYPE mariadb_up gauge\nmariadb_up 0\n".encode('utf-8'))
+                    session_samples.add_gauge('prom.is.elected', 0)
+                    session_samples.add_gauge('group.id', None)
+            session_samples.add_gauge('prom.uptime.seconds', time.time() - UPTIME_SINCE)
+            session_samples.add_gauge('prom.memory.rss.kB', read_smaps('Rss'))
+            self.wfile.write('\n'.join([''] + session_samples.prom_format()).encode('utf-8'))
+
+            self.wfile.write("\n# EOF\n".encode('utf-8'))
+
+class StatsCfg(object):
+    iv_suffix = '_interval_s'
+    default_fallback = 'stats_current'
+    default_intervals = {'stats_current': 30,
+                         'stats_history': 60 * 5,
+                         'qpc_current': 60,
+                         'qpc_history': 60 * 5,
+                         'qpc_rollup': 60 * 60,
+                         'SpaceUsedBreakdown_current': 60 * 15,
+                         'repartition_history': DAY_S/2,
+                         }
+    defaults = {'qpc_history_top_n': 100,
+                'qpc_current_top_n': 1000,
+                'stat_retention_days': 7,
+                'qpc_retention_days': 7,
+                }
+    intervals = {}
+    config = {}
+    cdb = None
+
+    def __init__(self, cdb=None):
+        if cdb:
+            self.set_cdb(cdb)
+
+    @classmethod
+    def set_cdb(cls, cdb):
+        cls.cdb = cdb
+
+    def get_interval_s(self, interval, fallback=None):
+        """Return the seconds value for specified interval if found, otherwise
+        use the fallback interval"""
+        try:
+            return self.intervals[interval]
+        except KeyError:
+            if fallback and fallback in self.intervals:
+                return self.intervals[fallback]
+            return self.intervals[self.default_fallback]
+
+    def print_interval(self, interval, fallback=None):
+        fallback = fallback or self.default_fallback
+        print("Interval %s (default %s): %d s (default %d s)" %
+                (interval+self.iv_suffix, fallback+self.iv_suffix,
+                 self.get_interval_s(interval, fallback),
+                 self.get_interval_s(fallback)))
+
+    def get_conf(self, name):
+        # Let this raise exceptions to be caught higher up
+        if self.cdb.prometheus_mode():
+            log_event("Stop using config value %s in Prometheus mode.")
+        return self.config[name]
+
+    def strip_iv(self, name):
+        if name.endswith(self.iv_suffix):
+            return name.split(self.iv_suffix)[0]
+        return None
+
+    def load_config(self):
+        current_config = dict(self.cdb.read_config())
+        for name in current_config:
+            iv = self.strip_iv(name)
+            if iv:
+                self.intervals[iv] = current_config[name]
+                continue
+            self.config[name] = current_config[name]
+        inserts = []
+        for name in self.defaults:
+            if name in current_config:
+                # Already read this one from the database
+                continue
+            else:
+                self.config[name] = self.defaults[name]
+                inserts.append((name, self.defaults[name]))
+        for iv in self.default_intervals:
+            name = '%s%s' % (iv, self.iv_suffix)
+            if name in current_config:
+                # Already read this one from the database
+                continue
+            else:
+                self.intervals[iv] = self.default_intervals[iv]
+                inserts.append((name, self.default_intervals[iv]))
+        if inserts:
+            self.cdb.write_config(inserts)
+
+    def refresh_config(self):
+        for name, value in self.cdb.read_config():
+            iv = self.strip_iv(name)
+            if iv:
+                self.intervals[iv] = value
+            else:
+                self.config[name] = value
+
+class Scheduler(object):
+    tasks = []
+    @classmethod
+    def add_task(cls, task):
+        cls.tasks.append(task)
+    @classmethod
+    def tick(cls):
+        first_run = True
+        pause = min([t.pause() for t in cls.tasks])
+        if pause > 2 and not first_run:
+            # We've already run one task this tick and the next task isn't
+            #   particularly soon, so return back to the main loop
+            return
+        if pause > 0:
+            time.sleep(pause)
+        for task in cls.tasks:
+            if task.pause() <= 0:
+                first_run = False
+                try:
+                    task.run()
+                except:
+                    task.error()
+                    if opts.quit_on_except:
+                        sys.exit(1)
+    @classmethod
+    def reset_tasks(cls):
+        # Make all tasks run on the next tick, for when we get elected
+        for task in cls.tasks:
+            task.next_run = 0
+    @classmethod
+    def prom_collect(cls):
+        # Single-shot, on-demand collection
+        for task in cls.tasks:
+            if task.prom_enabled:
+                task.reset() # Make sure all tasks run
+                try:
+                    if opts.debug:
+                        t0 = time.time()
+                    task.target.gather()
+                    if opts.debug:
+                        print("%s ran for %0.3f s" % (task.name, time.time() - t0))
+                except:
+                    task.error()
+
+class SimpleTask(object):
+    """Periodic task for basic operations"""
+    def __init__(self, target_function, default_interval=None, args=(),
+                 name=None, prom=False):
+        self.name = name or target_function.__name__
+        self.target_function = target_function
+        self.prom_enabled = prom
+        # Name of fallback / default interval from StatsCfg, if None it will
+        #   use `stats_current`
+        self.default_interval = default_interval # Interval name, not value
+        self.reset()
+        self.config = StatsCfg()
+        Scheduler.add_task(self)
+    def calculate_next(self, interval, default):
+        # This function is the only place in the scheduler where we use
+        #   an interval in seconds, the rest are all names, to be found in
+        #   the statd_config table.
+        interval_s = self.config.get_interval_s(interval, default)
+        t = time.time()
+        # Make sure we run on an even multiple of the desired interval,
+        #   eg, a 5 minute interval gets us 12:00:00, 12:05:00, 12:10:00, etc:
+        return t + (interval_s - t % interval_s)
+    def set_next_run(self):
+        self.next_run = self.calculate_next(self.name, self.default_interval)
+    def pause(self):
+        """Return number of seconds to wait before running again"""
+        return self.next_run - time.time()
+    def reset(self):
+        self.next_run = 0
+        self.errors_seen = []
+    def run(self):
+        # Set the next start time before executing, so we don't count the
+        #   execution time:
+        if opts.debug:
+            t0 = time.time()
+        self.set_next_run()
+        self.target_function(*args)
+        if opts.debug:
+            print("%s ran for %0.3f s" % (self.name, time.time() - t0))
+    def print_interval(self):
+        self.config.print_interval(self.name, self.default_interval)
+    def error(self):
+        # Exception happened within run() method, save minimal debugging info,
+        #   just once per error so we don't flood the log file
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        for tbframe in reversed(traceback.extract_tb(exc_traceback)):
+            if 'statd.py' in tbframe[0]:
+                break
+        error_string = ("%s: %s in %s:%d %s() `%s`" % ((exc_type().__class__.__name__,
+                        exc_value) + tuple(tbframe)))
+        if opts.debug:
+            traceback.print_exc()
+        if error_string in self.errors_seen:
+            if opts.debug:
+                print("%s - Skipping already-seen error %s" % (self.name, error_string))
+            return
+        self.errors_seen.append(error_string)
+        log_event("%s - %s" % (self.name, error_string))
+
+class DualTask(SimpleTask):
+    """Task class for anything which has a different current and history
+    save interval. Every one of these is considered an even_time task,
+    so no need to make that an option.
+
+    Takes a Gatherer object as the target."""
+
+    def __init__(self, target, prom=True):
+        self.name = target.__class__.__name__
+        self.prom_enabled = prom
+        self.target = target
+        self.reset()
+        self.config = StatsCfg()
+        Scheduler.add_task(self)
+    def set_next_run(self):
+        self.next_run = self.calculate_next('%s_current' % self.name,
+                                    '%s_current' % self.target.default_interval)
+    def set_next_save(self):
+        self.next_save = self.calculate_next('%s_history' % self.name,
+                                    '%s_history' % self.target.default_interval)
+    def reset(self):
+        self.next_run = 0
+        self.next_save = 0
+        self.errors_seen = []
+    def run(self):
+        if opts.debug:
+            t0 = time.time()
+        self.set_next_run()
+        self.target.gather()
+        if opts.debug:
+            print("%s ran for %0.3f s" % (self.name, time.time() - t0))
+            t0 = time.time()
+        if time.time() > self.next_save:
+            # We will only save after a gather, so if the history interval is
+            #   shorter than the current interval, they'll effectively be equal
+            self.set_next_save()
+            self.target.save()
+            if opts.debug:
+                print("%s saved for %0.3f s" % (self.name, time.time() - t0))
+    def print_interval(self):
+        for x in ('current', 'history'):
+            self.config.print_interval('%s_%s' % (self.name, x),
+                                       '%s_%s' % (self.target.default_interval, x))
+
+class QPCSnapDict(dict):
+    def scrub(self):
+        if opts.debug:
+            t0 = time.time()
+            memsize = 0
+        for query in self.values():
+            if opts.debug: memsize += sum([sys.getsizeof(x) for x in query.id_values])
+            query.scrub()
+        if opts.debug: print("QPC Scrub took %0.3f s saved %d bytes" % (time.time()-t0, memsize))
+
+class QPCQuery(dict):
+    static_titles = ('exec_count', 'exec_ms', 'compile_count', 'compile_ms',
+            'rows_read', 'rows_written', 'rows_inserted', 'rows_replaced',
+            'rows_deleted', 'rows_output','forwards', 'broadcasts', 'lockman_waits',
+            'lockman_waittime_ms', 'trxstate_waits', 'trxstate_waittime_ms',
+            'wal_perm_waittime_ms', 'bm_perm_waittime_ms', 'bm_waittime_ns',
+            'bm_fixes', 'bm_loads', 'sigmas', 'sigma_fallbacks', 'cpu_runtime_ns',
+            'cpu_waits', 'cpu_waittime_ns', 'fragment_executions', 'barriers',
+            'barrier_forwards', 'barrier_flushes', 'row_store_creates',
+            'row_store_insreps', 'avg_opt_cost',
+            )
+    static_title_dict = dict(zip(static_titles, range(len(static_titles))))
+    # For QPCDelta:
+    avg_titles = ('exec_ms', 'rows_read', 'rows_written', 'rows_inserted',
+            'rows_replaced', 'rows_deleted', 'rows_output', 'forwards', 'broadcasts',
+            'lockman_waits', 'lockman_waittime_ms', 'trxstate_waits',
+            'trxstate_waittime_ms', 'wal_perm_waittime_ms', 'bm_perm_waittime_ms',
+            'bm_waittime_ns', 'bm_fixes', 'bm_loads', 'sigmas', 'sigma_fallbacks',
+            'cpu_runtime_ns', 'cpu_waits', 'cpu_waittime_ns', 'fragment_executions',
+            'barriers', 'barrier_forwards', 'barrier_flushes', 'row_store_creates',
+            'row_store_insreps',
+            )
+    avg_title_dict = dict(zip(avg_titles, range(len(avg_titles))))
+    id_titles = ('query_key', 'statement', 'database', 'rank')
+    id_title_dict = dict(zip(id_titles, range(len(id_titles))))
+    all_keys = list(id_titles) + list(static_titles) + ['avg_%s' % t for t in avg_titles]
+
+    __slots__ = ('id_values', 'static_values')
+
+    def __init__(self, query_key, statement, database, *args):
+        self.id_values = (query_key,
+                MySQLdb.escape_string(' '.join([x.strip() for x in statement.split()]) or 'NULL')[:8195],
+                MySQLdb.escape_string(database or 'NULL'))
+        self.static_values = tuple([int(x) for x in args])
+
+    def __getitem__(self, key):
+        return self.static_values[self.static_title_dict[key]]
+
+    def __bool__(self):
+        # If this object exists, we consider that == True
+        return True
+    __nonzero__ = __bool__ # For Python 2
+
+    def keys(self):
+        # For string formatting
+        return self.all_keys
+
+    def items(self):
+        # For MySQLdb query formatting
+        for key in self.all_keys:
+            yield key, self.__getitem__(key)
+
+    iteritems = items # For Python 2
+
+    def __getattr__(self, key):
+        return self.static_values[self.static_title_dict[key]]
+
+    def scrub(self):
+        # Erase things we won't need when this becomes the old datapoint
+        del self.id_values
+
+class QPCDelta(QPCQuery):
+    __slots__ = ('id_values', 'static_values', 'average_values', 'query', 'good')
+    def __init__(self, qnow, qlast=None, exec_ms_cutoff=None):
+        self.query = qnow
+        self.good = False
+        if not qlast:
+            self.static_values = qnow.static_values
+        else:
+            self.static_values = tuple(now-last for now, last in
+                                    zip(qnow.static_values, qlast.static_values))
+            if any(tuple(x<0 for x in self.static_values)):
+                # Count decreased, meaning that one or more of the
+                # qpc_queries entries for this query key was flushed.
+                # we don't really know what the value is, so we just
+                # leave the entry out for this period (rather than
+                # returning 0 which is misleading).  see bug 21026.
+                return
+        if (exec_ms_cutoff and self.exec_ms < exec_ms_cutoff) or \
+                (exec_ms_cutoff == 0 and self.exec_ms == 0):
+            # Cutoff of 0 indicates an unfilled limit, just filter out anything
+            #   that didn't run during this sample period.
+            # A >0 cutoff is used normally, None cutoff means we want everthing.
+            return
+        self.good = True
+        if self.exec_count != 0:
+            if qlast:
+                self.average_values = tuple(float(qnow[k]-qlast[k])/self.exec_count for k in self.avg_titles)
+            else:
+                self.average_values = tuple(float(qnow[k])/self.exec_count for k in self.avg_titles)
+
+    def set_rank(self, rank):
+        # This only gets called once per query
+        self.query.id_values += (rank,)
+
+    def __getitem__(self, key):
+        if key.startswith('avg_') and key[4:] in self.avg_titles:
+            if self.exec_count == 0:
+                # All averages are 0:
+                return 0
+            return self.average_values[self.avg_title_dict[key[4:]]]
+        if key in self.id_titles:
+            return self.query.id_values[self.id_title_dict[key]]
+        return self.static_values[self.static_title_dict[key]]
+
+    @classmethod
+    def encode(self, item, garbage):
+        # MySQLdb is not cool with dict-like objects, trick it with this
+        return item
+
+class QPC(object):
+    def __init__(self, clustrixdb, conf):
+        self.cdb = clustrixdb
+        self.conf = conf
+        self.last_current = None
+        self.last_history = None
+        self.default_interval = 'qpc' # Lowercase for backwards compatibility
+        self.task = DualTask(self)
+        self.task.prom_enabled = False
+        self.rollup_task = SimpleTask(self.rollup, name='qpc_rollup',
+                                        default_interval='qpc_rollup')
+
+    def snapshot(self):
+        '''Returns dict of query_key-> {'statement':statment,
+                                        'exec_count':exec_count,
+                                        ...}
+           which are cumulative totals (to be compared against a prior/subsequent
+           snapshot)'''
+        if opts.debug: t0 = time.time()
+        snapshot = QPCSnapDict()
+        cur = self.cdb.cursor()
+        cur.execute("select query_key, statement, database,"
+                    "       sum(exec_count) exec_count,"
+                    "       sum(exec_ms) exec_ms,"
+                    "       sum(compile_count) compile_count,"
+                    "       sum(compile_ms) compile_ms,"
+                    "       sum(rows_read) rows_read,"
+                    # We could derive this value when we need it instead of
+                    #   keeping it in memory, but that's too complex for now:
+                    "       sum(inserts+deletes+updates) rows_written,"
+                    "       sum(inserts) rows_inserted,"
+                    "       sum(updates) rows_replaced,"
+                    "       sum(deletes) rows_deleted,"
+                    "       sum(rows_output) rows_output,"
+                    "       sum(forwards) forwards,"
+                    "       sum(broadcasts) broadcasts,"
+                    "       sum(lockman_waits) lockman_waits,"
+                    "       sum(lockman_waittime_ms) lockman_waittime_ms,"
+                    "       sum(trxstate_waits) trxstate_waits,"
+                    "       sum(trxstate_waittime_ms) trxstate_waittime_ms,"
+                    "       sum(wal_perm_waittime_ms) wal_perm_waittime_ms,"
+                    "       sum(bm_perm_waittime_ms) bm_perm_waittime_ms,"
+                    "       sum(bm_waittime_ns) bm_waittime_ns,"
+                    "       sum(bm_fixes) bm_fixes,"
+                    "       sum(bm_loads) bm_loads,"
+                    "       sum(sigmas) sigmas,"
+                    "       sum(sigma_fallbacks) sigma_fallbacks,"
+                    "       sum(cpu_runtime_ns) cpu_runtime_ns,"
+                    "       sum(cpu_waits) cpu_waits,"
+                    "       sum(cpu_waittime_ns) cpu_waittime_ns,"
+                    "       sum(fragment_executions) fragment_executions,"
+                    "       sum(barriers) barriers,"
+                    "       sum(barrier_forwards) barrier_forwards,"
+                    "       sum(barrier_flushes) barrier_flushes,"
+                    "       sum(row_store_creates) row_store_creates,"
+                    "       sum(row_store_insreps) row_store_insreps,"
+                    "       sum(avg_opt_cost) avg_opt_cost"
+                    "  from system.qpc_queries"
+                    "  group by query_key")
+        for row in cur.fetchall():
+            # Include row[0] in the zip_cols, it's used later
+            snapshot[row[0]] = QPCQuery(*row)
+        if opts.debug: print("QPC Snapshot took %0.3f s for %d rows" % (time.time() - t0, len(snapshot)))
+        return snapshot
+
+    def delta(self, now, last, top_n=None):
+        # now and last are dicts, as returned by snapshot()
+        deltas = []
+        if opts.debug: t0 = time.time()
+        exec_ms_cutoff = None
+        if top_n:
+            exec_ms_list = []
+            for query_key in now:
+                if query_key in last:
+                    exec_ms_list.append(now[query_key]['exec_ms'] - last[query_key]['exec_ms'])
+                else:
+                    exec_ms_list.append(now[query_key]['exec_ms'])
+            exec_ms_list.sort()
+            try:
+                exec_ms_cutoff = exec_ms_list[-1 * top_n]
+                if opts.debug: print("QPC Top N took %0.3f s threshold %d ms" % ((time.time() - t0), exec_ms_cutoff))
+            except IndexError:
+                # We didn't get enough queries to hit a cutoff
+                exec_ms_cutoff = 0 # This means keep everything >0ms
+                if opts.debug: print("QPC Top N took %0.3f s threshold not needed." % (time.time() - t0))
+        total_qdtime = 0
+        for query_key in now:
+            if query_key not in last:
+                # query new since last time, so record values as is
+                if exec_ms_cutoff == None or (exec_ms_cutoff and now[query_key]['exec_ms'] >= exec_ms_cutoff):
+                    # New queries can't have an exec_ms == 0
+                    deltas.append(QPCDelta(now[query_key]))
+                continue
+            if opts.debug: t0 = time.time()
+            qdelta = QPCDelta(now[query_key], last[query_key], exec_ms_cutoff)
+            if opts.debug: total_qdtime += time.time() - t0
+            if qdelta.good:
+                deltas.append(qdelta)
+            continue
+        if opts.debug: print('Total delta compute time: %0.3f' % total_qdtime)
+        deltas.sort(key=lambda v: v['exec_ms'], reverse=True)
+        for i, qdelta in enumerate(deltas):
+            qdelta.set_rank(i + 1)
+        if opts.debug: print("QPC got %d deltas" % len(deltas))
+        self.cdb.db.encoders[type(deltas[0])] = QPCDelta.encode
+        return deltas
+
+    def gather(self):
+        # first time we run, only populate _last variables; next time around we can
+        # actually do a delta:
+        if self.last_current is None:
+            self.last_current = self.snapshot()
+            self.last_current.scrub()
+            return
+        current = self.snapshot()
+        # Insert deltas into qpc_current after deleting old values
+        cur = self.cdb.cursor()
+        with ExplicitTransaction(cur):
+            if opts.debug: t0 = time.time()
+            cur.execute('DELETE FROM qpc_current') # TRUNCATE will implicitly commit
+            if opts.debug: print("qpc_current DELETE took %0.3f s" % (time.time() - t0))
+            cur.execute("SET @now=now()")
+            # Note: we use "values" rather than "VALUES"
+            # due to bug 21908 - http://tinyurl.com/bdajoom
+            if opts.debug: t0 = time.time()
+            insert_batch_size = 1000
+            deltas = self.delta(current, self.last_current, self.conf.get_conf('qpc_current_top_n'))
+            if opts.debug:
+                print('qpc delta took %0.3f s' % (time.time() - t0))
+                t0 = time.time()
+            for x in range(0, len(deltas), insert_batch_size):
+                cur.executemany("""
+                    INSERT INTO qpc_current
+                    (query_key, timestamp, database, statement, exec_count,
+                    exec_ms, avg_exec_ms,
+                    compile_count, compile_ms,
+                    rows_read, avg_rows_read,
+                    rows_written, avg_rows_written,
+                    rows_inserted, avg_rows_inserted,
+                    rows_replaced, avg_rows_replaced,
+                    rows_deleted, avg_rows_deleted,
+                    rows_output, avg_rows_output,
+                    forwards, avg_forwards,
+                    broadcasts, avg_broadcasts,
+                    lockman_waits, avg_lockman_waits,
+                    lockman_waittime_ms, avg_lockman_waittime_ms,
+                    trxstate_waits, avg_trxstate_waits,
+                    trxstate_waittime_ms, avg_trxstate_waittime_ms,
+                    wal_perm_waittime_ms, avg_wal_perm_waittime_ms,
+                    bm_perm_waittime_ms, avg_bm_perm_waittime_ms,
+                    bm_waittime_ns, avg_bm_waittime_ns,
+                    bm_fixes, avg_bm_fixes,
+                    bm_loads, avg_bm_loads,
+                    sigmas, avg_sigmas,
+                    sigma_fallbacks, avg_sigma_fallbacks,
+                    cpu_runtime_ns, avg_cpu_runtime_ns,
+                    cpu_waits, avg_cpu_waits,
+                    cpu_waittime_ns, avg_cpu_waittime_ns,
+                    fragment_executions, avg_fragment_executions,
+                    barriers, avg_barriers,
+                    barrier_forwards, avg_barrier_forwards,
+                    barrier_flushes, avg_barrier_flushes,
+                    row_store_creates, avg_row_store_creates,
+                    row_store_insreps, avg_row_store_insreps,
+                    avg_opt_cost,
+                    rank)
+                    values
+                    (%(query_key)s,@now,%(database)s,%(statement)s, %(exec_count)s,
+                    %(exec_ms)s, %(avg_exec_ms)s,
+                    %(compile_count)s, %(compile_ms)s,
+                    %(rows_read)s, %(avg_rows_read)s,
+                    %(rows_written)s, %(avg_rows_written)s,
+                    %(rows_inserted)s, %(avg_rows_inserted)s,
+                    %(rows_replaced)s, %(avg_rows_replaced)s,
+                    %(rows_deleted)s, %(avg_rows_deleted)s,
+                    %(rows_output)s, %(avg_rows_output)s,
+                    %(forwards)s, %(avg_forwards)s,
+                    %(broadcasts)s, %(avg_broadcasts)s,
+                    %(lockman_waits)s, %(avg_lockman_waits)s,
+                    %(lockman_waittime_ms)s, %(avg_lockman_waittime_ms)s,
+                    %(trxstate_waits)s, %(avg_trxstate_waits)s,
+                    %(trxstate_waittime_ms)s, %(avg_trxstate_waittime_ms)s,
+                    %(wal_perm_waittime_ms)s, %(avg_wal_perm_waittime_ms)s,
+                    %(bm_perm_waittime_ms)s, %(avg_bm_perm_waittime_ms)s,
+                    %(bm_waittime_ns)s, %(avg_bm_waittime_ns)s,
+                    %(bm_fixes)s, %(avg_bm_fixes)s,
+                    %(bm_loads)s, %(avg_bm_loads)s,
+                    %(sigmas)s, %(avg_sigmas)s,
+                    %(sigma_fallbacks)s, %(avg_sigma_fallbacks)s,
+                    %(cpu_runtime_ns)s, %(avg_cpu_runtime_ns)s,
+                    %(cpu_waits)s, %(avg_cpu_waits)s,
+                    %(cpu_waittime_ns)s, %(avg_cpu_waittime_ns)s,
+                    %(fragment_executions)s, %(avg_fragment_executions)s,
+                    %(barriers)s, %(avg_barriers)s,
+                    %(barrier_forwards)s, %(avg_barrier_forwards)s,
+                    %(barrier_flushes)s, %(avg_barrier_flushes)s,
+                    %(row_store_creates)s, %(avg_row_store_creates)s,
+                    %(row_store_insreps)s, %(avg_row_store_insreps)s,
+                    %(avg_opt_cost)s,
+                    %(rank)s)
+                """, deltas[x:x + insert_batch_size])
+        if opts.debug: print("qpc_current INSERT took %0.3f s" % (time.time() - t0))
+        self.last_current = current
+        if self.task.next_save > self.task.next_run:
+            # We won't use this last_current for save(), since we'll make a new
+            # one before then, thus we can scrub it:
+            self.last_current.scrub()
+
+    def save(self):
+        """Insert the top_n rows into the qpc_history table."""
+        if self.last_history is None:
+            # First run just get a snapshot for deltas on the next run
+            self.last_history = self.last_current
+            return
+        if opts.debug: t0 = time.time()
+        cur = self.cdb.cursor()
+        with ExplicitTransaction(cur):
+            cur.execute("SET @now=now()")
+            # Note: min/max exec_ms are populated with NULLs, these fields are meant
+            #   to be used by the rollup() method
+            cur.executemany("""
+                INSERT INTO qpc_history
+                (query_key, timestamp, database, statement, exec_count,
+                exec_ms, avg_exec_ms,
+                compile_count, compile_ms,
+                rows_read, avg_rows_read,
+                rows_written, avg_rows_written,
+                rows_inserted, avg_rows_inserted,
+                rows_replaced, avg_rows_replaced,
+                rows_deleted, avg_rows_deleted,
+                rows_output, avg_rows_output,
+                forwards, avg_forwards,
+                broadcasts, avg_broadcasts,
+                lockman_waits, avg_lockman_waits,
+                lockman_waittime_ms, avg_lockman_waittime_ms,
+                trxstate_waits, avg_trxstate_waits,
+                trxstate_waittime_ms, avg_trxstate_waittime_ms,
+                wal_perm_waittime_ms, avg_wal_perm_waittime_ms,
+                bm_perm_waittime_ms, avg_bm_perm_waittime_ms,
+                bm_waittime_ns, avg_bm_waittime_ns,
+                bm_fixes, avg_bm_fixes,
+                bm_loads, avg_bm_loads,
+                sigmas, avg_sigmas,
+                sigma_fallbacks, avg_sigma_fallbacks,
+                cpu_runtime_ns, avg_cpu_runtime_ns,
+                cpu_waits, avg_cpu_waits,
+                cpu_waittime_ns, avg_cpu_waittime_ns,
+                fragment_executions, avg_fragment_executions,
+                barriers, avg_barriers,
+                barrier_forwards, avg_barrier_forwards,
+                barrier_flushes, avg_barrier_flushes,
+                row_store_creates, avg_row_store_creates,
+                row_store_insreps, avg_row_store_insreps,
+                avg_opt_cost,
+                rank)
+                VALUES
+                (%(query_key)s,@now,%(database)s,%(statement)s, %(exec_count)s,
+                %(exec_ms)s, %(avg_exec_ms)s,
+                %(compile_count)s, %(compile_ms)s,
+                %(rows_read)s, %(avg_rows_read)s,
+                %(rows_written)s, %(avg_rows_written)s,
+                %(rows_inserted)s, %(avg_rows_inserted)s,
+                %(rows_replaced)s, %(avg_rows_replaced)s,
+                %(rows_deleted)s, %(avg_rows_deleted)s,
+                %(rows_output)s, %(avg_rows_output)s,
+                %(forwards)s, %(avg_forwards)s,
+                %(broadcasts)s, %(avg_broadcasts)s,
+                %(lockman_waits)s, %(avg_lockman_waits)s,
+                %(lockman_waittime_ms)s, %(avg_lockman_waittime_ms)s,
+                %(trxstate_waits)s, %(avg_trxstate_waits)s,
+                %(trxstate_waittime_ms)s, %(avg_trxstate_waittime_ms)s,
+                %(wal_perm_waittime_ms)s, %(avg_wal_perm_waittime_ms)s,
+                %(bm_perm_waittime_ms)s, %(avg_bm_perm_waittime_ms)s,
+                %(bm_waittime_ns)s, %(avg_bm_waittime_ns)s,
+                %(bm_fixes)s, %(avg_bm_fixes)s,
+                %(bm_loads)s, %(avg_bm_loads)s,
+                %(sigmas)s, %(avg_sigmas)s,
+                %(sigma_fallbacks)s, %(avg_sigma_fallbacks)s,
+                %(cpu_runtime_ns)s, %(avg_cpu_runtime_ns)s,
+                %(cpu_waits)s, %(avg_cpu_waits)s,
+                %(cpu_waittime_ns)s, %(avg_cpu_waittime_ns)s,
+                %(fragment_executions)s, %(avg_fragment_executions)s,
+                %(barriers)s, %(avg_barriers)s,
+                %(barrier_forwards)s, %(avg_barrier_forwards)s,
+                %(barrier_flushes)s, %(avg_barrier_flushes)s,
+                %(row_store_creates)s, %(avg_row_store_creates)s,
+                %(row_store_insreps)s, %(avg_row_store_insreps)s,
+                %(avg_opt_cost)s,
+                %(rank)s)""",
+                # last_current is fresh since save() always runs after a gather()
+                self.delta(self.last_current, self.last_history, self.conf.get_conf('qpc_history_top_n')))
+        if opts.debug: print("qpc_history INSERT took %0.3f s" % (time.time() - t0))
+        # It's safe to use references here since we never modify these values,
+        #   we only re-assign new dicts:
+        self.last_history = self.last_current
+        self.last_history.scrub()
+
+    def rollup(self):
+        cur = self.cdb.cursor()
+        # First delete data older than 7 days
+        q = ('DELETE FROM qpc_history where timestamp < date_sub(now(), INTERVAL %d DAY)' %
+                StatsCfg().get_conf('qpc_retention_days'))
+        try:
+            cur.execute(q)
+        except _mysql_exceptions.InternalError as e:
+            if "Transaction is holding too many locks" in e.args[1]:
+                # Just in case this becomes expensive, leave a hint in nanny.log:
+                print("qpc_history delete holding too many locks, running analyze table")
+                cur.execute('ANALYZE TABLE qpc_history')
+                print("qpc history analyze table complete")
+                cur.execute(q)
+            else:
+                raise
+        # Find oldest non-rolled-up data; if more than 24 hours old, roll up.
+        # Note: we operate on whole hour boundaries, e.g. 12:00, 01:00
+        while True:
+            cur.execute("set @t0 = (SELECT date_format(min(timestamp),"
+                        "                              '%Y-%m-%d %H:00:00')"
+                        "             FROM qpc_history WHERE is_rollup = 0)")
+
+            # Is it less than 25H old, or is @t0 NULL for some reason?
+            cur.execute("SELECT @t0 >= date_sub(now(), INTERVAL '25' HOUR)")
+            res = cur.fetchone()[0]
+            if res or res is None:
+                return
+
+            cur.execute("SET @t1 = date_add(@t0, INTERVAL 1 HOUR)")
+            with ExplicitTransaction(cur):
+                # we use a subquery to aggregate by query_key and order by
+                # total_exec, then use in-line variable @rank to apply a ranking
+                # for insertion of rolled-up values.  note also final column has
+                # constant 1, for is_rollup
+                cur.execute('set @rank=0')
+                cur.execute('''
+                    INSERT INTO qpc_history
+                    (query_key, timestamp, database, statement, exec_count,
+                    exec_ms, avg_exec_ms,
+                    min_exec_ms, max_exec_ms,
+                    compile_count, compile_ms,
+                    rows_read, avg_rows_read,
+                    rows_written, avg_rows_written,
+                    rows_inserted, avg_rows_inserted,
+                    rows_replaced, avg_rows_replaced,
+                    rows_deleted, avg_rows_deleted,
+                    rows_output, avg_rows_output,
+                    forwards, avg_forwards,
+                    broadcasts, avg_broadcasts,
+                    lockman_waits, avg_lockman_waits,
+                    lockman_waittime_ms, avg_lockman_waittime_ms,
+                    trxstate_waits, avg_trxstate_waits,
+                    trxstate_waittime_ms, avg_trxstate_waittime_ms,
+                    wal_perm_waittime_ms, avg_wal_perm_waittime_ms,
+                    bm_perm_waittime_ms, avg_bm_perm_waittime_ms,
+                    bm_waittime_ns, avg_bm_waittime_ns,
+                    bm_fixes, avg_bm_fixes,
+                    bm_loads, avg_bm_loads,
+                    sigmas, avg_sigmas,
+                    sigma_fallbacks, avg_sigma_fallbacks,
+                    cpu_runtime_ns, avg_cpu_runtime_ns,
+                    cpu_waits, avg_cpu_waits,
+                    cpu_waittime_ns, avg_cpu_waittime_ns,
+                    fragment_executions, avg_fragment_executions,
+                    barriers, avg_barriers,
+                    barrier_forwards, avg_barrier_forwards,
+                    barrier_flushes, avg_barrier_flushes,
+                    row_store_creates, avg_row_store_creates,
+                    row_store_insreps, avg_row_store_insreps,
+                    avg_opt_cost,
+                    rank, is_rollup)
+                    SELECT *, @rank:=@rank+1, 1 FROM
+                    (SELECT query_key, @t1, database, statement, sum(exec_count),
+                            sum(exec_ms) total_exec, avg(avg_exec_ms),
+                            min(avg_exec_ms), max(avg_exec_ms),
+                            sum(compile_count), sum(compile_ms),
+                            sum(rows_read), avg(avg_rows_read),
+                            sum(rows_written), avg(avg_rows_written),
+                            sum(rows_inserted), avg(avg_rows_inserted),
+                            sum(rows_replaced), avg(avg_rows_replaced),
+                            sum(rows_deleted), avg(avg_rows_deleted),
+                            sum(rows_output), avg(avg_rows_output),
+                            sum(forwards), avg(avg_forwards),
+                            sum(broadcasts), avg(avg_broadcasts),
+                            sum(lockman_waits), avg(avg_lockman_waits),
+                            sum(lockman_waittime_ms), avg(avg_lockman_waittime_ms),
+                            sum(trxstate_waits), avg(avg_trxstate_waits),
+                            sum(trxstate_waittime_ms), avg(avg_trxstate_waittime_ms),
+                            sum(wal_perm_waittime_ms), avg(avg_wal_perm_waittime_ms),
+                            sum(bm_perm_waittime_ms), avg(avg_bm_perm_waittime_ms),
+                            sum(bm_waittime_ns), avg(avg_bm_waittime_ns),
+                            sum(bm_fixes), avg(avg_bm_fixes),
+                            sum(bm_loads), avg(avg_bm_loads),
+                            sum(sigmas), avg(avg_sigmas),
+                            sum(sigma_fallbacks), avg(avg_sigma_fallbacks),
+                            sum(cpu_runtime_ns), avg(avg_cpu_runtime_ns),
+                            sum(cpu_waits), avg(avg_cpu_waits),
+                            sum(cpu_waittime_ns), avg(avg_cpu_waittime_ns),
+                            sum(fragment_executions), avg(avg_fragment_executions),
+                            sum(barriers), avg(avg_barriers),
+                            sum(barrier_forwards), avg(avg_barrier_forwards),
+                            sum(barrier_flushes), avg(avg_barrier_flushes),
+                            sum(row_store_creates), avg(avg_row_store_creates),
+                            sum(row_store_insreps), avg(avg_row_store_insreps),
+                            sum(avg_opt_cost)
+                    FROM qpc_history
+                    WHERE timestamp BETWEEN @t0 AND @t1
+                        AND is_rollup = 0
+                    GROUP BY query_key
+                    ORDER BY total_exec DESC) ranker_subquery
+                ''')
+                cur.execute('''DELETE FROM qpc_history
+                            WHERE timestamp BETWEEN @t0 AND @t1
+                            AND is_rollup = 0''')
+
+class Hotness(object):
+    def __init__(self, clustrixdb, conf):
+        self.cdb = clustrixdb
+        self.conf = conf
+        self.task = SimpleTask(self.hotness, default_interval='stats_history')
+        self.purge_task = SimpleTask(self.purge_history,
+                                     default_interval='qpc_rollup')
+
+    def purge_history(self):
+        cur = self.cdb.cursor()
+        # delete stuff older than 7 days # XXX Make this configurable?
+        cur.execute("DELETE FROM hotness_history"
+                    "  WHERE `timestamp`  < NOW() - INTERVAL 7 DAY")
+
+    def populate_temporary(self, tablename):
+        cur = self.cdb.cursor()
+        cur.execute("DROP TEMPORARY TABLE IF EXISTS `%s`" % tablename) # Bug 32135
+        cur.execute("CREATE TEMPORARY TABLE `%s` ("
+                    "  `node` int unsigned, `database` varchar(256),"
+                    "  `table` varchar(256), `index` varchar(256),"
+                    "  `reads` int unsigned, `writes` int unsigned,"
+                    "  `replicas` int unsigned,"
+                    "  index ndti (node,`database`,`table`,`index`))"
+                        % tablename)
+        cur.execute("INSERT INTO `%s`"
+                    "  SELECT cs.nodeid, dbs.name database, rels.name `table`,"
+                    "         reps.name `index`, sum(reads) reads,"
+                    "         sum(deletes+inserts+replaces) writes,"
+                    "         count(cs.replica) replicas"
+                    "    FROM system.`databases` AS dbs"
+                    "      JOIN system.`relations` AS rels USING (db)"
+                    "      JOIN system.`representations` AS reps"
+                    "        ON (reps.relation = rels.table)"
+                    "      JOIN system.`slices` AS s USING (representation)"
+                    "      JOIN system.`replicas` AS r USING (slice)"
+                    "      JOIN system.container_stats AS cs USING (replica)"
+                    "    GROUP BY nodeid, `database`, `table`, `index`"
+                        % tablename)
+
+    def hotness(self):
+        cur = self.cdb.cursor()
+        if not cur.execute("SELECT 1 FROM system.session_temp_relations"
+                           "  WHERE dbname=%s AND name='hotness_last'",
+                           (self.cdb.dbname,)):
+            # if we don't have a temp table hotness_last, we just got elected, so
+            # we only populate hotness_last this time around.
+            self.populate_temporary('hotness_last')
+            return
+        self.populate_temporary('hotness_current')
+        cur.execute("DROP TEMPORARY TABLE IF EXISTS `repcounts_temp`")
+        cur.execute("CREATE TEMPORARY TABLE `repcounts_temp` ("
+                    "  `database` varchar(256), `table` varchar(256),"
+                    "  `index` varchar(256), `total_replicas` int unsigned,"
+                    "  index dti (`database`,`table`,`index`))")
+        cur.execute("INSERT INTO repcounts_temp"
+                    "  SELECT dbs.name AS Database, rels.name AS `Table`,"
+                    "       reps.name AS `Index`, count(1)"
+                    "    FROM system.`databases` AS dbs JOIN"
+                    "         system.`relations` AS rels using (db) JOIN"
+                    "         system.`representations` AS reps"
+                    "                      ON (reps.relation = rels.table) JOIN"
+                    "         system.`slices` AS s using(representation) JOIN"
+                    "         system.`replicas` AS r USING (slice)"
+                    "    GROUP BY `database`, `table`, `index`")
+        cur.execute('analyze table hotness_last;')
+        cur.execute('analyze table hotness_current;')
+        cur.execute('analyze table repcounts_temp;')
+
+        with ExplicitTransaction(cur):
+            cur.execute("SET @now=now()")
+            cur.execute('SET @rank=0')
+            cur.execute("INSERT INTO hotness_history"
+                        "    (node, `database`, `table`, `index`, reads, writes,"
+                        "     replicas, total_replicas, read_rank,"
+                        "     write_rank, timestamp)"
+                        "  SELECT node, `database`, `table`, `index`, read_delta,"
+                        "         write_delta, replicas,"
+                        "         total_replicas, @rank:=@rank+1, NULL, @now"
+                        "    FROM (SELECT b.node, b.database, b.table, b.index,"
+                        "                 b.reads - a.reads read_delta,"
+                        "                 b.writes - a.writes write_delta,"
+                        "                 b.replicas,"
+                        "                 rc.total_replicas"
+                        "            FROM hotness_current b LEFT JOIN"
+                        "                   hotness_last a ON"
+                        "                     (b.node = a.node AND"
+                        "                      b.database = a.database AND"
+                        "                      b.table = a.table AND"
+                        "                      b.index = a.index) JOIN"
+                        "                   repcounts_temp rc ON"
+                        "                     (b.database = rc.database AND"
+                        "                      b.table = rc.table AND"
+                        "                      b.index = rc.index)"
+                        "            ORDER BY read_delta DESC"
+                        "            LIMIT 100) sorter")
+            cur.execute('SET @rank=0')
+            cur.execute("INSERT INTO hotness_history"
+                        "    (node, `database`, `table`, `index`, reads, writes,"
+                        "     replicas, total_replicas, read_rank,"
+                        "     write_rank, timestamp)"
+                        "  SELECT node, `database`, `table`, `index`, read_delta,"
+                        "         write_delta, replicas,"
+                        "         total_replicas, NULL, @rank:=@rank+1, @now"
+                        "    FROM (SELECT b.node, b.database, b.table, b.index,"
+                        "                 b.reads - a.reads read_delta,"
+                        "                 b.writes - a.writes write_delta,"
+                        "                 b.replicas,"
+                        "                 rc.total_replicas"
+                        "            FROM hotness_current b LEFT JOIN"
+                        "                   hotness_last a ON"
+                        "                     (b.node = a.node AND"
+                        "                      b.database = a.database AND"
+                        "                      b.table = a.table AND"
+                        "                      b.index = a.index) JOIN"
+                        "                   repcounts_temp rc ON"
+                        "                     (b.database = rc.database AND"
+                        "                      b.table = rc.table AND"
+                        "                      b.index = rc.index)"
+                        "            ORDER BY write_delta DESC"
+                        "            LIMIT 100) sorter"
+                        "  ON DUPLICATE KEY UPDATE write_rank = @rank")
+        cur.execute('DROP TEMPORARY TABLE hotness_last')
+        cur.execute('ALTER TABLE hotness_current RENAME TO hotness_last')
+
+class Gatherer(object):
+    """Super class for gathering and storing stats"""
+    default_interval = 'stats'
+    def __init__(self, prom_enabled=True):
+        self.last_history = None
+        self.last_current = None
+        self.history = self.cdb.get_sample_dict()
+        self.current = self.cdb.get_sample_dict()
+        self.has_deltas = False
+        self.task = DualTask(self, prom_enabled) # Registers us with the Scheduler
+
+    @classmethod
+    def set_db(cls, db):
+        cls.cdb = db
+
+    def delta(self, stat_name, hist=False, per_sec=False):
+        """Calculate a delta between two keys, using self.last_current as a
+        comparison point by default, or last_history if hist==True. If per_sec
+        is set to True, it will divide by the time difference between the two
+        samples."""
+
+        self.has_deltas = True # This makes us track self.history
+
+        if hist:
+            if not self.last_history or not self.last_history.has_stat(stat_name):
+                return None
+            last_value, last_ts = self.last_history.get_stat(stat_name)
+        else:
+            if not self.last_current or not self.last_current.has_stat(stat_name):
+                return None
+            last_value, last_ts = self.last_current.get_stat(stat_name)
+
+        if not self.current.has_stat(stat_name):
+            return None
+
+        now_value, now_ts = self.current.get_stat(stat_name)
+        delta = now_value - last_value
+        if delta < 0:
+            # We only operate with monotonically increasing values,
+            #   this means we've rolled over some limit, so the sample
+            #   is invalid
+            return None
+        if not per_sec:
+            return delta
+        try:
+            return float(delta) / (now_ts - last_ts)
+        except ZeroDivisionError:
+            return None
+
+    def autodelta(self, source_key, dest_key, per_sec=False):
+        """Make a delta value from self.current[source_key] and assign it to
+        current and history dicts, only if there's a last_ value from which to
+        calculate the delta."""
+        for hist, target in ((True, self.history), (False, self.current)):
+            d = self.delta(source_key, hist, per_sec)
+            if d:
+                target.add_gauge(dest_key, d)
+
+    def gather(self):
+        """Gather stats and send current to database"""
+
+        self.last_current = self.current
+        self.current = self.cdb.get_sample_dict()
+
+        self.run()
+
+        self.cdb.update_current_stats(self.current)
+        if self.has_deltas and not self.last_history:
+            # Populate last_history on restart, so we can start calculating
+            # delta values one sample period earlier
+            self.last_history = self.current
+
+    def save(self):
+        """Send history data to the database, save it to last_history, and
+        replace it with a blank dict, ready to record new stats"""
+
+        if self.history:
+            self.history.fill_in(self.current)
+            self.cdb.store_history(self.history)
+            self.last_history = self.history
+            self.history = self.cdb.get_sample_dict()
+        elif self.current:
+            # If the subclass doesn't track any delta values then we just
+            #   use self.current
+            self.cdb.store_history(self.current)
+
+    def run(self):
+        """Overload this with a method to collect stats, setting both
+        self.current and self.history (since the difference between those two
+        will only be delta values, which use different baselines, only place
+        deltas in .history, any other values will be copied from current.)"""
+
+        raise Exception("Not implemented!")
+
+class ClusterStats(Gatherer):
+    def run(self):
+        cur = self.cdb.cursor()
+        cur.execute("select count(*) from system.membership")
+        self.current.add_gauge("cluster.total_nodes", cur.fetchone()[0])
+        cur.execute("select count(*) from system.membership where status='quorum'")
+        self.current.add_gauge("cluster.nodes_in_quorum", cur.fetchone()[0])
+        cur.execute("select nodeid,"
+                    "       unix_timestamp(utc_timestamp) - unix_timestamp(started) as uptime"
+                    "  from system.nodeinfo")
+        for nid, uptime in cur.fetchall():
+            self.current.add_gauge('cluster.uptime.node.%d.seconds' % nid, uptime)
+
+
+class LockMan(Gatherer):
+    waiter_bucket_count = 10 # Arbitrary
+    waiter_buckets = None # For lock wait histogranm
+    def run(self):
+        cur = self.cdb.cursor()
+
+        # Per-node stats
+        cur.execute("select m.nid, count(l.wait_ms) num_waiters,"
+                    "       ifnull(avg(l.wait_ms), 0) `wait_ms.avg`,"
+                    "       ifnull(min(l.wait_ms), 0) `wait_ms.min`,"
+                    "       ifnull(max(l.wait_ms), 0) `wait_ms.max`"
+                    "  from system.membership m"
+                    "       left join system.lockman l on m.nid = l.nodeid"
+                    "  group by m.nid")
+
+        for nodeid, name, value in gen_cols(cur, 1):
+            self.current.add_gauge("lockman.%s.node.%d" % (name, nodeid), value, autoagg=True)
+
+        cur.execute("select count(distinct holder) sessions_holding_locks"
+                    "  from system.lockman_holders")
+
+        for name, value in zip_cols(cur):
+            self.current.add_gauge("lockman.%s" % name, value)
+
+        if self.cdb.prometheus_mode():
+            # Prometheus calculates the global stats for most of these
+            cur.execute("select ifnull(stddev(wait_ms), 0) stddev"
+                        "  from system.lockman") # Cursor read after else block
+        else:
+            # Global stats
+            cur.execute("select ifnull(avg(wait_ms), 0) avg,"
+                        "       ifnull(min(wait_ms), 0) min,"
+                        "       ifnull(max(wait_ms), 0) max,"
+                        "       ifnull(stddev(wait_ms), 0) stddev"
+                        "  from system.lockman")
+        for name, value in zip_cols(cur): # Only one row
+            self.current.add_gauge("lockman.wait_ms.%s" % name, value)
+
+        # Lockman wait histogram:
+        if self.cdb.prometheus_mode():
+            h = Histogram(cumulative_input=True)
+            if not self.waiter_buckets:
+                cur.execute('select @@lock_wait_timeout_ms')
+                max_bucket = cur.fetchone()[0]
+                bucket_step_ms = max_bucket // self.waiter_bucket_count
+                self.waiter_buckets = tuple(range(bucket_step_ms, max_bucket + bucket_step_ms//2,
+                                                  bucket_step_ms))
+            column_format = "count(if(wait_ms < %d, 1, null)) '%d'"
+            columns = ', '.join([column_format % (b, b/1000) for b in self.waiter_buckets])
+            if cur.execute("select %s from system.lockman group by waiter" % columns):
+                h.from_rows(zip_cols(cur))
+            else:
+                # We didn't get a row, fill in zeroes:
+                h.from_rows(zip(self.waiter_buckets, [0] * len(self.waiter_buckets)))
+            if False: # Probably delete this block:
+                sub_query_format = ("select %d, count (distinct waiter)"
+                                    "  from system.lockman"
+                                    "  where wait_ms < %d")
+                # Convert from ms to seconds in the query, because the Prometheus automation won't:
+                sub_query = ' union '.join([sub_query_format % (b/1000, b) for b in self.waiter_buckets])
+                cur.execute('select * from (%s) t' % sub_query)
+            self.current.add_histogram("lockman.waiters", h)
+
+
+class SpaceUsedBreakdown(Gatherer):
+    def run(self):
+        cur = self.cdb.cursor()
+        cur.execute("select (database = '_replication') as source,"
+                    "       sum(bytes) as bytes,"
+                    "       sum(bytes) / (select sum(user_max_bytes)"
+                    "               from system.device_space_stats) * 100"
+                    "           as percent_of_total"
+                    "  from system.table_sizes"
+                    "  group by 1")
+
+        for source, bytesize, percent in cur.fetchall():
+            name = ('user', 'binlog')[source]
+            self.current.add_gauge("capacity.disks.%s.size_bytes" % name, bytesize)
+            self.current.add_gauge("capacity.disks.%s.percent_of_total" % name, percent)
+
+class GlobalStats(Gatherer):
+    gauge_stats = ("connections", "cork_depth", "executing_sessions", "qpc_bytes",
+                   "qpc_recompile_cost_factor", "qpc_recompile_no_cost_info",
+                   "qpc_recompile_run_factor", "qpc_recompile_total_factor",
+                    )
+    def update_rw_stats(self):
+        "Comb through the stats and create a new set of read and write times"
+        def count_stat(op):
+            return "stats.Com_%s" % (op,)
+        def time_stat(op):
+            return '%s_us' % count_stat(op)
+        def average(hist, *ops):
+            queries = sum(self.delta(count_stat(op), hist=hist) or 0 for op in ops)
+            microseconds = sum(self.delta(time_stat(op), hist=hist) or 0 for op in ops)
+            if queries <= 0 or microseconds <= 0:
+                return None
+            return float(microseconds) / float(queries)
+
+        if self.last_current:
+            self.current.add_gauge("response_time.read_us", average(False, 'select'),
+                                    extra_labels=(('type', 'read'),))
+            self.current.add_gauge("response_time.write_us",
+                                    average(False, 'insert', 'update', 'delete'),
+                                    extra_labels=(('type', 'write'),))
+        if self.last_history:
+            self.history.add_gauge("response_time.read_us", average(True, 'select'),
+                                    extra_labels=(('type', 'read'),))
+            self.history.add_gauge("response_time.write_us",
+                                    average(True, 'insert', 'update', 'delete'),
+                                    extra_labels=(('type', 'write'),))
+
+    def run(self):
+        # Many of the stats.Com_ stats originate here
+        cur = self.cdb.cursor()
+        cur.execute("show global status")
+        for name, value in cur.fetchall():
+            if name in self.gauge_stats:
+                self.current.add_gauge("stats.%s" % name, value)
+            else:
+                self.current.add_counter("stats.%s" % name, value)
+        self.update_rw_stats()
+
+class BinlogStatus(Gatherer):
+    def run(self):
+        prefix = "replication.binlog"
+        cur = self.cdb.cursor()
+
+        cur.execute("SELECT log_slices.name, SUM(log_slices.inserts)"
+                    "  FROM ("
+                    "      SELECT bin.name, MAX(stats.inserts) AS inserts"
+                    "      FROM system.binlogs bin"
+                    "      STRAIGHT_JOIN system.representations rep"
+                    "        ON (bin.commits_rel = rep.relation)"
+                    "      STRAIGHT_JOIN system.slices slice"
+                    "        ON (rep.representation = slice.representation)"
+                    "      STRAIGHT_JOIN system.replicas replica"
+                    "        ON (slice.slice = replica.slice)"
+                    "      STRAIGHT_JOIN system.container_stats stats"
+                    "        ON (replica.replica = stats.replica)"
+                    "      GROUP BY slice.slice"
+                    "  ) AS log_slices"
+                    " GROUP BY log_slices.name")
+
+        for binlog, commits in cur.fetchall():
+            self.current.add_counter(prefix + ".logged_trxs." + binlog, commits,
+                                     extra_labels=(('binlog', binlog),))
+
+        cur.execute("SELECT name, SUM(indexed_trxs)"
+                    "  FROM system.binlogs"
+                    "    NATURAL JOIN system.mysql_binlog_stats"
+                    "  GROUP BY name")
+
+        for binlog, indexed in cur.fetchall():
+            self.current.add_counter(prefix + ".indexed_trxs." + binlog, indexed,
+                                     extra_labels=(('binlog', binlog),))
+
+class MasterStatus(Gatherer):
+    def run(self):
+        prefix = "replication.master"
+        cur = self.cdb.cursor()
+        cur.execute("SELECT master_logname, slave_id, source_ip, local_ip, local_port, username,"
+                    "       sequence log_file_seq, offset log_file_pos,"
+                    "       batches, transactions, events, bytes,"
+                    "       replication_batches, replication_commits,"
+                    "       replication_statements, total_sec, replication_sec,"
+                    "       read_commits_sec, read_statements_sec, time_in_state_s,"
+                    "       mms.nodeid nodeid, mms.cpu cpu"
+                    "  FROM system.mysql_master_status mms"
+                    "  JOIN system.sessions s on mms.session_id=s.session_id"
+                    "  JOIN system.users u on s.user=u.user")
+
+        for row in cur.fetchall():
+            master_logname, slave_id, slave_ip, local_ip, master_port, master_user = row[:6]
+
+            slave_name = "%s.slave.%s" % (master_logname, slave_id)
+
+            for name, value in zip_cols(cur, row, 6):
+                if name in ("log_file_seq", "log_file_pos", "time_in_state_s", "nodeid", "cpu"):
+                    c_add = self.current.add_gauge
+                else:
+                    c_add = self.current.add_counter
+                c_add("%s.%s.%s" % (prefix, name, slave_name), value,
+                            extra_labels=(('slave', slave_name),
+                                        ('slave_ip', slave_ip),
+                                        ('local_ip', local_ip),
+                                        ('master_port', master_port),
+                                        ('master_log_file', master_logname),
+                                        ('master_user', master_user),
+                                        ))
+
+            # Calculate a tps rate since the last sample
+            self.autodelta("%s.%s.%s" % (prefix, 'transactions', slave_name),
+                           "%s.%s.%s" % (prefix, 'tps', slave_name),
+                           True)
+
+class SlaveStatus(Gatherer):
+    def run(self):
+        prefix = "replication.slave"
+        cur = self.cdb.cursor(cursorclass=MySQLdb.cursors.DictCursor)
+        extra_labels_by_slave = {}
+        cur.execute("select slave_name slave, master_host, master_port, master_log_file, master_user,"
+                    "       nodeid node"
+                    "  from system.mysql_slave_status mss"
+                    "  join system.mysql_slave_connection_status mscs on mss.slave_name=mscs.slave_name")
+        for row in cur.fetchall():
+            extra_labels_by_slave[row["slave"]] = tuple(row.items())
+
+        cur.execute("SHOW SLAVE STATUS")
+        for row in cur.fetchall():
+            name = row["Slave_Name"]
+            if name not in extra_labels_by_slave:
+                extra_labels_by_slave[name] = tuple()
+
+            def slave_gauge(stat, source=None):
+                if source is None:
+                    source = stat
+                    stat = source.lower()
+                self.current.add_gauge("%s.%s.%s" % (prefix, stat, name), row[source],
+                                                extra_labels = extra_labels_by_slave[name])
+
+            self.current.add_gauge("%s.enabled.%s" % (prefix, name),
+                                        1 if row['Slave_Enabled'] == "Enabled" else 0,
+                                        extra_labels = extra_labels_by_slave[name])
+            self.current.add_gauge("%s.running.%s" % (prefix, name),
+                                        1 if row['Slave_Status'] == "Running" else 0,
+                                        extra_labels = extra_labels_by_slave[name])
+            slave_gauge('relay_log_bytes', 'Relay_Log_Current_Bytes')
+            slave_gauge('Seconds_Behind_Master')
+            slave_gauge('Log_File_Seq')
+            slave_gauge('Log_File_Pos')
+
+        cur.execute("select * from system.mysql_slave_stats")
+        for row in cur.fetchall():
+            name = row["slave_name"]
+            for key in row:
+                if key in ('slave_name', 'start_time'):
+                    continue
+                value = row[key]
+                try:
+                    if value == 0:
+                        continue
+                    if key.endswith('per_sec') or key in ('nodeid'): # XXX Needs more stats included?
+                        c_add = self.current.add_gauge
+                    else:
+                        c_add = self.current.add_counter
+                    c_add("%s.%s.%s" % (prefix, key, name), float(value),
+                                extra_labels = (('slave', name),))
+                except:
+                    if opts.debug:
+                        print('key: %s value %s' % (key, value))
+                        traceback.print_exc()
+                    continue
+
+class SystemStats(Gatherer):
+    gauge_stats = ('pdcache_loaded', 'num_sigmas', 'key_cache_size', 'bm_age_',
+                   'layer_pending_smos')
+    def run(self):
+        cur = self.cdb.cursor()
+        # net_% stats are handled by the NetworkIO Gatherer
+        cur.execute("select nodeid, name, value from system.stats"
+                    "  where name not like 'net_%'")
+        for node, name, value in cur.fetchall():
+            if self.cdb.prometheus_mode() and name in ('qps_total', 'tps_total'):
+                # Un-confuse the names for Prometheus
+                name = name.replace('qps_total', 'queries').replace('tps_total', 'transactions')
+            c_add = self.current.add_counter
+            if name.startswith(self.gauge_stats):
+                c_add = self.current.add_gauge
+            c_add("stats.%s.node.%d" % (name, node), value)
+
+        # Total transaction and query counts for the cluster, the 'tps' and 'qps'
+        #   names are misnomers, since these are not, in fact, per second, but
+        #   we're stuck with them.
+        cur.execute("select name, sum(value) from system.stats"
+                    "  where name = 'tps_total' or"
+                    "        name = 'qps_total'"
+                    "  group by name;")
+
+        for name, value in cur.fetchall():
+            if self.cdb.prometheus_mode():
+                # Un-confuse the names for Prometheus, since we have no legacy to consider there
+                name = name.replace('qps_total', 'global_queries').replace('tps_total', 'global_transactions')
+            self.current.add_counter("stats.%s" % name, value)
+
+        # Convert total transaction and query counts into per-second deltas,
+        #   for ease of access:
+        if self.cdb.prometheus_mode():
+            self.autodelta("stats.global_transactions", "tps", True)
+            self.autodelta("stats.global_queries", "qps", True)
+        else:
+            self.autodelta("stats.tps_total", "tps", True)
+            self.autodelta("stats.qps_total", "qps", True)
+
+class BMStats(Gatherer):
+    def run(self):
+        cur = self.cdb.cursor()
+        cur.execute("SELECT nodeid,"
+                    "       page.bytes_in_use - bm.bytes_reserved AS non_bm_bytes"
+                    "  FROM system.base_allocators page"
+                    "  JOIN system.base_allocators bm USING(nodeid)"
+                    "  WHERE page.name = 'page_alloc'"
+                    "    AND bm.name = 'buffer_manager'")
+
+        for nodeid, value in cur.fetchall():
+            self.current.add_gauge('memory.non_bm_bytes.node.%s' % nodeid, value)
+
+        cur.execute("SELECT nodeid, name as allocator, bytes_in_use, bytes_reserved "
+                    "  FROM system.base_allocators")
+
+        # Prometheus needs a bit more in the stat name so something is left after
+        #   labels are extracted:
+        promtag = ''
+        if self.cdb.prometheus_mode():
+            promtag = 'allocators.'
+
+        bm_by_nid = {}
+        for nodeid, allocator, name, value in gen_cols(cur, 2):
+            self.current.add_gauge('memory.%s%s.node.%s.%s' % (promtag, allocator, nodeid, name), value,
+                                    extra_labels=(('allocator', allocator), ('type', name.split('bytes_', 1)[1])))
+            if name != 'bytes_reserved':
+                continue
+            if nodeid not in bm_by_nid:
+                bm_by_nid[nodeid] = {}
+            bm_by_nid[nodeid][allocator] = value
+
+        for nodeid, allocs in bm_by_nid.items():
+            self.current.add_gauge('memory.reserved_bytes.node.%s' % nodeid,
+                allocs['huge_alloc'] - allocs['multi_alloc'] - allocs['page_alloc'])
+            self.current.add_gauge('memory.working_bytes.node.%s' % nodeid,
+                allocs['page_alloc'] + allocs['multi_alloc'] - allocs['buffer_manager'] - allocs['memtbl_heap'])
+            if self.cdb.prometheus_mode():
+                # Extract these explicitly from the allocators
+                self.current.add_gauge('memory.bm_bytes.node.%s' % nodeid, allocs['buffer_manager'])
+                self.current.add_gauge('memory.total_bytes.node.%s' % nodeid, allocs['huge_alloc'])
+
+
+        cur.execute('select * from system.bm_stats')
+        for nodeid, name, value in gen_cols(cur, 1):
+            if name.startswith('num'):
+                self.current.add_counter("bm.%s.node.%s" % (name, nodeid), value)
+            else:
+                self.current.add_gauge("bm.%s.node.%s" % (name, nodeid), value)
+
+class ContainerStats(Gatherer):
+    def run(self):
+        cur = self.cdb.cursor()
+        prefix = 'containers'
+
+        if not self.cdb.prometheus_mode():
+            # Total container stats, for hotness use
+            cur.execute("select sum(deletes+inserts+replaces) rows_written,"
+                        "       sum(reads) rows_read,"
+                        "       sum(inserts) rows_inserted,"
+                        "       sum(replaces) rows_replaced,"
+                        "       sum(deletes) rows_deleted"
+                        "  from system.container_stats")
+
+            for name, value in zip_cols(cur):
+                self.current.add_counter("%s.%s" % (prefix, name), value)
+
+        # Per-node container stats
+        cur.execute("select nodeid,"
+                    "       sum(deletes+inserts+replaces) rows_written,"
+                    "       sum(reads) rows_read,"
+                    "       sum(inserts) rows_inserted,"
+                    "       sum(replaces) rows_replaced,"
+                    "       sum(deletes) rows_deleted"
+                    "  from system.container_stats"
+                    "  group by nodeid ")
+
+        for nodeid, name, value in gen_cols(cur, 1):
+            total_stat = "%s.%s" % (prefix, name)
+            stat_name = "%s.node.%d" % (total_stat, nodeid)
+            self.current.add_counter(stat_name, value,
+                        extra_labels = (('op', name.replace('rows_', '')),))
+            if self.cdb.prometheus_mode():
+                # Prometheus can calculate this
+                continue
+            try:
+                pct = 100 * float(value) / self.current.get_value(total_stat)
+            except ZeroDivisionError:
+                pct = 0
+            self.current.add_gauge(stat_name + '.pct_of_total', pct)
+
+        cur.execute("select count(*) from system.containers")
+        self.current.add_gauge("%s.count" % prefix, cur.fetchone()[0])
+
+class InternodeLatency(Gatherer):
+    def run(self):
+        cur = self.cdb.cursor()
+
+        # XXX kdw This is useful info, but it's going to add n^2 new stats,
+        # which is honestly just too many all the time. If latency becomes an
+        # issue, then uncomment this if you want more detailed info
+        # Node-to-node stats
+        #cur.execute("select il.nodeid, il.dest_nid, ni.iface_name, "
+        #            "       il.latency_ms, il.wallclock_skew_s "
+        #            "  from system.internode_latency il"
+        #            "  join system.nodeinfo ni on il.nodeid = ni.nodeid")
+        #for (nodeid, dest_nid, iface, lat, skew) in cur.fetchall():
+        #    stat = "io.network.latency_ms.node.%d.node.%d.%s"
+        #    self.stats[stat % (nodeid, dest_nid, iface)] = lat
+        #    stat = "io.network.wallclock_skew_s.node.%d.node.%d.%s"
+        #    self.stats[stat % (nodeid, dest_nid, iface)] = skew
+
+        # Per-node stats
+        cur.execute("select il.nodeid nodeid, ni.iface_name iface,"
+                    "       avg(il.latency_ms) `latency_ms.avg`,"
+                    "       min(il.latency_ms) `latency_ms.min`,"
+                    "       max(il.latency_ms) `latency_ms.max`,"
+                    "       stddev(il.latency_ms) `latency_ms.stddev`,"
+                    "       avg(il.wallclock_skew_s) `wallclock_skew_s.avg`,"
+                    "       min(il.wallclock_skew_s) `wallclock_skew_s.min`,"
+                    "       max(il.wallclock_skew_s) `wallclock_skew_s.max`,"
+                    "       stddev(il.wallclock_skew_s) `wallclock_skew_s.stddev`"
+                    "  from system.internode_latency il "
+                    "       join system.nodeinfo ni on il.nodeid = ni.nodeid "
+                    "  group by il.nodeid")
+
+        for nodeid, iface, name, value in gen_cols(cur, 2):
+            if 'skew' in name:
+                self.current.add_gauge("io.network.%s.node.%d" % (name, nodeid), value, autoagg=True)
+            else:
+                self.current.add_gauge("io.network.%s.node.%d.%s" % (name, nodeid, iface), value,
+                                        extra_labels=(('interface', iface),), autoagg=True)
+
+        if not self.cdb.prometheus_mode():
+            # Global stats
+            cur.execute("select avg(latency_ms) `latency_ms.avg`,"
+                        "       min(latency_ms) `latency_ms.min`,"
+                        "       max(latency_ms) `latency_ms.max`,"
+                        "       stddev(latency_ms) `latency_ms.stddev`,"
+                        "       avg(wallclock_skew_s) `wallclock_skew_s.avg`,"
+                        "       min(wallclock_skew_s) `wallclock_skew_s.min`,"
+                        "       max(wallclock_skew_s) `wallclock_skew_s.max`,"
+                        "       stddev(wallclock_skew_s) `wallclock_skew_s.stddev`"
+                        "  from system.internode_latency")
+
+            for name, value in zip_cols(cur):
+                self.current.add_gauge("io.network.%s" % name, value)
+
+        # Per-node stddevs from avg
+        # Grab some stats from earlier queries (This is probably not the best way to do it):
+        latency_average = self.current.get_value("io.network.latency_ms.avg")
+        latency_stddev = self.current.get_value("io.network.latency_ms.stddev")
+        skew_average = self.current.get_value("io.network.wallclock_skew_s.avg")
+        skew_stddev = self.current.get_value("io.network.wallclock_skew_s.stddev")
+
+        cur.execute("select nodeid,"
+                    "       ifnull(abs(%s - avg(latency_ms)) / %s, 0) latency,"
+                    "       ifnull(abs(%s - avg(wallclock_skew_s)) / %s, 0) wallclock_skew"
+                    "  from system.internode_latency group by nodeid",
+                    (latency_average if latency_average else "NULL",
+                     latency_stddev if latency_stddev else "NULL",
+                     skew_average if skew_average else "NULL",
+                     skew_stddev if skew_stddev else "NULL"))
+
+        for nodeid, name, value in gen_cols(cur, 1):
+            self.current.add_gauge("io.network.%s_stddevs_from_avg.node.%d"
+                                % (name, nodeid), value)
+
+class CPULoad(Gatherer):
+    def run(self):
+        cur = self.cdb.cursor()
+        cur.execute("select nodeid, cpu, load*100 load, total_busy"
+                    "  from system.cpu_load")
+
+        for nodeid, cpu, name, value in gen_cols(cur, 2):
+            self.current.add_gauge("cpu.%s.node.%d.cpu.%d" % (name, nodeid, cpu), value)
+
+        if not self.cdb.prometheus_mode():
+            # note that we're ignoring core 0 here, as does SHOW LOAD
+            cur.execute("select nodeid, avg(load)*100 avg,"
+                        "       max(load)*100 max, min(load)*100 min"
+                        "  from system.cpu_load"
+                        "  where cpu > 0"
+                        "  group by nodeid")
+
+            for nodeid, key, value in gen_cols(cur, 1):
+                self.current.add_gauge("cpu.load_%s.node.%d" % (key, nodeid), value)
+
+            cur.execute("select min(load*100) load_min, max(load*100) load_max,"
+                        "       sum(total_busy)/count(1) total_busy"
+                        "  from system.cpu_load"
+                        "  where cpu > 0")
+
+            for name, value in gen_cols(cur):
+                self.current.add_gauge("cpu.%s" % name, value)
+
+        # let's also keep the core 0 stats, just somewhere else
+        # overhead isn't shared across multiple cpus yet, so for now
+        # we don't need to actually calculate an average
+        cur.execute("select nodeid, load * 100 from system.cpu_load"
+                    "  where cpu = 0")
+
+        for nodeid, load_avg in cur.fetchall():
+            self.current.add_gauge("cpu.overhead_load_avg.node.%d" % nodeid, load_avg)
+
+        if not self.cdb.prometheus_mode():
+            cur.execute("select min(load*100) load_min, max(load*100) load_max,"
+                        "       sum(total_busy)/count(1) total_busy"
+                        "  from system.cpu_load where cpu = 0")
+
+            for name, value in zip_cols(cur):
+                self.current.add_gauge("cpu.overhead_%s" % name, value)
+
+            # special case for CPU busy to preserve naming convention.
+            # total_busy is a fraction of 1, but load_avg should be a percentage
+            for stat in ('cpu.total_busy', 'cpu.overhead_total_busy'):
+                self.autodelta(stat, "%s_per_sec" % stat, True)
+            source_stat = 'cpu.%stotal_busy_per_sec'
+            target_stat = 'cpu.%sload_average'
+            for samples in (self.current, self.history):
+                for stattype in ('', 'overhead_'):
+                    try:
+                        samples.add_gauge(source_stat % stattype, samples.get_value(source_stat % stattype) * 100)
+                    except TypeError:
+                        # Got None due to lack of data for the autodelta, try again later
+                        pass
+
+
+class VdevIO(Gatherer):
+    def run(self):
+        cur = self.cdb.cursor()
+        # all of these are counters; we're specifically not collecting the 10s
+        # rates collected by the database itself, instead calculating our own
+        cur.execute("select nodeid, vdevid, reads_completed, reads_errored,"
+                    "       bytes_read, read_time_us, writes_completed,"
+                    "       writes_errored, bytes_written, write_time_us,"
+                    "       syncs_completed, syncs_errored, sync_time_us"
+                    "  from system.vdev_io")
+
+        for row in cur.fetchall():
+            nodeid, vdevid = row[:2]
+            for name, value in zip_cols(cur, row, 2):
+                self.current.add_counter("io.vdev.%s.node.%d.vdev.%d" %
+                            (name, nodeid, vdevid), value)
+            # calculate average latency for current and history periods
+            for op in ('read','write','sync'):
+                count_stat = ('io.vdev.%ss_completed.node.%d.vdev.%d'
+                                % (op, nodeid, vdevid))
+                latency_stat = ('io.vdev.%s_time_us.node.%d.vdev.%d'
+                                % (op, nodeid, vdevid))
+                for hist, target in ((False, self.current), (True, self.history)):
+                    count_delta = self.delta(count_stat, hist)
+                    latency_delta = self.delta(latency_stat, hist)
+                    if count_delta and latency_delta:
+                        target.add_gauge('io.vdev.%s_latency_us.node.%d.vdev.%d'
+                            % (op, nodeid, vdevid), float(latency_delta) / count_delta)
+
+        cur.execute("select sum(bytes_written) bytes_written,"
+                    "       sum(bytes_read) bytes_read"
+                    "  from system.vdev_io")
+
+        for name, value in zip_cols(cur):
+            self.current.add_counter("io.vdevs.%s" % name, value)
+
+        for stat in ('io.vdevs.bytes_written', 'io.vdevs.bytes_read'):
+            self.autodelta(stat, "%s_per_sec" % stat, True)
+
+class NodeDisks(object):
+    """Represents the lowest-level storage devices backing the database"""
+    def __init__(self, nodeid, path):
+        self.nodeid = nodeid
+        self.path = path
+        self.volume = None
+        self.devices = []
+    @staticmethod
+    def basedev(dev):
+        """Return the base device, with no /dev/ on the beginning and no
+        partition number on the end, except for nvme devices, which require
+        the trailing digit(s)
+        Ex: '/dev/sda1' becomes 'sda'
+            '/dev/nvme2n1' becomes 'nvme2n1'"""
+        dev = os.path.basename(dev)
+        if not dev.startswith('nvme'):
+            dev = dev.rstrip(string.digits)
+        return dev
+    def query(self):
+        return "(nodeid='%s' and path in (%s))" % (self.nodeid,
+                    ','.join(["'%s'" % x for x in self.devices]))
+
+class DiskIO(Gatherer):
+    def disk_paths(self):
+        '''The system.disk_paths view is terrible, so do it cleaner here'''
+        cur = self.cdb.cursor()
+        cur.execute("select nodeid, path from system.disks")
+        nodes = []
+        for nodeid, path in cur.fetchall():
+            nodes.append(NodeDisks(nodeid, path))
+        for node in nodes:
+            path = os.path.dirname(node.path)
+            while not node.volume:
+                # Iterate over shorter and shorter paths until we find the
+                #   longest one that matches a mount point
+                # We can assume that at least / is a mount point, so this
+                #   should never become an infinite loop.
+                if cur.execute("select device from system.mounts "
+                               "  where nodeid=%s and mount_point=%s",
+                                (node.nodeid, path)):
+                    node.volume = cur.fetchone()[0]
+                else:
+                    path = os.path.dirname(path)
+        # Now we need to look at possible mdraid arrays:
+        for node in nodes:
+            if not node.volume.startswith('/dev/md'):
+                # Not a software raid, use volume as the only device
+                node.devices.append(node.basedev(node.volume))
+                continue
+            # Example md volumes: /dev/md0 /dev/md127p2, we want md0 and md127
+            vol = node.volume.split('/')[-1].split('p')[0]
+            cur.execute("select details1 from system.mdstat"
+                        "  where nodeid=%s and volume=%s", (node.nodeid, vol))
+            # Example of details1 contents:
+            #   md3 : active raid0 sdg4[6] sdf4[5] sde4[4] sdd4[3] sdc4[2] sdb4[1] sda4[0]
+            # Note that low-level devices are not necessarily called 'sd', for example
+            #   Amazon and other VM environments are 'xvd'
+            for part in cur.fetchone()[0].split():
+                if '[' in part:
+                    node.devices.append(node.basedev(part.split('[')[0]))
+        disks_by_nodeid = {}
+        for node in nodes:
+            disks_by_nodeid[node.nodeid] = node.devices
+        return disks_by_nodeid
+
+    def run(self):
+        '''In contrast to vdev_io, this looks at the underlying disks through
+        the diskstats vrel (which is based on /proc/diskstats)'''
+        cur = self.cdb.cursor()
+        with DTime('disk paths'):
+            disks_by_nodeid = self.disk_paths()
+        cur.execute("SELECT nodeid,"
+                    "       dev as path,"
+                    "       reads,"
+                    "       reads_merged,"
+                    "       read_sectors * 512 as bytes_read,"
+                    "       read_ms as read_time_ms,"
+                    "       writes,"
+                    "       writes_merged,"
+                    "       written_sectors * 512 as bytes_written,"
+                    "       write_ms as write_time_ms,"
+                    "       ios_in_progress as in_progress,"
+                    "       ios_ms as ms_of_io"
+                    "  FROM system.proc_diskstats ds")
+        # We need to do everything twice to maintain current and history deltas:
+        rows = []
+        for row in cur.fetchall():
+            # Filter down to the rows corresponding to DB storage devices:
+            if row[1] in disks_by_nodeid[row[0]]:
+                rows.append(row)
+        # current must run first so there are values for history deltas:
+        for hist, target in ((False, self.current), (True, self.history)):
+            max_busy = None
+            min_busy = None
+            total_busy = 0
+            active_devices = 0
+            for row in rows:
+                devname = row[1]
+                postfix = "node.%d.disk.%s" % row[:2]
+                if not hist:
+                    # Only add all values to self.current, these will be used
+                    #   to calculate the additional values for history, all
+                    #   values that do not need to be calculated will be pulled
+                    #   from self.current automatically
+                    for name, value in zip_cols(cur, row, 2):
+                        target.add_counter("io.disk.%s.%s" % (name, postfix), value,
+                                            prefix_labels=(('disk', devname),))
+                # calculate percent busy, as ms_of_io/time elapsed.
+                # note delta(foo, per_sec=True) gives us ms/secs elapsed, so we
+                # need to divide by 1000 to get secs_io/sec, which should be a
+                # fraction of 1, but then multiply by 100 to get a percentage.
+                ms_io_per_sec = self.delta('io.disk.ms_of_io.%s' % postfix,
+                                        hist=hist, per_sec=True)
+                if ms_io_per_sec is not None:
+                    busy = ms_io_per_sec / 10 # Divide by 1000, multiply by 100
+                    max_busy = busy if max_busy is None else max(max_busy, busy)
+                    min_busy = busy if min_busy is None else min(min_busy, busy)
+                    total_busy += busy
+                    active_devices += 1
+                    target.add_gauge('io.disk.pct_utilization.%s' % postfix, busy,
+                                     prefix_labels=(('disk', devname),))
+                # calculate latency for this period
+                for op in ('read','write'):
+                    count_delta = self.delta('io.disk.%ss.%s' % (op, postfix), hist=hist)
+                    if not count_delta:
+                        # Don't record a stat if there were no IOs
+                        # NB: May cause missing stats in statname_test if all reads
+                        #   are serviced by cache, use dd or similar to force disk
+                        #   reads in the background
+                        continue
+                    # We don't want None here, it doesn't divide very well:
+                    time_delta = self.delta('io.disk.%s_time_ms.%s'
+                                        % (op, postfix), hist=hist) or 0
+                    try:
+                        target.add_gauge('io.disk.%s_latency_ms.%s' % (op, postfix),
+                                                time_delta / float(count_delta),
+                                                prefix_labels=(('disk', devname),),
+                                                extra_labels=(('op', op),))
+                    except ZeroDivisionError as e:
+                        if opts.debug:
+                            print('time_delta: %s count_delta: %s' % (time_delta, count_delta))
+                            print(e)
+                            traceback.print_exc()
+                        target.add_gauge('io.disk.%s_latency_ms.%s' % (op, postfix), None,
+                                            prefix_labels=(('disk', devname),),
+                                            extra_labels=(('op', op),))
+
+            target.add_gauge('io.disk.active_devices', active_devices)
+            if not self.cdb.prometheus_mode():
+                if active_devices:
+                    target.add_gauge('io.disk.pct_utilization_avg',
+                            total_busy / float(active_devices))
+                target.add_gauge('io.disk.pct_utilization_min', min_busy)
+                target.add_gauge('io.disk.pct_utilization_max', max_busy)
+
+
+class NetworkIO(Gatherer):
+    def run(self):
+        prefix = "io.network"
+        cur = self.cdb.cursor()
+        cur.execute("select nodeid, name, value"
+                    "  from system.stats"
+                    "  where name like 'net_%'")
+        for node, interface_stat, value in cur.fetchall():
+            if value == 0:
+                continue
+            interface, stat = interface_stat.split('_', 2)[1:]
+            self.current.add_counter('.'.join((prefix, stat, 'node', str(node),
+                                        'if', interface)), value,
+                                        prefix_labels=(('if', interface),),
+                                        extra_labels=(('io', 'rx' if 'rx' in stat else 'tx'),))
+
+
+class Sessions(Gatherer):
+    trx_buckets = (1, 10, 30, 60, 180, 300, 900, 1800, 3600) # From MDBM-967, mostly
+    def run(self):
+        prefix = 'sessions'
+        cur = self.cdb.cursor()
+        if not self.cdb.prometheus_mode():
+            cur.execute("SELECT count(*) count"
+                        "  FROM system.sessions")
+
+            self.current.add_gauge(prefix, cur.fetchall()[0][0])
+
+            cur.execute("SELECT trx_state, count(*) count"
+                        "  FROM system.sessions"
+                        "  GROUP BY trx_state")
+
+            for trx_state, count in cur.fetchall():
+                self.current.add_gauge("%s.%s" % (prefix, trx_state), count)
+
+            cur.execute("SELECT nodeid, count(*) as count"
+                        "  FROM system.sessions"
+                        "  GROUP BY nodeid")
+
+            for nodeid, count in cur.fetchall():
+                self.current.add_gauge("%s.node.%s" % (prefix, nodeid), count)
+
+            cur.execute("SELECT nodeid, trx_state, count(*) as count"
+                        "  FROM system.sessions"
+                        "  GROUP BY nodeid, trx_state")
+
+            for nodeid, trx_state, count in cur.fetchall():
+                self.current.add_gauge("%s.%s.node.%s" % (prefix, trx_state, nodeid), count)
+
+        cur.execute("SELECT nodeid, trx_state, statement_state, count(*) as count"
+                    "  FROM system.sessions"
+                    "  GROUP BY nodeid, trx_state, statement_state")
+
+        for nodeid, trx_state, statement_state, count in cur.fetchall():
+            if self.cdb.prometheus_mode() and not count:
+                count = 0
+            self.current.add_gauge("%s.%s.%s.node.%s" % (prefix, trx_state, statement_state, nodeid), count,
+                                   extra_labels=(("transaction_state", trx_state),
+                                                 ("statement_state", statement_state)))
+        
+        cur.execute("SELECT nodeid, @@max_connections as limit, @@max_connections - count(*) as remaining"
+                    "  FROM system.sessions"
+                    "  GROUP BY nodeid")
+        for nodeid, name, value in gen_cols(cur, 1):
+            self.current.add_gauge("%s.node.%s.%s" % (prefix, nodeid, name), value)
+
+        cur.execute("SELECT trx_state, statement_state,"
+                    "       avg(time_in_state_s) avg_time_in_state,"
+                    "       max(time_in_state_s) max_time_in_state,"
+                    "       avg(trx_age_s) avg_trx_age,"
+                    "       max(trx_age_s) max_trx_age,"
+                    "       count(*) count"
+                    "  FROM system.sessions"
+                    "  GROUP BY trx_state, statement_state")
+
+        for trx_state, statement_state, name, value in gen_cols(cur, 2):
+            if name == 'count':
+                if self.cdb.prometheus_mode():
+                    continue
+                self.current.add_gauge("%s.%s.%s" % (prefix, trx_state, statement_state), value)
+            else:
+                if self.cdb.prometheus_mode() and value is None:
+                    continue
+                self.current.add_gauge("%s.%s.%s.%s" % (prefix, trx_state, statement_state, name), value,
+                                        extra_labels=(("transaction_state", trx_state),
+                                                      ("statement_state", statement_state)),
+                                        autoagg=True)
+        if self.cdb.prometheus_mode():
+            # Transaction time_in_state Histogram
+            h = Histogram(cumulative_input=True)
+            column_format = "count(if(time_in_state_s < %d, 1, null)) '%d'"
+            columns = ', '.join([column_format % (b, b) for b in self.trx_buckets])
+            cur.execute('select %s, sum(time_in_state_s) sum'
+                        '  from system.sessions'
+                        '  where trx_state != "closed"' % columns)
+            h.from_rows(zip_cols(cur))
+            self.current.add_histogram("transaction_open_seconds", h)
+
+class DeviceSpace(Gatherer):
+    def run(self):
+        cur = self.cdb.cursor()
+        cur.execute("select *,"
+                    "       perm_used_bytes / user_max_bytes * 100 perm_percent,"
+                    "       temp_used_bytes / user_max_bytes * 100 temp_percent,"
+                    "       undolog_bytes / system_max_bytes * 100 undolog_percent,"
+                    "       (user_max_bytes - user_avail_bytes)"
+                    "            / user_max_bytes * 100 total_usage_percent,"
+                    "            (system_max_bytes - system_avail_bytes)"
+                    "                 / system_max_bytes system_usage_ratio"
+                    "  from system.device_space_stats")
+
+        for nodeid, dev, vdevid, name, value in gen_cols(cur, 3):
+            self.current.add_gauge("capacity.disk.%s.node.%d.vdev.%d" %
+                                    (name, nodeid, vdevid), value)
+
+        if self.cdb.prometheus_mode():
+            return
+
+        cur.execute("select sum(undolog_bytes) total_undolog_bytes,"
+                    "       avg(undolog_bytes / system_max_bytes * 100)"
+                    "           as avg_undolog_percent,"
+                    "       min(undolog_bytes / system_max_bytes * 100)"
+                    "           as min_undolog_percent,"
+                    "       max(undolog_bytes / system_max_bytes * 100)"
+                    "           as max_undolog_percent,"
+                    "       avg((user_max_bytes - user_avail_bytes)"
+                    "           / user_max_bytes * 100) avg_used_percent,"
+                    "       min((user_max_bytes - user_avail_bytes)"
+                    "           / user_max_bytes * 100) min_used_percent,"
+                    "       max((user_max_bytes - user_avail_bytes)"
+                    "           / user_max_bytes * 100) max_used_percent,"
+                    "       sum(perm_used_bytes) total_perm_used_bytes"
+                    "  from system.device_space_stats")
+
+        for name, value in zip_cols(cur):
+            self.current.add_gauge("capacity.disks.%s" % name, value)
+
+class RebalancerStats(Gatherer):
+    def run(self):
+        cur = self.cdb.cursor()
+        # disabled until bug 14604 is addressed, since we could end up with
+        # stale entries that would make it look like rebal was always running
+        #cur.execute("SELECT count(*) FROM system.rebalancer_activity_log "
+        #            "  WHERE finished IS NULL")
+        #self.current.add_gauge("rebalancer.jobs_running", cur.fetchone()[0])
+        cur.execute("SELECT count(*) FROM system.rebalancer_queued_activity"
+                    "  WHERE id NOT IN (SELECT id"
+                    "       FROM system.rebalancer_started_activity)")
+
+        self.current.add_gauge("rebalancer.jobs_queued", cur.fetchone()[0])
+
+        cur.execute("SELECT name, SUM(value) value"
+                    "  FROM system.stats"
+                    "  WHERE name LIKE 'rebalancer%'"
+                    "  GROUP BY name")
+
+        for name, value in cur.fetchall():
+            self.current.add_gauge("rebalancer.%s" % name, value)
+
+        # underprotected slices
+        cur.execute("select count(*) from system.underprotected_slices")
+        self.current.add_gauge("rebalancer.underprotected_slices", cur.fetchall()[0][0])
+        cur.execute("SELECT COUNT(*) AS nonprotected_slices FROM "
+                    "   (SELECT replicas FROM system.range_hash_distributions "
+                    "    UNION SELECT replicas FROM system.partitioned_hash_distributions) dists "
+                    "WHERE dists.replicas = 1;")
+        self.current.add_gauge("rebalancer.nonprotected_slices", cur.fetchall()[0][0])
+
+class SystemActivity(Gatherer):
+    def run(self):
+        cur = self.cdb.cursor()
+        cur.execute('select * from system.activity')
+
+        for nodeid, name, value in gen_cols(cur, 1):
+            self.current.add_gauge('activity.%s.node.%d' % (name, nodeid), value,
+                                    autoagg=('skipped' not in name))
+
+        if self.cdb.prometheus_mode():
+            return
+
+        cur.execute('select min(til_min) as til_min, max(til_max) as til_max,'
+                    '       avg(til_avg) as til_avg, min(core0) as core0_min,'
+                    '       avg(core0) as core0_avg, max(core0) as core0_max'
+                    '  from system.activity')
+
+        for name, value in gen_cols(cur):
+            self.current.add_gauge('activity.%s' % name, value)
+
+
+class MemTableSpace(Gatherer):
+    def run(self):
+        cur = self.cdb.cursor()
+        cur.execute("SELECT databases.name AS 'database',"
+                    "       relations.name AS 'table',"
+                    "       memory_table_replicas.nodeid,"
+                    "       sum(memory_table_replicas.used_bytes) "
+                    "           AS 'table_bytes_used'"
+                    "FROM system.memory_table_replicas,"
+                    "   system.replicas,"
+                    "   system.slices,"
+                    "   system.representations,"
+                    "   system.relations,"
+                    "   system.databases "
+                    "WHERE replicas.replica = memory_table_replicas.replica"
+                    "   AND replicas.slice = slices.slice"
+                    "   AND representations.representation = slices.representation"
+                    "   AND representations.relation = relations.table"
+                    "   AND relations.db = databases.db "
+                    "GROUP BY databases.name,"
+                    "   relations.name,"
+                    "   memory_table_replicas.nodeid "
+                    "ORDER BY databases.name,"
+                    "   relations.name,"
+                    "   memory_table_replicas.nodeid")
+        for dbname, table_name, nodeid, name, value in gen_cols(cur, 3):
+            self.current.add_gauge("memory_tables.%s.%s.%s.node.%s"
+                            % (name, dbname, table_name, nodeid), value)
+
+class WalStats(Gatherer):
+    def run(self):
+        cur = self.cdb.cursor()
+        cur.execute('select nodeid, devid, total_bytes, used_bytes,'
+                    '       sum(durable_waiters) as num_durable_waiters,'
+                    '       avg_sync_time_us'
+                    '  from system.wals join'
+                    '       system.wal_windows using (nodeid, devid)'
+                    ' group by nodeid, devid')
+        for nodeid, devid, name, value in gen_cols(cur, 2):
+            self.current.add_gauge("wals.dev.%s.node.%s.%s" % (devid, nodeid, name), value,
+                                    extra_label_names=('dev',))
+
+class Softirqs(Gatherer):
+    def run(self):
+        cur = self.cdb.cursor()
+        cur.execute('select nodeid, cpu, counter from system.proc_softirqs where counter != 0')
+        for nodeid, cpu, intr, value in gen_cols(cur, 2):
+            self.current.add_counter("softirq.node.%s.cpu.%s.%s" % (nodeid, cpu, intr), value)
+
+class CPUStats(Gatherer):
+    def run(self):
+        cur = self.cdb.cursor()
+        cur.execute('select * from system.proc_cpu')
+        for nodeid, cpu, name, value in gen_cols(cur, 2):
+            if value == 0:
+                continue
+            self.current.add_counter("cpu_stat.%s.node.%s.cpu.%s" % (name, nodeid, cpu), value,
+                                        extra_labels=(('sub', name),), unit=('seconds', 1./100))
+
+class DlogStats(Gatherer):
+    def run(self):
+        cur = self.cdb.cursor()
+        cur.execute('select nodeid, devid, pending, appended, deleted from system.dlog_stats')
+        for nodeid, devid, name, value in gen_cols(cur, 2):
+            if name == 'pending':
+                c_add = self.current.add_gauge
+            else:
+                c_add = self.current.add_counter
+            if value == 0:
+                continue
+            c_add("dlog.%s.node.%s.dev.%s" % (name, nodeid, devid), value,
+                    extra_label_names=('dev',))
+
+class MemStats(Gatherer):
+    # Values from /proc/meminfo
+    def run(self):
+        meminfo_by_nid = {}
+        cur = self.cdb.cursor()
+        stat_names = ("MemFree", "MemTotal", "Cached", "Shmem", "Buffers")
+        cur.execute('select * from system.proc_meminfo where name in (%s)'
+                        % ', '.join(['"%s"' % x for x in stat_names]))
+        for nodeid, name, value, units in cur.fetchall():
+            self.current.add_gauge('meminfo.%s.%s.node.%s' % (name, units, nodeid), value)
+            if nodeid not in meminfo_by_nid:
+                meminfo_by_nid[nodeid] = {}
+            meminfo_by_nid[nodeid][name] = value
+        cur.execute("select nodeid, bytes_reserved/1024"
+                    "  from system.base_allocators"
+                    "  where name = 'huge_alloc'")
+        for nodeid, value in cur.fetchall():
+            mi = meminfo_by_nid[nodeid]
+            self.current.add_gauge('meminfo.os_used.kB.node.%s' % nodeid,
+                    mi['MemTotal'] - value - (mi['MemFree'] + mi['Cached'] - mi['Shmem'] + mi['Buffers']))
+
+class ProcNetstat(Gatherer):
+    # Values from /proc/net/netstat
+    # Some of these are never going to be interesting, don't let them take up space:
+    blacklist = ('TCPOrigDataSent', 'TCPRcvCoalesce', 'TCPPrequeued', 'TCPSYNChallenge', 'TCPChallengeACK',
+                 'TCPACKSkippedChallenge', 'TCPPureAcks', 'TCPAutoCorking', 'DelayedACKs', 'TCPOFOMerge',
+                 )
+    blackprefixes = ('TCPHystart', 'TCPHP', 'TCPReno', 'TCPDirectCopy', 'TW', 'TCPFastOpen',
+                     'TCPDSACK', 'TCPSACK', 'TCPSack', 'Syncookies', 'PAWSE',
+                    )
+    blacksuffixes = ('Icmps', 'ZeroWindowAdv')
+    def run(self):
+        cur = self.cdb.cursor()
+        cur.execute('select nodeid, name, value'
+                    '  from system.proc_netstat'
+                    '  where protocol="TcpExt"')
+        for nid, name, value in cur.fetchall():
+            if name in self.blacklist or value == 0:
+                continue
+            if 'fail' not in name.lower() and \
+                name.startswith(self.blackprefixes) or \
+                name.endswith(self.blacksuffixes):
+                continue
+            self.current.add_counter('netstat.%s.node.%d' % (name, nid), value)
+
+# DB connection is explicitly set to UTC, configure Python to match:
+os.environ['TZ'] = 'UTC'
+time.tzset()
+
+if opts.prom_mode:
+    clx = Prometheus()
+else:
+    clx = ClustrixDB(opts.dbname)
+clx.db_connect()
+cfg = StatsCfg(clx)
+Gatherer.set_db(clx)
+
+# This should run before anything else when elected, put it first:
+SimpleTask(clx.repartition_history)
+
+# Initialize all stats-gathering tasks:
+ClusterStats()
+LockMan()
+SpaceUsedBreakdown(prom_enabled=False)
+GlobalStats()
+BinlogStatus()
+MasterStatus()
+SlaveStatus()
+SystemStats()
+ContainerStats()
+InternodeLatency()
+CPULoad()
+VdevIO()
+DiskIO()
+NetworkIO()
+Sessions()
+DeviceSpace()
+RebalancerStats()
+SystemActivity()
+MemTableSpace(prom_enabled=False)
+BMStats()
+WalStats()
+Softirqs()
+CPUStats()
+DlogStats()
+MemStats()
+ProcNetstat(prom_enabled=False)
+
+# This should come right after the Gatherers, so we update statd_current asap:
+SimpleTask(clx.sync_current_stats)
+
+# Other tasks:
+QPC(clx, cfg)
+Hotness(clx, cfg)
+SimpleTask(clx.repartition_history)
+
+if opts.query_test:
+    # This is designed to be run as part of commit-test, just to make sure
+    #   that we can initialize the database and tables then run every Task
+    #   and the associated queries without throwing exceptions, to avoid
+    #   accidentally breaking statd when, eg, someone renames a column in
+    #   a vrel.
+    try:
+        clx.init_tables()
+        cfg.load_config()
+        clx.populate_stat_ids()
+    except:
+        sys.stderr.write("statd initialization error: %s\n" % mkexc())
+        traceback.print_exc()
+        exit(1)
+
+    rc = 0
+    for task in Scheduler.tasks:
+        try:
+            task.run()
+        except:
+            sys.stderr.write("statd %s error: %s\n" % (task.name, mkexc()))
+            traceback.print_exc()
+            rc += 1
+    exit(rc)
+
+if opts.statname_test:
+    # Test procedure:
+    #   1) Initialize cfg and stat_ids
+    #   2) Run all scheduled tasks three times to make sure they have enough
+    #       passes to calculate deltas and save all stats
+    #   3) Compare stat names with statd_metadata in default database
+
+    clx.init_tables()
+    cfg.load_config()
+    clx.populate_stat_ids()
+
+    for x in range(3):
+        for task in Scheduler.tasks:
+            task.run()
+        time.sleep(10) # Super arbitrary
+
+    cur = clx.db.cursor()
+    # clx.stat_id_by_name should now be populated with our stat names
+    # Read baseline stat names from default database:
+    cur.execute('select name from %s.statd_metadata order by name' % DBNAME)
+    missing = []
+    found = []
+    for (name,) in cur.fetchall():
+        name = name.split('clustrix.', 1)[1] # Translate from DB string
+        if name not in clx.stat_id_by_name:
+            missing.append(name)
+        else:
+            found.append(name)
+    extra = []
+    for name in clx.stat_id_by_name:
+        if name not in found and name not in missing:
+            extra.append(name)
+    if not missing and not extra:
+        print('All stat names found as expected, test passed')
+        exit(0)
+    for name in missing:
+        print('Stat found in default, missing from test: %s' % name)
+    for name in extra:
+        print('Stat found in test, missing from default: %s' % name)
+    print("One or more stats did not match, test failed")
+    exit(1)
+
+
+if opts.print_intervals:
+    cfg.load_config()
+    for task in Scheduler.tasks:
+        task.print_interval()
+    exit(0)
+
+if opts.prom_mode:
+    # Prometheus on-demand HTTP stats exporter mode
+    print("Starting HTTPServer")
+    PromHTTPRequestHandler.set_promdb(clx)
+    httpd = ThreadingHTTPServer(('', opts.prom_port), PromHTTPRequestHandler)
+    httpd.serve_forever()
+    print("HTTPServer terminated, exiting.")
+    exit(0)
+
+while True:
+    if not clx.same_group():
+        print("Detected group change, quitting for re-exec.")
+        exit(0)
+
+    if not clx.is_elected():
+        # We're not the elected node, don't do anything
+        if opts.debug:
+            print("Did not win election, sleeping for %d seconds" % POLLING_INTERVAL_S)
+        time.sleep(POLLING_INTERVAL_S)
+        continue
+
+    clx.init_tables()
+    cfg.load_config()
+    clx.populate_stat_ids()
+
+    Scheduler.reset_tasks()
+
+    while opts.elect_override or clx.is_elected():
+        if not clx.same_group():
+            print("Detected group change, quitting for re-exec.")
+            exit(0)
+        cfg.refresh_config() # XXX Make sure this is as light-weight as possible
+        Scheduler.tick()
