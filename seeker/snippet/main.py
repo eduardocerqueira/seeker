@@ -1,22 +1,12 @@
-#date: 2022-03-14T16:48:04Z
-#url: https://api.github.com/gists/8978a983cb1f92334d5e5627c872701a
+#date: 2022-03-15T16:53:35Z
+#url: https://api.github.com/gists/74f8bd4168f3653bb71a2bcaa03b0846
 #owner: https://api.github.com/users/mypy-play
 
-from typing import TypeVar, Type, Iterable
+from typing import NewType
 
-T = TypeVar('T')
+Gen = NewType("Gen", object)
 
-class A:
-    @classmethod
-    def sum(cls: Type[T], factors: Iterable[T]) -> T:
-        ...
-    
-M = TypeVar('M')
+a = Gen(1)
+b = Gen("str")
 
-class Mixin:
-    @classmethod
-    def sum(cls: Type[M], factors: Iterable[M]) -> M:
-        ...
-        
-class C(Mixin, A):
-    ...
+reveal_locals()
