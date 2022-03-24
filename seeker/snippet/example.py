@@ -1,5 +1,5 @@
-#date: 2022-03-22T17:10:44Z
-#url: https://api.github.com/gists/27636ca9f650e798772892665e071a2a
+#date: 2022-03-24T17:22:06Z
+#url: https://api.github.com/gists/c3c2bb7d9d111504fcffc455f6ff08a1
 #owner: https://api.github.com/users/iPoe
 
 import tkinter
