@@ -1,31 +1,25 @@
-#date: 2022-03-23T17:12:21Z
-#url: https://api.github.com/gists/02889e2ae96e99467dc53802579e0846
-#owner: https://api.github.com/users/mypy-play
+#date: 2022-03-25T17:01:20Z
+#url: https://api.github.com/gists/43c3d0c42b8e1d9fae6f84557aa3000e
+#owner: https://api.github.com/users/Emmremme23
 
-from typing import Callable, List, Any, Dict, Type, TypeVar, Optional, Generic
+import webbrowser
 
-
-class Event:
-    field: Optional[str]
+print("--Arama Aracı-- (Ne istersin? derse kapat yazınız işiniz bittiyse)")
 
 
-class EventWithField(Event):
-    field: str
+def search_it(search):
+    url = "https://google.com/search?q=" + search
+    webbrowser.get().open(url)
+    print(search + " Yükleniyor.")
 
 
-def foo(event: Event) -> Optional[str]:
-    if isinstance(event, EventWithField):
-        return foo2(event=event)
+while True:
+    search = input("Ne İstersin:")
+    if search == "kapat":
+        print("İyi günler.")
+        break
+    else:
+        search_it(search)
 
 
-def foo2(event: EventWithField) -> str:
-    return event.field
-    
 
-def solution_1(event: Event) -> str:
-    if event.field:
-        field = event.field
-    # Possibly raise exception?
-    # else:
-    #     raise Exception()
-    return field
