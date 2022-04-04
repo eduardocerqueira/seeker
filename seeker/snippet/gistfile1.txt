@@ -1,0 +1,7 @@
+#date: 2022-04-04T17:09:45Z
+#url: https://api.github.com/gists/2dd5d552c0336e6e8fd7704fd0d194de
+#owner: https://api.github.com/users/l50
+
+#!/bin/bash
+
+echo "I am a bash script, hooray!"

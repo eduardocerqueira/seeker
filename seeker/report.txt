@@ -1,4 +1,43 @@
 --------------------------------------------------------------------------------
+ 2022-04-04 17:18:09.028678
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/.zshrc
+	deleted:    snippet/128-localstack.sh
+	deleted:    snippet/ParselTongue.py
+	deleted:    snippet/PySnake.py
+	deleted:    snippet/binance-app-update.sh
+	deleted:    snippet/esphysique.py
+	deleted:    snippet/exabgp-route-gen.py
+	deleted:    snippet/git_loc_curr_dir.sh
+	deleted:    snippet/home.py
+	modified:   snippet/main.py
+	deleted:    snippet/reader.py
+	deleted:    snippet/sol_scanner.py
+	deleted:    snippet/speed_test.sh
+	deleted:    snippet/vkbotkit_template.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/alg.py
+	snippet/cache.go
+	snippet/connected.py
+	snippet/create-hgnc-ttl.py
+	snippet/flow_2.py
+	snippet/forloop_power2.py
+	snippet/general_funcs.py
+	snippet/gistfile1.txt
+	snippet/install-meslo-fonts.sh
+	snippet/lru_cache.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2022-04-01 17:17:32.985060
 --------------------------------------------------------------------------------
   On branch main
