@@ -1,159 +1,129 @@
-//date: 2021-09-01T01:38:13Z
-//url: https://api.github.com/gists/a89da3a41505d122c85228062a4e5a8e
-//owner: https://api.github.com/users/meirelles
+//date: 2022-04-06T17:13:59Z
+//url: https://api.github.com/gists/9fd9ed8c01802fb7d36d98ed268f3a18
+//owner: https://api.github.com/users/jeffreytolar
 
-package pagination
+package main
 
 import (
-	"merchant-services/pkg/global"
-	"testing"
+	"bytes"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"log"
+	"net"
+	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/cbeuw/connutil"
+	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/agent"
 )
 
-func TestPagination(t *testing.T) {
-	tests := []struct {
-		name           string
-		perPage        int
-		curPage        int
-		totalItems     int
-		expected       Pagination
-		expectedOffset int
-		expectedErr    string
-	}{
-		{
-			name:        "invalid per page",
-			perPage:     -100,
-			curPage:     0,
-			totalItems:  100,
-			expectedErr: "-100 isn't a valid pagination limit number",
-		},
-		{
-			name:        "negative cur page",
-			perPage:     50,
-			curPage:     -10,
-			totalItems:  100,
-			expectedErr: "-10 isn't a valid pagination page number",
-		},
-		{
-			name:        "invalid cur page, greater than total pages",
-			perPage:     10,
-			curPage:     11,
-			totalItems:  99,
-			expectedErr: "out of bounds page 11 (max 10)",
-		},
-		{
-			name:        "out of bounds non-zero when totalItems == 0",
-			perPage:     0,
-			curPage:     2,
-			totalItems:  0,
-			expectedErr: "out of bounds page 2 (max 0)",
-		},
-		{
-			name:       "out of bounds but page = 1, so no error",
-			perPage:    0,
-			curPage:    1,
-			totalItems: 0,
-			expected: Pagination{
-				TotalCount:    0,
-				TotalPages:    0,
-				CountReturned: 0,
-				Page:          0,
-				Limit:         50,
+func check(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
+func newSigner() (*ecdsa.PrivateKey, ssh.Signer) {
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	check(err)
+
+	signer, err := ssh.NewSignerFromKey(key)
+	check(err)
+
+	return key, signer
+}
+
+func makeCert() *ssh.Certificate {
+	cert := &ssh.Certificate{
+		Key:             userSigner.PublicKey(),
+		Serial:          1,
+		CertType:        ssh.UserCert,
+		KeyId:           "testkey",
+		ValidPrincipals: []string{"test"},
+		ValidAfter:      uint64(time.Now().Add(-time.Hour).Unix()),
+		ValidBefore:     uint64(time.Now().Add(time.Hour).Unix()),
+	}
+	err := cert.SignCert(rand.Reader, userCASigner)
+	check(err)
+	return cert
+}
+
+var (
+	userCAKey, userCASigner = newSigner()
+	hostKey, hostSigner     = newSigner()
+	userKey, userSigner     = newSigner()
+
+	userCert = makeCert()
+)
+
+func server(nConn net.Conn) {
+	config := &ssh.ServerConfig{
+		PublicKeyCallback: (&ssh.CertChecker{
+			IsUserAuthority: func(auth ssh.PublicKey) bool {
+				return bytes.Equal(auth.Marshal(), userCASigner.PublicKey().Marshal())
 			},
-		},
-		{
-			name:       "zero items (no error first page)",
-			perPage:    0,
-			curPage:    1,
-			totalItems: 0,
-			expected: Pagination{
-				TotalCount:    0,
-				TotalPages:    0,
-				Page:          0,
-				CountReturned: 0,
-				Limit:         50,
-			},
-		},
-		{
-			name:       "one item",
-			perPage:    0,
-			curPage:    0,
-			totalItems: 1,
-			expected: Pagination{
-				TotalCount:    1,
-				TotalPages:    1,
-				Page:          1,
-				CountReturned: 1,
-				Limit:         50,
-			},
-		},
-		{
-			name:       "15 items, 2nd page",
-			perPage:    10,
-			curPage:    2,
-			totalItems: 15,
-			expected: Pagination{
-				TotalCount:    15,
-				TotalPages:    2,
-				Page:          2,
-				CountReturned: 5,
-				Limit:         10,
-			},
-			expectedOffset: 10,
-		},
-		{
-			name:       "11 items, 2nd page",
-			perPage:    10,
-			curPage:    2,
-			totalItems: 11,
-			expected: Pagination{
-				TotalCount:    11,
-				TotalPages:    2,
-				Page:          2,
-				CountReturned: 1,
-				Limit:         10,
-			},
-			expectedOffset: 10,
-		},
-		{
-			name:       "3 items, 1 per page, 2nd page",
-			perPage:    1,
-			curPage:    3,
-			totalItems: 3,
-			expected: Pagination{
-				TotalCount:    3,
-				TotalPages:    3,
-				Page:          3,
-				CountReturned: 1,
-				Limit:         1,
-			},
-			expectedOffset: 2,
-		},
-		{
-			name:       "valid pagination, last one",
-			perPage:    10,
-			curPage:    10,
-			totalItems: 99,
-			expected: Pagination{
-				TotalCount:    99,
-				TotalPages:    10,
-				CountReturned: 9,
-				Page:          10,
-				Limit:         10,
-			},
-			expectedOffset: 90,
-		},
+		}).Authenticate,
 	}
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			got, err := NewPagination(test.perPage, test.curPage, test.totalItems)
+	config.AddHostKey(hostSigner)
 
-			global.CheckError(t, test.expectedErr, err)
+	_, _, _, err := ssh.NewServerConn(nConn, config)
+	check(err)
+	log.Print("[server] Completed handshake")
+}
 
-			assert.Equal(t, test.expected, got)
-			assert.Equal(t, test.expectedOffset, got.Offset())
-		})
+func client(nConn net.Conn, signers []ssh.Signer) {
+	config := &ssh.ClientConfig{
+		User:            "test",
+		HostKeyCallback: ssh.FixedHostKey(hostSigner.PublicKey()),
+		Auth:            []ssh.AuthMethod{ssh.PublicKeys(signers...)},
 	}
+
+	_, _, _, err := ssh.NewClientConn(nConn, "pipe", config)
+	check(err)
+	log.Print("[client] Completed handshake")
+}
+
+func signersLocalKey() []ssh.Signer {
+	certSigner, err := ssh.NewCertSigner(userCert, userSigner)
+	check(err)
+	return []ssh.Signer{certSigner}
+}
+
+func signersKeyring() []ssh.Signer {
+	ag := agent.NewKeyring()
+	check(ag.Add(agent.AddedKey{
+		PrivateKey:  userKey,
+		Certificate: userCert,
+	}))
+	signers, err := ag.Signers()
+	check(err)
+	return signers
+}
+
+func signersRemoteAgent() []ssh.Signer {
+	ag := agent.NewKeyring()
+	check(ag.Add(agent.AddedKey{
+		Certificate: userCert,
+		PrivateKey:  userKey,
+	}))
+
+	client, server := connutil.AsyncPipe()
+
+	go func() {
+		check(agent.ServeAgent(ag, server))
+	}()
+
+	signers, err := agent.NewClient(client).Signers()
+	check(err)
+	return signers
+}
+
+func main() {
+	clientConn, serverConn := connutil.AsyncPipe()
+	go server(serverConn)
+	// client(clientConn, signersLocalKey()) // this works
+	// client(clientConn, signersKeyring()) // this works too
+	client(clientConn, signersRemoteAgent()) // this fails: ssh: handshake failed: agent: unsupported algorithm "ecdsa-sha2-nistp256"
 }

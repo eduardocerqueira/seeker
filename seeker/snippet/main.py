@@ -1,12 +1,15 @@
-#date: 2022-04-05T16:54:45Z
-#url: https://api.github.com/gists/bcbea1778f44f8cbbf60015e32fd356c
-#owner: https://api.github.com/users/mypy-play
+#date: 2022-04-06T17:13:33Z
+#url: https://api.github.com/gists/14173383328d5048a95f96ed90a11ff6
+#owner: https://api.github.com/users/sertdfyguhi
 
-import dataclasses
-from typing import Generic, TypeVar
+import re
 
-T = TypeVar("T", bound="NotDefined")
+def generate(name: str):
+    return (name[0] + re.sub(
+        '[aeiou ]',
+        '',
+        name[1:-1],
+        flags=re.I
+    ) + name[-1]).upper()
 
-@dataclasses.dataclass
-class C(Generic[T]):
-    x: float
+print(generate(input('name: ')))
