@@ -1,9 +1,5 @@
-#date: 2022-03-17T16:54:41Z
-#url: https://api.github.com/gists/2bf86b66ca4dc914a5aecaddf9f04ec1
-#owner: https://api.github.com/users/rwsu
+#date: 2022-04-11T17:08:58Z
+#url: https://api.github.com/gists/1c2df880bf776197f10cc8019779c583
+#owner: https://api.github.com/users/vbalagovic
 
-virt-install --connect qemu:///system -n control1 -r 17000 --vcpus 6 --cdrom ./output/fleeting.iso --disk pool=default,size=60 --boot hd,cdrom --os-variant=fedora-coreos-stable --network network=default,mac=52:54:01:aa:aa:a1 --wait=-1 &
-sleep 2
-virt-install --connect qemu:///system -n control2 -r 17000 --vcpus 6 --cdrom ./output/fleeting.iso --disk pool=default,size=60 --boot hd,cdrom --os-variant=fedora-coreos-stable --network network=default,mac=52:54:01:bb:bb:b1 --wait=-1 &
-sleep 2
-virt-install --connect qemu:///system -n control3 -r 17000 --vcpus 6 --cdrom ./output/fleeting.iso --disk pool=default,size=60 --boot hd,cdrom --os-variant=fedora-coreos-stable --network network=default,mac=52:54:01:cc:cc:c1 --wait=-1 &
+fastlane deploy_staging --env development      
