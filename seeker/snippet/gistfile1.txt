@@ -1,0 +1,25 @@
+#date: 2022-04-14T17:10:43Z
+#url: https://api.github.com/gists/3363c0ed782c97bef2241d26973deb6f
+#owner: https://api.github.com/users/alexandramurphy14
+
+#!/usr/bin/env python3
+# Unjzb either the first argument on the commandline or every line in the files passed on the commandline (use - or empty for stdin)
+import re, zlib, base64, fileinput, sys
+jzbre = re.compile("eJ[\w-]*", re.A)
+
+def unjzb(line):
+    match = jzbre.search(line)
+    jzb = match.group(0)
+    jz = base64.urlsafe_b64decode(jzb + '====')
+    j = zlib.decompress(jz)
+    print(j.decode('utf8'))
+
+
+if len(sys.argv) == 2 and jzbre.search(sys.argv[1]):
+    unjzb(sys.argv[1])
+else:
+    for line in fileinput.input():
+        try:
+            unjzb(line)
+        except:
+            print("Can't parse {}:{}".format(fileinput.filename(), fileinput.lineno()),file=sys.stderr)
