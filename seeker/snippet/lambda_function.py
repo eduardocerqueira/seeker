@@ -1,26 +1,29 @@
-#date: 2022-01-20T16:57:17Z
-#url: https://api.github.com/gists/19588393ca778bcb2c138873d4064ab3
-#owner: https://api.github.com/users/Sensei-akin
+#date: 2022-04-19T17:01:29Z
+#url: https://api.github.com/gists/c2bfddac7bd8dc5702f6eec31729fb48
+#owner: https://api.github.com/users/kuharan
 
-import json
-import boto3
-import logging
-from datetime import datetime as dt
+import signal
+
+def timeout_handler(_signal, _frame):
+    global unprocess_bucket
+    global unprocess_file
+
+    logger.info("Time exceeded! Creating Unprocessed File.")
+
+    session = boto3.Session()
+    s3_client = session.client(service_name="s3")
+    s3_client.put_object(
+        Body="",
+        Bucket=unprocess_bucket,
+        Key=unprocess_file.replace(
+            unprocess_file.split("/")[1], "doc_pdf/unprocessed_files"
+        ),
+    )
+
+
+signal.signal(signal.SIGALRM, timeout_handler)
+
 
 def lambda_handler(event, context):
-    client = boto3.client('sagemaker')
-    
-    if dt.now().hour + 1 ==8: #This is 8am WAT. You can adjust to your preference
-        client.start_notebook_instance(NotebookInstanceName='check-notebook')
-        print(dt.now().hour + 1)
-    
-    if dt.now().hour + 1 ==19: #This is 7pm WAT. You can adjust to your preference
-        response_nb_list = client.list_notebook_instances(StatusEquals= 'InService') #retrieves a list of notebooks that are running
-        for nb in response_nb_list['NotebookInstances']:
-            client.stop_notebook_instance(NotebookInstanceName=nb['NotebookInstanceName']) #stop all notebooks in service at exactly 7pm
-        
-    
-    return {
-        'statusCode': 200,
-        'body': json.dumps('Notebook started successfully')
-    }
+    signal.alarm(int(context.get_remaining_time_in_millis() / 1000) - 15)
+    ## rest of the code ##
