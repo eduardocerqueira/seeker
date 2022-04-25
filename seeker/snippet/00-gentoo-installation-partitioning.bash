@@ -1,6 +1,6 @@
-#date: 2022-04-14T17:03:45Z
-#url: https://api.github.com/gists/5c158c2d1321c5a50cd598e682eef7e2
-#owner: https://api.github.com/users/juansquintero
+#date: 2022-04-25T16:54:01Z
+#url: https://api.github.com/gists/e54a68d7ea770935dc04a65b932ca0df
+#owner: https://api.github.com/users/9527k
 
 #!/usr/bin/env bash
 
