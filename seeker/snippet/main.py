@@ -1,18 +1,41 @@
-#date: 2022-04-26T16:59:22Z
-#url: https://api.github.com/gists/d35751e1ba8f4009ba1592b0e78f2f0b
-#owner: https://api.github.com/users/Naketsmall
+#date: 2022-04-27T17:14:16Z
+#url: https://api.github.com/gists/f87f554fe8c06c282e1a084574983d41
+#owner: https://api.github.com/users/Igor-SeVeR
+
+class CustomMeta(type):
+
+    def __new__(cls, name, bases, dct):
+        c_attrs = {}
+        for key, value in dct.items():
+            if not (key.startswith('__') and key.endswith('__')):
+                c_attrs['custom_' + key] = value
+
+            else:
+                c_attrs[key] = value
+        return super().__new__(cls, name, bases, c_attrs)
+
+class CustomClass(metaclass=CustomMeta):
+    x = 50
+
+    def __init__(self, val=99):
+        self.val = val
+
+    def line(self):
+        return 100
+
+    def __str__(self):
+        return "Custom_by_metaclass"
+
+    def __setattr__(self, key, value):
+        self.__dict__[f'custom_{key}'] = value
 
 
-sentences = input().split('.')
-sentences = [sentence for sentence in sentences if sentence != '']
-ans = ''
-for sentence in sentences:
-    words = sentence.split()
-    words[0] = words[0].lower()
-    words.reverse()
-    words[0] = words[0].capitalize()
-    for word in words:
-        ans += word + ' '
-    ans = ans[:-1] + '. '
-print(ans)
-
+if __name__ == '__main__':
+    inst = CustomClass()
+    print(inst.custom_x)
+    print(inst.custom_line())
+    print(inst.custom_val)
+    print(CustomClass.custom_x)
+    print(str(inst) == "Custom_by_metaclass")
+    inst.dynamic = "added later"
+    print(inst.custom_dynamic == "added later")
