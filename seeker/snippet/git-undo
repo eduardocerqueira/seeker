@@ -1,0 +1,9 @@
+#date: 2022-04-29T16:58:54Z
+#url: https://api.github.com/gists/fd068ca792fe7bac462db5b675f27236
+#owner: https://api.github.com/users/dongche2
+
+#!/bin/sh
+
+N=${1:-2}
+
+git reset --soft HEAD~$N
