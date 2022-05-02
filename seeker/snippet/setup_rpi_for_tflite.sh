@@ -1,6 +1,6 @@
-#date: 2022-03-31T17:09:34Z
-#url: https://api.github.com/gists/cb5a566bba007a8d942b9234e9fdf14d
-#owner: https://api.github.com/users/Edroor
+#date: 2022-05-02T17:05:15Z
+#url: https://api.github.com/gists/bad1b658a6f46fd72b22fb238396e3ea
+#owner: https://api.github.com/users/Aravinda89
 
 # Show your Raspberry Pi OS version.
 cat /etc/os-release
@@ -29,6 +29,7 @@ cd examples/lite/examples/object_detection/raspberry_pi
 sh setup.sh
 
 # Run the object detection sample
+# **IMPORTANT**: You need to run this command directly from the Raspberry Pi Terminal app. It won't work if you SSH to the Pi.
 python detect.py
 
 ####
