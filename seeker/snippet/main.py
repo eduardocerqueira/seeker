@@ -1,41 +1,53 @@
-#date: 2022-04-27T17:14:16Z
-#url: https://api.github.com/gists/f87f554fe8c06c282e1a084574983d41
-#owner: https://api.github.com/users/Igor-SeVeR
+#date: 2022-05-05T17:11:02Z
+#url: https://api.github.com/gists/efc8e6d090343c3dc00380c1a5b4fd4a
+#owner: https://api.github.com/users/plosso
 
-class CustomMeta(type):
+import socket
+import time
 
-    def __new__(cls, name, bases, dct):
-        c_attrs = {}
-        for key, value in dct.items():
-            if not (key.startswith('__') and key.endswith('__')):
-                c_attrs['custom_' + key] = value
-
-            else:
-                c_attrs[key] = value
-        return super().__new__(cls, name, bases, c_attrs)
-
-class CustomClass(metaclass=CustomMeta):
-    x = 50
-
-    def __init__(self, val=99):
-        self.val = val
-
-    def line(self):
-        return 100
-
-    def __str__(self):
-        return "Custom_by_metaclass"
-
-    def __setattr__(self, key, value):
-        self.__dict__[f'custom_{key}'] = value
+HOST = "palindromer-bd7e0fc867d57915.elb.us-east-1.amazonaws.com"  
+PORT = 7777 
+online = True
+        
+try:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.settimeout(30)
+        s.connect((HOST, PORT))
+        while online:
+            my_data = []
+            final_list = []
+            my_byte_data = b''
+            data = s.recv(4096)
+            print(f"Received {data!r}")
 
 
-if __name__ == '__main__':
-    inst = CustomClass()
-    print(inst.custom_x)
-    print(inst.custom_line())
-    print(inst.custom_val)
-    print(CustomClass.custom_x)
-    print(str(inst) == "Custom_by_metaclass")
-    inst.dynamic = "added later"
-    print(inst.custom_dynamic == "added later")
+            #split the data to add as list element
+            split = data.decode().split(' ')        
+            for element in split:
+                final_list.append(element.strip())
+            
+            #find palindromes
+            for i in final_list:
+                def isPalindrome(i):
+                    return i == i[::-1]
+
+                ans = isPalindrome(i)
+                
+                if ans:
+                    my_data.append(i)
+                    my_string  = ' '.join(my_data)
+            
+            my_string = my_string + "\n"
+            my_byte_data = str.encode(my_string)
+        
+
+            #send my data back
+            s.send(my_byte_data)    
+            print(f"Sent {my_byte_data!r}")
+
+
+            time.sleep(1)
+    
+
+except socket.error as e:
+    print(e)

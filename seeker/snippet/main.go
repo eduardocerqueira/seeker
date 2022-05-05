@@ -1,101 +1,37 @@
-//date: 2022-05-04T16:58:50Z
-//url: https://api.github.com/gists/7e3c52292eef0310ef34a398439dccb5
-//owner: https://api.github.com/users/salrashid123
+//date: 2022-05-05T16:54:29Z
+//url: https://api.github.com/gists/f6eedafee2d9e414e3720a76d4f778de
+//owner: https://api.github.com/users/jfjensen
 
 package main
 
-/*
-
-Using GCE VM:
-
-assume adminapi@project.iam.gserviceaccount.com
-
-1. has its client_id authorized for scopes
-   https://www.googleapis.com/auth/admin.directory.user.readonly
-   https://www.googleapis.com/auth/admin.directory.group.readonly
-   https://www.googleapis.com/auth/cloud-platform
-
-
-2. is authorized for read only operations for users and groups
- https://workspaceupdates.googleblog.com/2020/08/use-service-accounts-google-groups-without-domain-wide-delegation.html
- (in admin console, goto "Admin -> Admin roles" create custom role with "user read" and "group read"
-  assign the svc account to that role
-
-
----
-
-gcloud compute instances create dwdvmci \
-  --service-account=adminapi@project.iam.gserviceaccount.com \
-  --scopes=https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/admin.directory.group.readonly  
-
-
-in vm, install go,
-
-
-$ curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/scopes
-https://www.googleapis.com/auth/admin.directory.group.readonly
-https://www.googleapis.com/auth/admin.directory.user.readonly
-
-$ curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email
-adminapi@project.iam.gserviceaccount.com
-
-export TOKEN=`curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token | jq -r '.access_token'`
-
-curl -H "Authorization: Bearer $TOKEN" https://admin.googleapis.com/admin/directory/v1/groups?domain=yourdomain.com
-
-
-https://cloud.google.com/sdk/gcloud/reference/identity/groups/memberships/search-transitive-groups
-
-*/
-
 import (
-	"fmt"
-	"log"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
+	"github.com/gin-gonic/gin"
+	"html/template"
+	"strings"
 
-	"context"
-
-	"golang.org/x/oauth2/google"
-	"google.golang.org/api/cloudidentity/v1"
-	"google.golang.org/api/option"
+	globals "gin_session_auth/globals"
+	middleware "gin_session_auth/middleware"
+	routes "gin_session_auth/routes"
 )
 
 func main() {
+	router := gin.Default()
+	router.SetFuncMap(template.FuncMap{
+		"upper": strings.ToUpper,
+	})
+	router.Static("/assets", "./assets")
+	router.LoadHTMLGlob("templates/*.html")
 
-	ctx := context.Background()
-	// serviceAccountFile := "/home/path/to/google_apps_svc_dwd.json"
-	// serviceAccountJSON, err := ioutil.ReadFile(serviceAccountFile)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	router.Use(sessions.Sessions("session", cookie.NewStore(globals.Secret)))
 
-	// config, err := google.JWTConfigFromJSON(serviceAccountJSON, cloudidentity.CloudPlatformScope, cloudidentity.CloudIdentityGroupsReadonlyScope)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// ts := config.TokenSource(ctx)
+	public := router.Group("/")
+	routes.PublicRoutes(public)
 
-	ts, err := google.DefaultTokenSource(ctx)
-	if err != nil {
-		log.Fatal(err)
-	}
+	private := router.Group("/")
+	private.Use(middleware.AuthRequired)
+	routes.PrivateRoutes(private)
 
-	cisvc, err := cloudidentity.NewService(ctx, option.WithTokenSource(ts))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	g, err := cisvc.Groups.Memberships.SearchTransitiveGroups("groups/-").Query("member_key_id=='alice@domain.com' && 'cloudidentity.googleapis.com/groups.discussion_forum' in labels").Do()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if len(g.Memberships) == 0 {
-		fmt.Print("No groups found.\n")
-	} else {
-		fmt.Print("Groups:\n")
-		for _, m := range g.Memberships {
-			fmt.Printf("%s (%s)\n", m.GroupKey.Id, m.DisplayName)
-		}
-	}
-
+	router.Run("localhost:8080")
 }
