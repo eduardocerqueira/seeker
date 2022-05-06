@@ -1,17 +1,28 @@
-#date: 2022-04-27T17:12:37Z
-#url: https://api.github.com/gists/6b7f0bd4a5afb5fa50280e24d9371dd5
-#owner: https://api.github.com/users/hazeycode
+#date: 2022-05-06T17:13:46Z
+#url: https://api.github.com/gists/fa4174fb872f8b76536a115300231bd1
+#owner: https://api.github.com/users/UltimateNova1203
 
-autoload -U compinit colors vcs_info history-search-end
-colors
-compinit
+# Export paths for shell to use
+export HOMEBREW_EDITOR='/user/bin/nano'
+export PATH='/usr/local/opt/llvm/bin:~/Library/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin'
+export LDFLAGS='-L/usr/local/opt/llvm/lib'
+export CPPFLAGS='-I/usr/local/opt/llvm/include'
 
-zstyle ':vcs_info:*' stagedstr '%F{green}●%f '
-zstyle ':vcs_info:*' unstagedstr '%F{yellow}●%f '
-zstyle ':vcs_info:git:*' check-for-changes true
-zstyle ':vcs_info:git:*' formats "%F{blue}%b%f %u%c"
+# History
+HISTFILE='~/.zsh_history'
+HISTSIZE=1000
 
-zle -N history-beginning-search-backward-end history-search-end
-zle -N history-beginning-search-forward-end history-search-end
-bindkey "^[[A" history-beginning-search-backward-end
-bindkey "^[[B" history-beginning-search-forward-end
+# enable color support for la, and aliases
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
+alias ll='ls -la'
+alias la='ls -A'
+alias l='ls -CF'
+alias rm-dm='find ./ -name ".DS_Store" -depth -exec rm []\;'
+
+export CLICOLOR=1
+export LSCOLORS=GxFxCxDxBxegedabagaced
+
+autoload -U colors && colors
+PROMPT='%F{green}%n@%m%{%}%f:%F{cyan}%1~%f %% '
