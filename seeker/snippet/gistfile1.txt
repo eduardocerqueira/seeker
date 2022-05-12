@@ -1,0 +1,33 @@
+#date: 2022-05-12T17:18:24Z
+#url: https://api.github.com/gists/d51e02b7e3651d8a8482067ef60bc228
+#owner: https://api.github.com/users/SamYaple
+
+#!/bin/bash
+# I normally set these options (with x being only sometimes)
+# In this example,none of them are useful for catching your error
+#set -euxo pipefail
+
+badfunction() {
+    for i in $(find /error); do
+        echo $i
+    done
+}
+
+goodfunction() {
+    result=( $(find /error) )
+    exit_code=$?
+    if [[ ${exit_code} != 0 ]]; then
+        # This will exit immediately after the stderr output from find is
+        # displayed. The stderr from the find command is not captured above
+        exit ${exit_code}
+    fi
+    for i in ${results[@]}; do
+        echo $i
+    done
+}
+
+echo "this failure isnt caught:"
+badfunction
+echo "this failure is caught:"
+goodfunction
+echo "this never runs"

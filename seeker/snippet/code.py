@@ -1,45 +1,33 @@
-#date: 2022-05-05T17:05:04Z
-#url: https://api.github.com/gists/19073ebc32038c1ba6c67d2fb0fbca5f
-#owner: https://api.github.com/users/sammynaser07
+#date: 2022-05-12T16:56:41Z
+#url: https://api.github.com/gists/c0da9b2b81544ecf21220ed2a1321dd7
+#owner: https://api.github.com/users/maditnerd
 
-import time 
-import board 
-import neopixel
- 
-pixel_pin = board.D2
-num_pixels = 12
- 
-pixels = neopixel.NeoPixel(pixel_pin, num_pixels, brightness=0.1, auto_write=False)
- 
-RED = (255, 0, 0) 
-YELLOW = (255, 150, 0) 
-GREEN = (0, 255, 0) 
-CYAN = (17, 176, 245) 
-BLUE = (0, 0, 255) 
-PURPLE = (180, 0, 255) 
-WHITE = (255, 255, 255) 
-OFF = (0, 0, 0) 
-COLOR = WHITE
- 
-while True: 
-    for c in range(0, 5, 1):
-        if (c == 0):
-            COLOR = BLUE
-        if (c == 1):
-            COLOR = CYAN
-        if (c == 2):
-            COLOR = BLUE
-        if (c == 3):
-            COLOR = CYAN
-        if (c == 4):
-            COLOR = BLUE
-        if (c == 5):
-            COLOR = CYAN
-        if (c == 6):
-            COLOR = BLUE
-        if (c == 7):
-            COLOR = Cyan
-        for i in range(0, 12, 1):
-            pixels[i] = COLOR
-            pixels.show()
-            time.sleep(0.04)
+import board
+import displayio
+import terminalio
+import adafruit_displayio_ssd1306
+from adafruit_display_text import label
+import time
+# Create I2C bus as normal
+displayio.release_displays()
+
+def tca_select(channel):
+    while not i2c.try_lock():
+        pass
+    i2c.writeto(0x70, bytearray([1 << channel]))
+    i2c.unlock()
+
+i2c = board.I2C()  # uses board.SCL and board.SDA
+n = 0
+while True:
+    for i in range(0,8):
+        tca_select(i)
+        display_bus = displayio.I2CDisplay(i2c, device_address=0x3C)
+        display = adafruit_displayio_ssd1306.SSD1306(display_bus, width=100, height=42)
+        print("TCA Channel: " + str(i))
+        text = str(i + n)
+        text_area = label.Label(terminalio.FONT, text=text, scale=5, color=0xFFFF00, x=40, y=16)
+        display.show(text_area)
+        time.sleep(0.05)
+        displayio.release_displays()
+    n = n + 1
