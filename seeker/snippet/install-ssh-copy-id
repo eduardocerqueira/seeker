@@ -1,0 +1,14 @@
+#date: 2022-05-13T17:15:23Z
+#url: https://api.github.com/gists/b1e4efb9d6994b21777321519b5ca766
+#owner: https://api.github.com/users/steakknife
+
+#!/usr/bin/env sh
+set -e
+
+cd /usr/local/bin
+ftp https://raw.githubusercontent.com/openssh/openssh-portable/master/contrib/ssh-copy-id
+chmod +x ssh-copy-id
+
+cd /usr/local/man/man1
+ftp https://raw.githubusercontent.com/openssh/openssh-portable/master/contrib/ssh-copy-id.1
+makewhatis /usr/local/man
