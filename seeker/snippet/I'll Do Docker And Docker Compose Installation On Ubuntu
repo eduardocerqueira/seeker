@@ -1,0 +1,119 @@
+#date: 2022-05-24T17:04:55Z
+#url: https://api.github.com/gists/f6f306a6a6530638918bdd7cf1caa8f7
+#owner: https://api.github.com/users/phoenixinlinux
+
+#!/bin/sh
+
+apt update -y
+apt-get upgrade -y 
+apt install build-essential checkinstall
+apt install ubuntu-restricted-extras
+apt install software-properties-common
+apt upgrade -o APT::Get::Show-Upgraded=true
+apt-show-versions | grep upgradeable
+apt install apt-show-versions
+apt update -y
+apt-get upgrade -y 
+add-apt-repository ppa:nilarimogard/webupd8
+apt update -y
+apt install launchpad-getkeys
+launchpad-getkeys 
+add-apt-repository ppa:git-core/ppa
+apt update -y
+apt install git
+git config --global user.name "ahnaf"
+git config --global user.email phoenixinlinux@gmail.com
+apt upgrade -y
+ssh-keygen -t rsa -b 4096 -C "phoenixinlinux@gmail.com"
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_rsa
+cat /root/.ssh/id_rsa.pub
+# add your KEY to github and gitlab SSH
+
+####### Enable SSH ########
+apt-get install openssh-server
+nano /etc/ssh/sshd_config
+# Find (ctrl+w) this line and set
+PermitRootLogin yes
+PubkeyAuthentication yes
+PasswordAuthentication yes
+# Save & exit ctrl+s and ctrl+x then hit enter
+service ssh restart
+
+
+apt -f install 
+apt autoremove 
+apt -y autoclean 
+apt -y clean 
+apt update
+reboot
+
+# Docker Install
+
+apt-get update -y
+apt-get upgrade -y
+apt-get install apt-transport-https ca-certificates curl software-properties-common -y
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg |  apt-key add -
+
+add-apt-repository \
+"deb [arch=amd64] https://download.docker....... \
+  $(lsb_release -cs) \
+   stable"
+
+apt-get update -y
+apt install docker-ce -y   
+systemctl start docker
+systemctl enable docker
+usermod -aG docker ${USER}
+systemctl restart docker
+systemctl status docker
+docker --version
+
+# Docker Compose Install
+sudo curl -L "https://github.com/docker/compose/releases/download/2.5.1/docker-comp.......///////////
+OR
+sudo curl -L "https://github.com/docker/compose/rel............-o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+apt-get update -y
+apt-get upgrade -y
+docker compose --version
+
+
+# Docker with noVNC, gr-gsm, wireshark, kalibrate-rtl pre-installed.
+
+
+# ADD YOUR SSK KEY AT GITHUB
+git clone https://github.com/phoenixinlinux.......
+cd gsm-sniffing-docker
+git init
+git add .
+git commit -am "first-commit"
+git pull
+git push
+docker run -i -t -d \
+ --name GSM \
+ --restart always \
+ -p 5900:5900 \
+ -p 6080:6080 \
+ --device /dev/bus/usb \
+ -e VNC_PASSWD="168168" \
+ -e GEOMETRY="1...." \
+ -e DEPTH=32 \
+ bclswl0827/gsm-sniffing-docker:latest
+
+# Visit from web browser and use this password 168168
+0.0.0.0:5900
+0.0.0.0:6080
+
+
+###########Docker Image Stop and Delete###########################
+
+List all containers (only IDs) 
+$ docker ps -aq
+Stop all running containers. 
+$ docker stop $(docker ps -aq)
+Remove all containers. 
+$ docker rm $(docker ps -aq)
+Remove all images. 
+$ docker rmi $(docker images -q)
