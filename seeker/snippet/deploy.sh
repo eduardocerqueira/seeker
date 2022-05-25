@@ -1,15 +1,13 @@
-#date: 2022-04-21T17:03:01Z
-#url: https://api.github.com/gists/078dc02346f48323cb6463fa4cb91a79
-#owner: https://api.github.com/users/stren-12
+#date: 2022-05-25T17:17:44Z
+#url: https://api.github.com/gists/e5be621342ce85f6ffe24e6a839d60ff
+#owner: https://api.github.com/users/ganiirsyadi
 
 #!/bin/sh
-# Deployment script for codeigniter4 run this command as root (with sudo) to change the permissions
-# To secure permissions and change the file/folder owner
-# In linux most of the times you will have error say "Cache unable to write to ../writable/cache/"
-# Note: in order to take advantage of this script you must run nginx, apache, etc... 
-# Must run with www-data user and www-data group 
-cp env .env
-php spark key:generate
-chmod 0700 -R writable/
-chown www-data:www-data -R writable/
-chmod 440 .env
+
+ssh -o StrictHostKeyChecking=no ubuntu@staging.ajaib.me << 'ENDSSH'
+  cd app
+  aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 781315367039.dkr.ecr.ap-southeast-1.amazonaws.com
+  docker pull 781315367039.dkr.ecr.ap-southeast-1.amazonaws.com/ajaibdex-backend:staging
+  docker compose up -d
+  docker exec -e MIKRO_ORM_CLI_USE_TS_NODE=false backend node node_modules/.bin/mikro-orm migration:up
+ENDSSH
