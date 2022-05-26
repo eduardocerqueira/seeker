@@ -1,0 +1,30 @@
+#date: 2022-05-26T17:06:53Z
+#url: https://api.github.com/gists/c58ebe759c8bba6b6f6170f98e292500
+#owner: https://api.github.com/users/aMir733
+
+#!/bin/bash
+
+# Variables
+ADB_COMMAND="adb"
+ADB_DEVICE="52105802eed17447"
+THRESHOLD=15
+INTERVAL=1
+INTERVAL_ERROR=300
+GTK3_LOCATION="$HOME/.config/gtk-3.0/settings.ini"
+ADB="$ADB_COMMAND -s $ADB_DEVICE"
+
+# Functions
+set_theme () {
+    [[ $CUR == $1 ]] && return 0
+    [[ $1 == 0 ]] && THEME=light || THEME=dark
+    sed -i 's/^gtk-application-prefer-dark-theme=[0-1]$/gtk-application-prefer-dark-theme='$1'/' $GTK3_LOCATION &>/dev/null
+    gsettings set org.gnome.desktop.interface color-scheme "prefer-${THEME}"
+    CUR=$1
+}
+
+while true ; do
+    $ADB_COMMAND devices | grep "$ADB_DEVICE" &>/dev/null || (sleep $INTERVAL_ERROR ; continue)
+    BRIGHTNESS=$($ADB shell cat /sys/class/sensors/light_sensor/lux | cut -d',' -f4)
+    [[ "$BRIGHTNESS" > "$THRESHOLD" ]] && set_theme 0 || set_theme 1
+    sleep $INTERVAL
+done
