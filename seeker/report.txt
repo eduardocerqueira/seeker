@@ -1,4 +1,76 @@
 --------------------------------------------------------------------------------
+ 2022-05-30 17:20:40.635293
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    "snippet/Hand Cricket Simulation using CNN and\302\240OpenCV_step2.py"
+	deleted:    snippet/flash_klipper_mcus.sh
+	deleted:    snippet/funciones.py
+	deleted:    snippet/grayscale-apng.java
+	deleted:    snippet/grayscale-apng.py
+	deleted:    snippet/grayscale-bmp.java
+	deleted:    snippet/grayscale-bmp.py
+	deleted:    snippet/grayscale-emf.java
+	deleted:    snippet/grayscale-emf.py
+	deleted:    snippet/grayscale-emz.java
+	deleted:    snippet/grayscale-emz.py
+	deleted:    snippet/grayscale-gif.java
+	deleted:    snippet/grayscale-gif.py
+	deleted:    snippet/grayscale-jpeg.java
+	deleted:    snippet/grayscale-jpeg.py
+	deleted:    snippet/grayscale-jpeg2000.java
+	deleted:    snippet/grayscale-jpeg2000.py
+	deleted:    snippet/grayscale-png.java
+	deleted:    snippet/grayscale-png.py
+	deleted:    snippet/grayscale-psd.java
+	deleted:    snippet/grayscale-psd.py
+	deleted:    snippet/grayscale-tga.java
+	deleted:    snippet/grayscale-tga.py
+	deleted:    snippet/grayscale-tiff.java
+	deleted:    snippet/grayscale-tiff.py
+	deleted:    snippet/grayscale-webp.java
+	deleted:    snippet/grayscale-webp.py
+	deleted:    snippet/grayscale-wmf.java
+	deleted:    snippet/grayscale-wmf.py
+	deleted:    snippet/grayscale-wmz.java
+	deleted:    snippet/grayscale-wmz.py
+	deleted:    snippet/hello_world.py
+	deleted:    snippet/kubectl_ubuntu_wsl.sh
+	deleted:    snippet/main.py
+	deleted:    snippet/migrate_model.py
+	deleted:    snippet/p.py
+	deleted:    snippet/range.py
+	deleted:    snippet/sampling.py
+	deleted:    snippet/start_1200_modem_interface.py
+	deleted:    snippet/task5.java
+	deleted:    snippet/update-zfs.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/AppInfo.java
+	snippet/Dockerfile
+	snippet/Main.java
+	snippet/airbyte.sh
+	snippet/autres.py
+	snippet/build_wireshark.sh
+	snippet/build_wireshark_F1AP_R15_2_1.sh
+	snippet/cfx_re_ip_finder.py
+	snippet/crack_the_padlock.py
+	snippet/delcomm.py
+	snippet/dowhy_usecase4.py
+	snippet/dowhy_usecase5.py
+	snippet/function.py
+	snippet/gcd.java
+	snippet/pio_square.py
+	snippet/syncer.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2022-05-27 17:19:27.008561
 --------------------------------------------------------------------------------
   On branch main
