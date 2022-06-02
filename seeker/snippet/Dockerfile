@@ -1,7 +1,22 @@
-#date: 2022-05-30T17:10:14Z
-#url: https://api.github.com/gists/2da1d48eb106df432bcbba1401e5b53e
-#owner: https://api.github.com/users/manishbansal8843
+#date: 2022-06-02T16:50:57Z
+#url: https://api.github.com/gists/12ab04b36540b4d87f22d7f5c3005b2a
+#owner: https://api.github.com/users/AlperRehaYAZGAN
 
-FROM gcr.io/google-appengine/openjdk
-COPY target/HelloWorld-1.0-SNAPSHOT.jar HelloWorld.jar
-ENTRYPOINT ["java", "-jar", "HelloWorld.jar"]
+# first stage
+FROM golang:1.17-alpine3.15 AS build-env
+RUN apk add build-base
+
+ADD . /src
+
+RUN cd /src && go build -o goapp
+
+# second stage
+FROM alpine
+
+WORKDIR /app
+
+COPY --from=build-env /src/goapp /app/
+
+EXPOSE 9090
+
+ENTRYPOINT ./goapp

@@ -1,19 +1,16 @@
-#date: 2022-02-03T17:12:50Z
-#url: https://api.github.com/gists/e2f2e2a4f2ca9dde8358a5e26e3671a5
-#owner: https://api.github.com/users/fenze
+#date: 2022-06-02T16:56:47Z
+#url: https://api.github.com/gists/e553ec94c33c75bae125025dfd27a317
+#owner: https://api.github.com/users/littleneko
 
-#!/bin/sh
+#!/bin/bash
 
-CONFIG=$HOME/.config/suckless
-SOFTWARE='dwm'\ 'st'\ 'dmenu'\ 'surf'
-LIST=$(dirname $0)/pkglist.txt
+CYAN="$(tput bold; tput setaf 6)"
+RESET="$(tput sgr0)"
 
-[ "$1" = clean ] && (set -x; rm -rf $CONFIG)
+curl https://gist.githubusercontent.com/thpryrchn/c0ea1b6793117b00494af5f05959d526/raw/ccdl.command -o "/Applications/Adobe Packager.command"
+chmod +x "/Applications/Adobe Packager.command"
 
-[ $(id -u) = 0 ] || su -c "$(dirname $0)/install.sh"
+clear
 
-pacman --noconfirm --needed -S - < $LIST
-
-for SOFT in $SOFTWARE; do
-	git clone https://git.suckless.org/$SOFT
-done
+echo "${CYAN}Done! You can now start /Applications/Adobe Packager.command to begin${RESET}"
+exit
