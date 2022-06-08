@@ -1,164 +1,76 @@
-//date: 2022-01-05T17:17:43Z
-//url: https://api.github.com/gists/50cbc38c71ab283c7ef586d6357e0041
-//owner: https://api.github.com/users/hajar-ess
+//date: 2022-06-08T17:04:26Z
+//url: https://api.github.com/gists/d4b72e260fd2e2fc8d934494d280164c
+//owner: https://api.github.com/users/yuantailing
 
-package com.codinginflow.firebaseuploadexample;
+package com.example.myapplication;
 
-import android.content.ContentResolver;
-import android.content.Intent;
-import android.net.Uri;
-import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.BroadcastReceiver;
 import android.os.Bundle;
-import android.view.View;
-import android.webkit.MimeTypeMap;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
+import android.os.Message;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.OnProgressListener;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.StorageTask;
-import com.google.firebase.storage.UploadTask;
-import com.squareup.picasso.Picasso;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.BatteryManager;
+import android.os.Handler;
+
+import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int PICK_IMAGE_REQUEST = 1;
-
-    private Button mButtonChooseImage;
-    private Button mButtonUpload;
-    private TextView mTextViewShowUploads;
-    private EditText mEditTextFileName;
-    private ImageView mImageView;
-    private ProgressBar mProgressBar;
-
-    private Uri mImageUri;
-
-    private StorageReference mStorageRef;
-    private DatabaseReference mDatabaseRef;
-
-    private StorageTask mUploadTask;
+    static class MyHandler extends Handler {
+        private int mVoltage;
+        private final BatteryManager mBatteryManager;
+        private final TextView mTextView;
+        private final Locale mLocale;
+        public MyHandler(Context context, TextView textView) {
+            mBatteryManager = (BatteryManager)context.getSystemService(Context.BATTERY_SERVICE);
+            MyHandler handler = this;
+            context.registerReceiver(new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    handler.mVoltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE,0);
+                }
+            }, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+            mTextView = textView;
+            mLocale = Locale.getDefault();
+        }
+        @Override
+        public void handleMessage(Message msg) {
+            double current = mBatteryManager.getLongProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW) / 1000. / 1000.;
+            String s = "";
+            s += String.format(mLocale,"%.3f", mVoltage / 1000.) + " V\n";
+            s += String.format(mLocale,"%.3f", current) + " A\n";
+            s += String.format(mLocale,"%.3f", mVoltage / 1000. * current) + " W\n\n";
+            s += "CHARGE_COUNTER\n" + mBatteryManager.getLongProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) + "\n\n";
+            s += "CURRENT_NOW\n" + mBatteryManager.getLongProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW) + "\n\n";
+            s += "CURRENT_AVERAGE\n" + mBatteryManager.getLongProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE) + "\n\n";
+            s += "CAPACITY\n" + mBatteryManager.getLongProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) + "\n\n";
+            s += "ENERGY_COUNTER\n" + mBatteryManager.getLongProperty(BatteryManager.BATTERY_PROPERTY_ENERGY_COUNTER) + "\n\n";
+            s += "EXTRA_VOLTAGE\n" + mVoltage + "\n\n";
+            mTextView.setText(s);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mButtonChooseImage = findViewById(R.id.button_choose_image);
-        mButtonUpload = findViewById(R.id.button_upload);
-        mTextViewShowUploads = findViewById(R.id.text_view_show_uploads);
-        mEditTextFileName = findViewById(R.id.edit_text_file_name);
-        mImageView = findViewById(R.id.image_view);
-        mProgressBar = findViewById(R.id.progress_bar);
-
-        mStorageRef = FirebaseStorage.getInstance().getReference("uploads");
-        mDatabaseRef = FirebaseDatabase.getInstance().getReference("uploads");
-
-        mButtonChooseImage.setOnClickListener(new View.OnClickListener() {
+        Handler handler = new MyHandler(this, (TextView)findViewById(R.id.main_text));
+        class MyTask extends TimerTask {
             @Override
-            public void onClick(View v) {
-                openFileChooser();
+            public void run() {
+                handler.sendEmptyMessage(0);
             }
-        });
-
-        mButtonUpload.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mUploadTask != null && mUploadTask.isInProgress()) {
-                    Toast.makeText(MainActivity.this, "Upload in progress", Toast.LENGTH_SHORT).show();
-                } else {
-                    uploadFile();
-                }
-            }
-        });
-
-        mTextViewShowUploads.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                openImagesActivity();
-            }
-        });
+        };
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new MyTask(), 0, 500);
     }
 
-    private void openFileChooser() {
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(intent, PICK_IMAGE_REQUEST);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK
-                && data != null && data.getData() != null) {
-            mImageUri = data.getData();
-
-            Picasso.with(this).load(mImageUri).into(mImageView);
-        }
-    }
-
-    private String getFileExtension(Uri uri) {
-        ContentResolver cR = getContentResolver();
-        MimeTypeMap mime = MimeTypeMap.getSingleton();
-        return mime.getExtensionFromMimeType(cR.getType(uri));
-    }
-
-    private void uploadFile() {
-        if (mImageUri != null) {
-            StorageReference fileReference = mStorageRef.child(System.currentTimeMillis()
-                    + "." + getFileExtension(mImageUri));
-
-            mUploadTask = fileReference.putFile(mImageUri)
-                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                            Handler handler = new Handler();
-                            handler.postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    mProgressBar.setProgress(0);
-                                }
-                            }, 500);
-
-                            Toast.makeText(MainActivity.this, "Upload successful", Toast.LENGTH_LONG).show();
-                            Upload upload = new Upload(mEditTextFileName.getText().toString().trim(),
-                                    taskSnapshot.getDownloadUrl().toString());
-                            String uploadId = mDatabaseRef.push().getKey();
-                            mDatabaseRef.child(uploadId).setValue(upload);
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    })
-                    .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
-                            double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount());
-                            mProgressBar.setProgress((int) progress);
-                        }
-                    });
-        } else {
-            Toast.makeText(this, "No file selected", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void openImagesActivity() {
-        Intent intent = new Intent(this, ImagesActivity.class);
-        startActivity(intent);
-    }
 }
