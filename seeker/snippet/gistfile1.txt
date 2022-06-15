@@ -1,33 +1,18 @@
-#date: 2022-05-12T17:18:24Z
-#url: https://api.github.com/gists/d51e02b7e3651d8a8482067ef60bc228
-#owner: https://api.github.com/users/SamYaple
+#date: 2022-06-15T17:15:48Z
+#url: https://api.github.com/gists/d00bd399f4048b4af85b317010a40ebf
+#owner: https://api.github.com/users/davidferlay
 
-#!/bin/bash
-# I normally set these options (with x being only sometimes)
-# In this example,none of them are useful for catching your error
-#set -euxo pipefail
+#!/bin/sh
+if [ "$2" = "-v" ]; then set -x; fi
+set -e
+if [ -n "$1" ] ; then ARG=$1; else echo -e "\n- You need to pass the value to search for as argument\n- Wildcards can be used: \n   - % for any number of char\n   - _ for any 1 char\n" && exit 1; fi
 
-badfunction() {
-    for i in $(find /error); do
-        echo $i
-    done
-}
+DB_NAME=skilld
+DB_USER=erp
 
-goodfunction() {
-    result=( $(find /error) )
-    exit_code=$?
-    if [[ ${exit_code} != 0 ]]; then
-        # This will exit immediately after the stderr output from find is
-        # displayed. The stderr from the find command is not captured above
-        exit ${exit_code}
-    fi
-    for i in ${results[@]}; do
-        echo $i
-    done
-}
-
-echo "this failure isnt caught:"
-badfunction
-echo "this failure is caught:"
-goodfunction
-echo "this never runs"
+for i in $(psql -U $DB_USER -d $DB_NAME -t --no-align -P 'footer=off' -c "SELECT tablename FROM pg_catalog.pg_tables WHERE tableowner='$DB_USER'"); do
+	TABLE_SCHEMA=$(psql -U $DB_USER -d $DB_NAME -t --no-align -P 'footer=off' -c "\d "$i";" | awk -F "|" '{print $1}')
+	for column in $TABLE_SCHEMA; do
+		if [ -n "$(psql -U $DB_USER -d $DB_NAME -t --no-align -P 'footer=off' -c "SELECT $column FROM $i WHERE $column LIKE '$ARG';" 2> /dev/null)" ] ; then echo "- One occurence or more was found in column '$column' of table '$i'"; fi
+	done
+done
