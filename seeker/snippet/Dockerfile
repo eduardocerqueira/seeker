@@ -1,22 +1,15 @@
-#date: 2022-06-02T16:50:57Z
-#url: https://api.github.com/gists/12ab04b36540b4d87f22d7f5c3005b2a
-#owner: https://api.github.com/users/AlperRehaYAZGAN
+#date: 2022-06-17T17:02:31Z
+#url: https://api.github.com/gists/471bc58e08abcddfb2d6229a40b5aa9a
+#owner: https://api.github.com/users/katrbhach
 
-# first stage
-FROM golang:1.17-alpine3.15 AS build-env
-RUN apk add build-base
-
-ADD . /src
-
-RUN cd /src && go build -o goapp
-
-# second stage
-FROM alpine
-
-WORKDIR /app
-
-COPY --from=build-env /src/goapp /app/
-
-EXPOSE 9090
-
-ENTRYPOINT ./goapp
+FROM python:3.7.13-slim-bullseye
+RUN apt update && apt install -y librdkafka-dev gcc
+WORKDIR /opt/kafka-helper-utility
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt
+COPY app app
+COPY gunicorn.conf.py gunicorn.conf.py
+COPY gunicorn_logging.ini gunicorn_logging.ini
+COPY run.py run.py
+COPY test-mrc.json /etc/conf/mrc-config.json
+ENTRYPOINT ["gunicorn", "run:app"]
