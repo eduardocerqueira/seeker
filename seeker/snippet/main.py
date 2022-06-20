@@ -1,11 +1,24 @@
-#date: 2022-06-15T16:47:20Z
-#url: https://api.github.com/gists/938f24eb3e8b0e150f042dbf5cbdb299
+#date: 2022-06-20T17:12:07Z
+#url: https://api.github.com/gists/56959b409df6a1e03935ad17aaabf07b
 #owner: https://api.github.com/users/mypy-play
 
-class A:
-    def __init__(self, a: int, b: str):
-        self.a = a
-        self.b = b
+from typing import TypeVar, Union, NoReturn, Any
+
+class FooException:
+    pass
+
+class BarException:
+    pass
+
+def foo() -> Union[int,  FooException]:
+    return 1
     
-A(3, "4")
-A.b = 4
+
+def bar() -> int:
+    x = foo()
+    if isinstance(x, int):
+        return 4
+    elif isinstance(x, FooException):
+        return 4
+    elif isinstance(x, BarException):
+        return 4
