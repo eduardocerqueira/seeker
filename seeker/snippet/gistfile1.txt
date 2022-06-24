@@ -1,18 +1,60 @@
-#date: 2022-06-15T17:15:48Z
-#url: https://api.github.com/gists/d00bd399f4048b4af85b317010a40ebf
-#owner: https://api.github.com/users/davidferlay
+#date: 2022-06-24T17:13:22Z
+#url: https://api.github.com/gists/a6028ebf139b961aad6e073f9132eb7a
+#owner: https://api.github.com/users/syedali3762
 
-#!/bin/sh
-if [ "$2" = "-v" ]; then set -x; fi
-set -e
-if [ -n "$1" ] ; then ARG=$1; else echo -e "\n- You need to pass the value to search for as argument\n- Wildcards can be used: \n   - % for any number of char\n   - _ for any 1 char\n" && exit 1; fi
+#!/bin/bash
 
-DB_NAME=skilld
-DB_USER=erp
+root_uid=0
+no_root=100
 
-for i in $(psql -U $DB_USER -d $DB_NAME -t --no-align -P 'footer=off' -c "SELECT tablename FROM pg_catalog.pg_tables WHERE tableowner='$DB_USER'"); do
-	TABLE_SCHEMA=$(psql -U $DB_USER -d $DB_NAME -t --no-align -P 'footer=off' -c "\d "$i";" | awk -F "|" '{print $1}')
-	for column in $TABLE_SCHEMA; do
-		if [ -n "$(psql -U $DB_USER -d $DB_NAME -t --no-align -P 'footer=off' -c "SELECT $column FROM $i WHERE $column LIKE '$ARG';" 2> /dev/null)" ] ; then echo "- One occurence or more was found in column '$column' of table '$i'"; fi
-	done
-done
+AWS_ACCESS_KEY_ID=$(aws --region=us-east-1 ssm get-parameter --name "MY_ACCESS_KEY" --with-decryption --output text --query Parameter.Value)
+AWS_SECRET_ACCESS_KEY=$(aws --region=us-east-1 ssm get-parameter --name "MY_SECRET_KEY_" --with-decryption --output text --query Parameter.Value)
+AWS_DEFAULT_REGION=us-east-1
+
+
+#EC2 instance 1
+AMI="ami-052efd3df9dad4825"
+COUNT=1
+INSTANCE_TYPE="t2.micro"
+KEY_NAME="assignment-02-kp"
+SUBNET_ID="subnet-082916d64a2134ef0"
+TAG='ResourceType=instance,Tags=[{Key=Name,Value=ubuntu-server-01}]'
+SG="sg-04ae820c20f162d0e"
+
+#EC2 instance 2
+SUBNET_ID_1="subnet-0ea5d01865aef728d"
+TAG_1='ResourceType=instance,Tags=[{Key=Name,Value=ubuntu-server-02}]'
+
+
+
+
+if [ "$UID" -ne "$root_uid" ]
+    then
+        echo "Must be root."
+        exit $E_NOTROOT
+fi
+source task_04.sh
+
+aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+aws configure set default.region $AWS_DEFAULT_REGION
+
+
+echo "Launch an EC"
+aws ec2 run-instances \
+        --image-id $AMI \
+        --count $COUNT \
+        --instance-type $INSTANCE_TYPE \
+        --key-name $KEY_NAME \
+        --security-group-ids $SG \
+        --subnet-id $SUBNET_ID \
+        --tag-specifications $TAG \
+
+aws ec2 run-instances \
+        --image-id $AMI \
+        --count $COUNT \
+        --instance-type $INSTANCE_TYPE \
+        --key-name $KEY_NAME \
+        --security-group-ids $SG \
+        --subnet-id $SUBNET_ID_1 \
+        --tag-specifications $TAG_1 \
