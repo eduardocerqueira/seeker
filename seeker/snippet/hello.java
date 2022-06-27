@@ -1,11 +1,11 @@
-//date: 2021-11-25T17:05:31Z
-//url: https://api.github.com/gists/be2795e02565ad5ccfb2b4d93635b0ed
-//owner: https://api.github.com/users/thomasdarimont
+//date: 2022-06-27T17:07:31Z
+//url: https://api.github.com/gists/1adc4fcbcc5a3183da2320f27e618e38
+//owner: https://api.github.com/users/fabricewoukeng1
 
-class Hello {
-
+public class Hello {
+  
   public static void main(String[] args) {
-        System.out.println("Hello JAuld");
+    System.out.println("Hello world update");
   }
-
+  
 }
