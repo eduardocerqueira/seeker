@@ -1,39 +1,51 @@
-#date: 2021-10-20T16:56:49Z
-#url: https://api.github.com/gists/19aaaec337482f9db9adbe449c2fd9ca
-#owner: https://api.github.com/users/chirsz-ever
+#date: 2022-06-30T17:00:57Z
+#url: https://api.github.com/gists/ce0e97848ed1259603c158c09d59437a
+#owner: https://api.github.com/users/skeeto
 
-#!/usr/bin/env bash
+#!/bin/sh
+set -e
+
 cat <<EOF
-use std::io;
-use std::io::prelude::*;
-fn main() -> io::Result<()> {
-    print!("请给出一个不多于5位的正整数:");
-    io::stdout().flush()?;
-    let mut line = String::new();
-    io::stdin().read_line(&mut line)?;
-    let x = line.trim().parse::<i32>().expect("not a i32");
-    match x {
+.POSIX:
+VERSION  = 0.2
+CC       = cc
+CFLAGS   = -std=gnu18 -Wall -Wextra -O3
+LDFLAGS  = -s
+LDLIBS   = -lncursesw -lsqlite3 -lcurl -lexpat -lgumbo -lyajl
+FEATURES = \\
+ -DNEWSRAFT_FORMAT_SUPPORT_ATOM10 \\
+ -DNEWSRAFT_FORMAT_SUPPORT_RSS \\
+ -DNEWSRAFT_FORMAT_SUPPORT_RSSCONTENT \\
+ -DNEWSRAFT_FORMAT_SUPPORT_DUBLINCORE \\
+ -DNEWSRAFT_FORMAT_SUPPORT_MEDIARSS \\
+ -DNEWSRAFT_FORMAT_SUPPORT_YANDEX \\
+ -DNEWSRAFT_FORMAT_SUPPORT_RBCNEWS \\
+ -DNEWSRAFT_FORMAT_SUPPORT_ATOM03 \\
+ -DNEWSRAFT_FORMAT_SUPPORT_GEORSS \\
+ -DNEWSRAFT_FORMAT_SUPPORT_GEORSS_GML \\
+ -DNEWSRAFT_FORMAT_SUPPORT_JSONFEED
+
+all: newsraft
+
+clean:
+	rm -f newsraft \$(obj)
+
+.c.o:
+	\$(CC) -c -Isrc -DNEWSRAFT_VERSION='"\$(VERSION)"' \$(CFLAGS) \$(FEATURES) -o \$@ \$<
+
 EOF
 
-indent="    "
-indent2="${indent}${indent}"
-indent3="${indent2}${indent}"
-units=('个' '十' '百' '千' '万')
-
-for ((x=1;x<=99999;++x)); do
-	xlen=${#x}
-	rx=""
-	echo "${indent2}$x => {"
-	echo "${indent3}println!(\"是${xlen}位数\");"
-	for ((i=0;i<xlen;++i)); do
-		k=${x:$((xlen-i-1)):1}
-		echo "${indent3}println!(\"${units[$i]}位数是：$k\");"
-		rx=$k$rx
-	done
-	echo "${indent3}println!(\"倒过来是：$rx\");"
-	echo "${indent2}}"
+obj=
+for c in $(find src -name '*.c'); do
+    o="${c%%.c}.o" 
+    obj="$obj $o"
+    cc -Isrc -MM -MT "$o" "$c"
 done
-echo "${indent2}_ => {}"
-echo "${indent}}"
-echo "${indent}Ok(())"
-echo "}"
+printf 'obj ='
+printf ' \\\n  %s' $obj
+printf '\n\n'
+
+cat <<EOF
+newsraft: \$(obj)
+	\$(CC) \$(LDFLAGS) -o \$@ \$(obj) \$(LDLIBS)
+EOF

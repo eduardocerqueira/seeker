@@ -1,0 +1,46 @@
+#date: 2022-06-30T16:52:31Z
+#url: https://api.github.com/gists/cec39ed5aba6fed6091b70e70ffd00fa
+#owner: https://api.github.com/users/mdebusk
+
+#!/usr/bin/env bash
+
+###############################################################################
+# Filename   : fix_unicode                                                    #
+# Author     : Michael DeBusk (https://github.com/mdebusk/)                   #
+# Created    : 2021-09-13                                                     #
+# Last edit  : 2022-06-15 01:18                                               #
+# Purpose    : Replaces unicode smart quotes and dashes with ASCII            #
+# Reference  : https://opensource.com/article/21/9/sed-replace-smart-quotes   #
+# Depends    : sed                                                            #
+# Arguments  : name of file to repair                                         #
+# Known bugs : NKA                                                            #
+# To do      : Add more unicode characters as the need arises                 #
+###############################################################################
+
+# GNU All-Permissive License {{{
+#################################################################
+# Copyright © 2021 Seth Kanlon (original script)                #
+# Copyright © 2022 Michael DeBusk (adaptation)                  #
+#                                                               #
+# Copying and distribution of this file, with or without        #
+# modification, are permitted in any medium without royalty,    #
+# provided the copyright notice and this notice are preserved.  #
+# This file is offered as-is, without any warranty.             #
+#################################################################
+# End license }}}
+
+[ "$#" -eq 0 ] && { echo -e "\nFilename required. Exiting...\n" ; exit 1; }
+
+[ ! -f "$1" ] && { echo -e "\nFilename $1 does not exist. Exiting...\n" ; exit 1; }
+
+single_quotes=$(echo -ne '\u2018\u2019')
+double_quotes=$(echo -ne '\u201C\u201D')
+en_dash=$(echo -ne '\u2013')
+em_dash=$(echo -ne '\u2014')
+
+sed -i\
+    -e "s/[$single_quotes]/\'/g"\
+    -e "s/[$double_quotes]/\"/g"\
+    -e "s/[$en_dash]/\-\-/g"\
+    -e "s/[$em_dash]/\-\-\-/g"\
+    "${1}"

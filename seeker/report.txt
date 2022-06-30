@@ -1,4 +1,61 @@
 --------------------------------------------------------------------------------
+ 2022-06-30 17:23:21.491812
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   snippet/.zshrc
+	modified:   snippet/Dockerfile
+	modified:   snippet/Main.java
+	deleted:    snippet/PlayList.java
+	deleted:    snippet/combinationSum.java
+	deleted:    snippet/create_siamese_albert_model.py
+	deleted:    snippet/criticaltracks-cleanup.py
+	deleted:    snippet/exercise-errors.go
+	deleted:    snippet/exercise-stringer.go
+	modified:   snippet/generate.sh
+	deleted:    snippet/giffy.sh
+	deleted:    snippet/hello.java
+	modified:   snippet/main.sh
+	deleted:    snippet/mitmproxy_requests_to_csv.py
+	deleted:    snippet/p2p_subgraph.py
+	deleted:    snippet/p2p_wcc.py
+	deleted:    snippet/set4.py
+	deleted:    snippet/set_add_update.py
+	deleted:    snippet/set_clear.py
+	deleted:    snippet/set_discard.py
+	deleted:    snippet/set_union.py
+	deleted:    snippet/sol_LC_140.java
+	deleted:    snippet/tabulate_query.py
+	deleted:    snippet/track.py
+	deleted:    snippet/train_siamese_albert_model.py
+	deleted:    snippet/vb-guest-additions.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/Dkga04.java
+	snippet/LowestCommonAncestorBST.java
+	snippet/VendingKey160Generator.java
+	snippet/automation.py
+	snippet/bin2ascii.py
+	snippet/check.py
+	snippet/cluster_commands.sh
+	snippet/coding_standard.py
+	snippet/dosyalar.py
+	snippet/fix_unicode
+	snippet/gdrive_file_manager.py
+	snippet/keyfinder.py
+	snippet/main.py
+	snippet/nothesaplama.py
+	snippet/sql_query_example.py
+	snippet/zshrc.zsh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2022-06-29 17:38:46.923716
 --------------------------------------------------------------------------------
   On branch main
