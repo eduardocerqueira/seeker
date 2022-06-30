@@ -1,60 +1,52 @@
-//date: 2022-06-15T16:52:56Z
-//url: https://api.github.com/gists/a50054984159918d78aa7c0448e56db5
-//owner: https://api.github.com/users/kyleconroy
+//date: 2022-06-30T20:58:47Z
+//url: https://api.github.com/gists/6a31fd3dcd94df2107962248751ef496
+//owner: https://api.github.com/users/nealarch01
 
 package main
 
 import (
 	"fmt"
-
-	"github.com/bytecodealliance/wasmtime-go"
+	"net/http"
+	"log"
+	"encoding/json"
 )
 
-func main() {
-	// Almost all operations in wasmtime require a contextual `store`
-	// argument to share, so create that first
-	store := wasmtime.NewStore(wasmtime.NewEngine())
+func Greet(w http.ResponseWriter, req *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	
 
-	// Compiling modules requires WebAssembly binary input, but the wasmtime
-	// package also supports converting the WebAssembly text format to the
-	// binary format.
-	wasm, err := wasmtime.Wat2Wasm(`
-      (module
-        (import "" "hello" (func $hello))
-        (func (export "run")
-          (call $hello))
-      )
-    `)
-	check(err)
-
-	// Once we have our binary `wasm` we can compile that into a `*Module`
-	// which represents compiled JIT code.
-	module, err := wasmtime.NewModule(store.Engine, wasm)
-	check(err)
-
-	// Our `hello.wat` file imports one item, so we create that function
-	// here.
-	item := wasmtime.WrapFunc(store, func() {
-		fmt.Println("Hello from Go!")
-	})
-
-	// Next up we instantiate a module which is where we link in all our
-	// imports. We've got one import so we pass that in here.
-	instance, err := wasmtime.NewInstance(store, module, []wasmtime.AsExtern{item})
-	check(err)
-
-	// After we've instantiated we can lookup our `run` function and call
-	// it.
-	run := instance.GetFunc(store, "run")
-	if run == nil {
-		panic("not a function")
+	type GreetResponse struct {
+		Status int
+		Message string
 	}
-	_, err = run.Call(store)
-	check(err)
+
+	var greetResponse GreetResponse
+
+	greetResponse.Status = 200
+	greetResponse.Message = "OK"
+
+	jsonData, err := json.Marshal(greetResponse)
+
+	w.Write(jsonData)
+
+	if err != nil {
+		log.Fatalln("Greet marshal error")
+		return
+	}
+
 }
 
-func check(e error) {
-	if e != nil {
-		panic(e)
+func main() {
+	http.HandleFunc("/greet", Greet)
+
+	port := ":2000"
+
+	fmt.Print("Listening at https://127.0.0.1", port, "\n")
+
+	err := http.ListenAndServeTLS(port, "server.crt", "server.key", nil)
+
+	if err != nil {
+		log.Fatalln("ListenAndServeTLS:", err)
 	}
+
 }
