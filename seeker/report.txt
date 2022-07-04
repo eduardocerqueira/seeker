@@ -1,4 +1,73 @@
 --------------------------------------------------------------------------------
+ 2022-07-03 23:36:40.646370
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/Dkga04.java
+	deleted:    snippet/Dockerfile
+	modified:   snippet/Geometry.java
+	deleted:    snippet/Library.py
+	deleted:    snippet/LowestCommonAncestorBST.java
+	modified:   snippet/MYCOLORS.PY
+	modified:   snippet/Main.java
+	modified:   snippet/Python.py
+	deleted:    snippet/Study03.java
+	deleted:    snippet/VendingKey160Generator.java
+	deleted:    snippet/add_set.py
+	deleted:    snippet/automation.py
+	deleted:    snippet/bin2ascii.py
+	deleted:    snippet/book-convert.sh
+	deleted:    snippet/check.py
+	deleted:    snippet/cluster_commands.sh
+	deleted:    snippet/coding_standard.py
+	deleted:    snippet/create-database-yaml
+	deleted:    snippet/dosyalar.py
+	deleted:    snippet/fix_unicode
+	deleted:    snippet/gdrive_file_manager.py
+	deleted:    snippet/generate.sh
+	deleted:    snippet/inset.py
+	deleted:    snippet/keyfinder.py
+	deleted:    snippet/main.go
+	modified:   snippet/main.py
+	deleted:    snippet/main.sh
+	deleted:    snippet/nothesaplama.py
+	deleted:    snippet/sar.py
+	deleted:    snippet/sql_query_example.py
+	deleted:    snippet/teste.py
+	deleted:    snippet/tuples-reader.go
+	deleted:    snippet/update_set.py
+	deleted:    snippet/weatherkit-sampleproject.py
+	deleted:    snippet/zshrc.zsh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/LeibnizFormula.py
+	snippet/MouseJiggler.sh
+	snippet/PopupMenu.java
+	snippet/Quiz2.java
+	snippet/Quiz3.java
+	snippet/Quiz4.java
+	snippet/VTK_camera_intrinsics.py
+	snippet/cfs.go
+	snippet/check_local_listen_port.py
+	snippet/compile.sh
+	snippet/demo-apache-commons-net-ftp-integration__1_1_FtpService.java
+	snippet/demo-apache-commons-net-ftp-integration__1_FtpService.java
+	snippet/load_dotenv.sh
+	snippet/move_square.py
+	snippet/paging.java
+	snippet/release.sh
+	snippet/rle.py
+	snippet/run-node.sh
+	snippet/smooth_one.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2022-07-01 17:19:15.439863
 --------------------------------------------------------------------------------
   On branch main
