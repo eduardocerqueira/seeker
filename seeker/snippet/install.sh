@@ -1,16 +1,43 @@
-#date: 2022-06-02T16:56:47Z
-#url: https://api.github.com/gists/e553ec94c33c75bae125025dfd27a317
-#owner: https://api.github.com/users/littleneko
+#date: 2022-07-14T16:59:34Z
+#url: https://api.github.com/gists/c501d61fcf63168f8a6973088845a99c
+#owner: https://api.github.com/users/Huangxt57
 
-#!/bin/bash
+#!/usr/bin/bash
 
-CYAN="$(tput bold; tput setaf 6)"
-RESET="$(tput sgr0)"
+user=xxx
 
-curl https://gist.githubusercontent.com/thpryrchn/c0ea1b6793117b00494af5f05959d526/raw/ccdl.command -o "/Applications/Adobe Packager.command"
-chmod +x "/Applications/Adobe Packager.command"
+# Test whether virtualization is supported for CPU
+vm_support=$(egrep '(vmx|svm)' /proc/cpuinfo)
+if [ "$a" == "" ]; then
+  echo "Virtualization is not supported, quit..."
+  exit 1
+fi
 
-clear
+# Load kvm kernel module (if necessary) on AMD machines
+kvm_load=$(lsmod | grep kvm)
+if [ "$kvm_load" == "" ]; then
+  modprobe kvm
+  modprobe kvm_amd
+fi
 
-echo "${CYAN}Done! You can now start /Applications/Adobe Packager.command to begin${RESET}"
-exit
+# Install KVM on Debian
+# https://wiki.debian.org/KVM#Installation
+apt update
+apt install -y --no-install-recommends \
+  qemu-utils \
+  qemu-system \
+  qemu-kvm \
+  libvirt-daemon-system \
+  libvirt-clients \
+  bridge-utils
+
+# Check installation
+echo q | systemctl status libvirtd
+
+# Add user to allow using in non-privilige mode
+adduser $user libvirt
+id $user
+
+# See vm list
+virsh --version
+virsh list
