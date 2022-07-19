@@ -1,69 +1,86 @@
-#date: 2022-07-06T17:03:48Z
-#url: https://api.github.com/gists/382259e2880fe26e47db36cf9500f3dc
-#owner: https://api.github.com/users/mypy-play
+#date: 2022-07-19T17:08:38Z
+#url: https://api.github.com/gists/f4ba6a0685b5b1589e86ea82b1052f1c
+#owner: https://api.github.com/users/Andrey837
 
-from typing import TypeAlias, Union, TypeVar, Tuple, Optional, Sequence, overload, Any
-from datetime import date, time, datetime
+from tkinter import *
 
-SliderScalar: TypeAlias = Union[int, float, date, time, datetime]
-# SliderScalarT = TypeVar("SliderScalarT", bound=SliderScalar)
-SliderScalarT = TypeVar("SliderScalarT", int, float, date, time, datetime)
-
-SliderTupleGeneric: TypeAlias = Union[Tuple[SliderScalarT], Tuple[SliderScalarT, SliderScalarT]]
-SliderReturnGeneric: TypeAlias = Union[SliderScalarT, SliderTupleGeneric[SliderScalarT]]
-SliderReturn: TypeAlias = Union[
-    SliderReturnGeneric[int],
-    SliderReturnGeneric[float],
-    SliderReturnGeneric[date],
-    SliderReturnGeneric[time],
-    SliderReturnGeneric[datetime]
-    ]
-
-SliderValue = Union[SliderReturnGeneric[SliderScalarT], list[SliderScalarT], Tuple[()], None]
-
-SliderReturnT = TypeVar("SliderReturnT", bound=SliderReturn)
+win = Tk()
+win.geometry("312x324")
+win.title("Calculator")
 
 
-@overload
-def foo(x: None) -> int:
-    ...
+def btn_click(item):
+    global expression
+    expression = expression + str(item)
+    input_text.set(expression)
 
-@overload
-def foo(x: Tuple[()]) -> Tupe[int]:
-    ...
-    
-@overload
-def foo(x: list[SliderScalarT]) -> SliderTupleGeneric[SliderScalarT]:
-    ...
 
-@overload
-def foo(x: SliderReturnT) -> SliderReturnT:
-    ...
+def bt_clear():
+    global expression
+    expression = ''
+    input_text.set('')
 
-def foo(x: SliderValue) -> SliderReturn:
-    y: Any = 42
-    return y
-    
 
-reveal_type(
-    foo(1)
-)
-reveal_type(
-    foo((1,))
-)
-reveal_type(
-    foo([])
-)
-reveal_type(
-    foo([1.0])
-)
-reveal_type(
-    foo([1])
-)
-reveal_type(
-    foo(None)
-)
+def bt_equal():
+    global expression
+    result = str(eval(expression))
+    input_text.set(result)
+    expression = ""
 
-reveal_type(
-    foo(())
-)
+
+expression = ""
+
+input_text = StringVar()
+
+input_frame = Frame(win, width=312, height=50, bd=0, highlightbackground="black", highlightcolor="black", highlightthickness=2)
+
+input_frame.pack(side=TOP)
+
+input_field = Entry(input_frame, font=('arial', 18, 'bold'), textvariable=input_text, width=50, bg="#eee", bd=0, justify=RIGHT)
+
+input_field.grid(row=0, column=0)
+
+input_field.pack(ipady=10)
+
+btns_frame = Frame(win, width=312, height=272.5, bg="grey")
+
+btns_frame.pack()
+
+Button(btns_frame, text="C", fg="black", width=32, height=3, bd=0, bg="#eee", cursor="hand2", command=lambda: bt_clear()).grid(row=0, column=0,
+                                                                                                                               columnspan=3, padx=1,
+                                                                                                                               pady=1)
+Button(btns_frame, text="/", fg="black", width=10, height=3, bd=0, bg="#eee", cursor="hand2", command=lambda: btn_click("/")).grid(row=0, column=3,
+                                                                                                                                   padx=1, pady=1)
+Button(btns_frame, text="7", fg="black", width=10, height=3, bd=0, bg="#fff", cursor="hand2", command=lambda: btn_click(7)).grid(row=1, column=0,
+                                                                                                                                 padx=1, pady=1)
+Button(btns_frame, text="8", fg="black", width=10, height=3, bd=0, bg="#fff", cursor="hand2", command=lambda: btn_click(8)).grid(row=1, column=1,
+                                                                                                                                 padx=1, pady=1)
+Button(btns_frame, text="9", fg="black", width=10, height=3, bd=0, bg="#fff", cursor="hand2", command=lambda: btn_click(9)).grid(row=1, column=2,
+                                                                                                                                 padx=1, pady=1)
+Button(btns_frame, text="*", fg="black", width=10, height=3, bd=0, bg="#eee", cursor="hand2", command=lambda: btn_click("*")).grid(row=1, column=3,
+                                                                                                                                   padx=1, pady=1)
+Button(btns_frame, text="4", fg="black", width=10, height=3, bd=0, bg="#fff", cursor="hand2", command=lambda: btn_click(4)).grid(row=2, column=0,
+                                                                                                                                 padx=1, pady=1)
+Button(btns_frame, text="5", fg="black", width=10, height=3, bd=0, bg="#fff", cursor="hand2", command=lambda: btn_click(5)).grid(row=2, column=1,
+                                                                                                                                 padx=1, pady=1)
+Button(btns_frame, text="6", fg="black", width=10, height=3, bd=0, bg="#fff", cursor="hand2", command=lambda: btn_click(6)).grid(row=2, column=2,
+                                                                                                                                 padx=1, pady=1)
+Button(btns_frame, text="-", fg="black", width=10, height=3, bd=0, bg="#eee", cursor="hand2", command=lambda: btn_click("-")).grid(row=2, column=3,
+                                                                                                                                   padx=1, pady=1)
+Button(btns_frame, text="1", fg="black", width=10, height=3, bd=0, bg="#fff", cursor="hand2", command=lambda: btn_click(1)).grid(row=3, column=0,
+                                                                                                                                 padx=1, pady=1)
+Button(btns_frame, text="2", fg="black", width=10, height=3, bd=0, bg="#fff", cursor="hand2", command=lambda: btn_click(2)).grid(row=3, column=1,
+                                                                                                                                 padx=1, pady=1)
+Button(btns_frame, text="3", fg="black", width=10, height=3, bd=0, bg="#fff", cursor="hand2", command=lambda: btn_click(3)).grid(row=3, column=2,
+                                                                                                                                 padx=1, pady=1)
+Button(btns_frame, text="+", fg="black", width=10, height=3, bd=0, bg="#eee", cursor="hand2", command=lambda: btn_click("+")).grid(row=3, column=3,
+                                                                                                                                   padx=1, pady=1)
+Button(btns_frame, text="0", fg="black", width=21, height=3, bd=0, bg="#fff", cursor="hand2", command=lambda: btn_click(0)).grid(row=4, column=0,
+                                                                                                                                 columnspan=2, padx=1,
+                                                                                                                                 pady=1)
+Button(btns_frame, text=".", fg="black", width=10, height=3, bd=0, bg="#eee", cursor="hand2", command=lambda: btn_click(".")).grid(row=4, column=2,
+                                                                                                                                   padx=1, pady=1)
+Button(btns_frame, text="=", fg="black", width=10, height=3, bd=0, bg="#eee", cursor="hand2", command=lambda: bt_equal()).grid(row=4, column=3,
+                                                                                                                               padx=1, pady=1)
+
+win.mainloop()
