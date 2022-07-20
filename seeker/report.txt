@@ -1,4 +1,43 @@
 --------------------------------------------------------------------------------
+ 2022-07-20 17:20:27.451027
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   snippet/.bashrc
+	modified:   snippet/install.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/Endereco.java
+	snippet/EnderecoRequest.java
+	snippet/NovoEnderecoController.java
+	snippet/PalestraEntityZupflix.java
+	snippet/Zupper.java
+	snippet/ZupperEntityZupflix.java
+	snippet/ZupperRepository.java
+	snippet/app_user_provisioner.py
+	snippet/cal.py
+	snippet/dfs_graph.java
+	snippet/fix_indices.py
+	snippet/generate_subs_w_images.py
+	snippet/histlog
+	snippet/ips_in_use.sh
+	snippet/resetxc
+	snippet/symlink.sh
+	snippet/tauk_test.py
+	snippet/tauk_welcome_test.py
+	snippet/timestamp.py
+	snippet/vm-backup.sh
+	snippet/watch.sh
+	snippet/x.env
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2022-07-19 17:25:16.050608
 --------------------------------------------------------------------------------
   On branch main
