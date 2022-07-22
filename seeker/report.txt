@@ -1,4 +1,51 @@
 --------------------------------------------------------------------------------
+ 2022-07-22 17:24:06.299292
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/Bertexample.py
+	deleted:    snippet/MacOS homebrew bash.sh
+	deleted:    snippet/QAP_PetFriensTesting_api.py
+	deleted:    snippet/QAP_PetFriensTesting_settings.py
+	deleted:    snippet/QAP_PetFriensTesting_tests_test_pet_friends.py
+	deleted:    snippet/admin.py
+	deleted:    snippet/fastio.py
+	deleted:    snippet/get_nightly.sh
+	deleted:    snippet/hostname.sh
+	deleted:    snippet/jax_snippets.py
+	deleted:    snippet/kube-architecture.sh
+	deleted:    snippet/label_binarize_workaround.py
+	deleted:    snippet/models.py
+	deleted:    snippet/startx-oc.sh
+	deleted:    snippet/test.py
+	deleted:    snippet/wifi_location.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/1-criar-cluster-kind.sh
+	snippet/10-criando-app.sh
+	snippet/2-usando-kubectl.sh
+	snippet/3-remover-cluster-kind.sh
+	snippet/5-criar-cluster-3-nos.sh
+	snippet/7-build-docker-image.sh
+	snippet/8-kind-load-image.sh
+	snippet/Dockerfile
+	snippet/boules3d.py
+	snippet/echo_to_raw.sh
+	snippet/loto_robo.py
+	snippet/reachy2021-unity-package-basketball-fixed.py
+	snippet/vc__handler__python.py
+	snippet/views.py
+	snippet/waydroid_cleanup.sh
+	snippet/yubikey-dvorak.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2022-07-21 17:18:16.075981
 --------------------------------------------------------------------------------
   On branch main
