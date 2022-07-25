@@ -1,0 +1,8 @@
+#date: 2022-07-25T17:04:57Z
+#url: https://api.github.com/gists/e734f66ee0cc767e85b903d8afe7fe28
+#owner: https://api.github.com/users/Javier-varez
+
+#!/bin/bash -ex
+
+$@ > /dev/null 2>&1 &
+disown $!
