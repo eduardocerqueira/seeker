@@ -1,0 +1,26 @@
+#date: 2022-07-29T17:08:47Z
+#url: https://api.github.com/gists/3b655bbd29a47d121c82a6e0e2a5297d
+#owner: https://api.github.com/users/renventura
+
+#!/bin/bash
+
+# Colors
+VP_NONE='\033[00m'
+VP_RED='\033[01;31m'
+VP_GREEN='\033[01;32m'
+VP_YELLOW='\033[01;33m'
+VP_PURPLE='\033[01;35m'
+VP_CYAN='\033[01;36m'
+VP_WHITE='\033[01;37m'
+VP_BOLD='\033[1m'
+VP_UNDERLINE='\033[4m'
+
+# Change to directory
+cd ~/Sites/$1
+
+# Delete WordPress database and files
+wp db drop --yes
+cd ~/Sites && rm -rf $1
+
+# Site creation success message
+echo -e "${VP_GREEN}Success:${VP_NONE} $1 deleted."

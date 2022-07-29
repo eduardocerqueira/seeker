@@ -1,0 +1,59 @@
+#date: 2022-07-29T17:08:47Z
+#url: https://api.github.com/gists/3b655bbd29a47d121c82a6e0e2a5297d
+#owner: https://api.github.com/users/renventura
+
+#!/bin/bash
+
+# Colors
+VP_NONE='\033[00m'
+VP_RED='\033[01;31m'
+VP_GREEN='\033[01;32m'
+VP_YELLOW='\033[01;33m'
+VP_PURPLE='\033[01;35m'
+VP_CYAN='\033[01;36m'
+VP_WHITE='\033[01;37m'
+VP_BOLD='\033[1m'
+VP_UNDERLINE='\033[4m'
+
+# Change current directory to Sites
+cd ~/Sites
+mkdir $1 && cd $1
+
+# Create WordPress site
+wp core download --version=latest
+wp config create --dbname=$1 --dbuser=root --dbhost=localhost --extra-php <<PHP
+define( 'WP_DEBUG', true );
+// Don't show errors on live sites (log them instead)
+if ( isset( \$_SERVER['SERVER_NAME'] ) && pathinfo( \$_SERVER['SERVER_NAME'], PATHINFO_EXTENSION ) != 'test' ) {
+	define( 'WP_DEBUG_DISPLAY', false );
+	define( 'WP_DEBUG_LOG', true );
+}
+PHP
+wp db create
+wp core install --url=$1.test --title="$2" --admin_user=admin --admin_password=admin --admin_email=admin@test.com
+
+# Make https
+# valet secure $1
+
+# # Handle plugins
+cd ~/Sites/$1/wp-content/plugins
+rm -rf *
+# cp -a ~/Dropbox/plugins/. .
+# wp plugin update --all
+# wp plugin activate --all
+
+# Handle themes
+cd ~/Sites/$1/wp-content/themes
+rm -rf *
+cp -a ~/Sites/3pupdates/wp-content/themes/. .
+wp theme update --all
+wp theme activate genesis-sample
+
+# Switch to wp-content directory
+# cd ~/Sites/$1/wp-content
+
+# Success message
+echo -e "${VP_GREEN}Success:${VP_NONE} $1 created."
+
+# Open site's wp-admin in Chrome
+open -a "/Applications/Google Chrome.app" "http://$1.test/wp-admin"
