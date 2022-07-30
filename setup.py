@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="seeker",
-    version="0.0.1",
+    version="0.0.2",
     author="Eduardo Cerqueira",
     author_email="eduardomcerqueira@gmail.com",
     description="seeking for code snippet",
