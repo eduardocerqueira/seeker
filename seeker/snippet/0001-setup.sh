@@ -1,0 +1,836 @@
+#date: 2022-07-30T18:52:10Z
+#url: https://api.github.com/gists/6930b722ba0f2b291d059c607f64c0af
+#owner: https://api.github.com/users/xddxdd
+
+#!/bin/bash
+# Copyright (c) 2001-2017, Parallels International GmbH
+# Copyright (c) 2017-2019 Virtuozzo International GmbH. All rights reserved.
+#
+# This file is part of OpenVZ libraries. OpenVZ is free software; you can
+# redistribute it and/or modify it under the terms of the GNU Lesser General
+# Public License as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA.
+#
+# Our contact details: Virtuozzo International GmbH, Vordergasse 59, 8200
+# Schaffhausen, Switzerland.
+
+# Set the sane umask
+umask 022
+
+# Error codes
+VZ_SYSTEM_ERROR=3
+VZ_INVALID_PARAMETER_SYNTAX=20
+VZ_FS_NO_DISK_SPACE=46
+VZ_FS_BAD_TMPL=47
+VZ_FS_NEW_VE_PRVT=48
+VZ_CHANGEPASS=74
+VZ_CANT_ADDIP=34
+VZ_IP_INUSE=78
+VZ_SET_RATE=80
+VZ_SET_ACCOUNT=81
+CP='/bin/cp -fp'
+WICKED=/etc/systemd/system/network.service
+[ -f /etc/fedora-release ] && CP='/bin/cp -f --preserve=mode,ownership'
+
+# Prints error message and exits
+# Parameters:
+#   $1 - error message
+#   $2 - exit code
+# Example of usage:
+#   error "Fatal error" 1
+function error()
+{
+	# print errors to stdout too
+	ERR=$?
+	echo "$SELFNAME ERROR: $1"
+	exit $2
+}
+
+# Puts line
+# NAME="value"
+# to config file. If NAME is found, line gets replaced,
+# otherwise it is added to the end of file.
+# Parameters:
+# $1 - config file
+# $2 - NAME
+# $3 - value
+function put_param()
+{
+	local file="$1"
+	local name="$2"
+	local value="$3"
+	local path
+
+	path=${file%/*}
+	if [ ! -d "${path}" ]; then
+		 mkdir -p ${path} || error "Unable to create dir ${path}" $VZ_FS_NO_DISK_SPACE
+	fi
+
+	if [ ! -e "${file}" ]; then
+		touch "${file}" || error "Can't change file $file" $VZ_FS_NO_DISK_SPACE
+	fi
+
+	${CP} ${file} ${file}.$$ || error "Can't copy file $file" $VZ_FS_NO_DISK_SPACE
+	if grep -E "^$name=.*" $file.$$ >/dev/null 2>&1; then
+		/bin/sed -e "s|^$name=.*|$name=\"$value\"|" < ${file} > ${file}.$$
+		if [ $? -ne 0 ]; then
+			rm -f ${file}.$$ 2>/dev/null
+			error "Can't change file $file" $VZ_FS_NO_DISK_SPACE
+		fi
+	else
+		echo "$name=\"$value\"" >> $file.$$ || error "Can't change file $file" $VZ_FS_NO_DISK_SPACE
+	fi
+
+	mv -f ${file}.$$ ${file} || rm -f ${file}.$$
+}
+
+# Adds value to variable NAME
+# in config file. If NAME is found, value gets added,
+# otherwise it is added to the end of file.
+# Parameters:
+# $1 - config file
+# $2 - NAME
+# $3 - value
+function add_param()
+{
+	local file=$1
+	local name=$2
+	local value=$3
+	local path
+
+	path=${file%/*}
+	if [ ! -d "${path}" ]; then
+		 mkdir -p ${path} || error "Unable to create dir ${path}" $VZ_FS_NO_DISK_SPACE
+	fi
+
+	if [ ! -e "${file}" ]; then
+		touch "${file}" || error "Can't change file $file" $VZ_FS_NO_DISK_SPACE
+	fi
+
+	${CP} ${file} ${file}.$$ || error "Can't copy file $file" $VZ_FS_NO_DISK_SPACE
+	if grep -qe "^$name=" $file.$$ >/dev/null 2>&1; then
+		/bin/sed -e "s|^$name=\"\(.*\)\"|$name=\"\1 $value \"|" < ${file} > ${file}.$$
+		if [ $? -ne 0 ]; then
+			rm -f ${file}.$$ 2>/dev/null
+			error "Can't change file $file" $VZ_FS_NO_DISK_SPACE
+		fi
+	else
+		echo "$name=\"$value\"" >> $file.$$ || error "Can't change file $file" $VZ_FS_NO_DISK_SPACE
+	fi
+
+	mv -f ${file}.$$ ${file} || rm -f ${file}.$$
+}
+
+function del_param()
+{
+	local file=$1
+	local name=$2
+	local value="$3"
+	local path
+
+	path=${file%/*}
+	if [ ! -d "${path}" ]; then
+		 mkdir -p ${path} || error "Unable to create dir ${path}" $VZ_FS_NO_DISK_SPACE
+	fi
+	if grep -qe "^$name=" $file >/dev/null 2>&1; then
+		${CP} ${file} ${file}.$$ || \
+			error "Can't copy file $file" $VZ_FS_NO_DISK_SPACE
+		if [ -z "${value}" ]; then
+			/bin/sed -e "/^${name}=.*/d" < ${file} > ${file}.$$
+		else
+			sed -e "s|^${name}=\(.*\)${value}\(.*\)|${name}=\1\2|" <${file} > ${file}.$$
+		fi
+		if [ $? -ne 0 ]; then
+			rm -f ${file}.$$ 2>/dev/null
+			error "Can't change file $file" $VZ_FS_NO_DISK_SPACE
+		fi
+		mv -f ${file}.$$ ${file} || rm -f ${file}.$$
+	fi
+}
+
+function del_param2()
+{
+	local file=$1
+	local name=$2
+	local path
+
+	path=${file%/*}
+	if [ ! -d "${path}" ]; then
+		 mkdir -p ${path} || error "Unable to create dir ${path}" $VZ_FS_NO_DISK_SPACE
+	fi
+	if grep -qe "^$name " $file >/dev/null 2>&1; then
+		${CP} ${file} ${file}.$$ || \
+			error "Can't copy file $file" $VZ_FS_NO_DISK_SPACE
+		/bin/sed -e "/^${name} .*/d" < ${file} > ${file}.$$
+		if [ $? -ne 0 ]; then
+			rm -f ${file}.$$ 2>/dev/null
+			error "Can't change file $file" $VZ_FS_NO_DISK_SPACE
+		fi
+		mv -f ${file}.$$ ${file} || rm -f ${file}.$$
+	fi
+}
+
+# Puts line
+# NAME value
+# to config file. If NAME is found, line gets replaced,
+# otherwise it is added to the end of file.
+# Parameters:
+# $1 - config file
+# $2 - NAME
+# $3 - value
+function put_param2()
+{
+	local file="$1"
+	local name="$2"
+	local value="$3"
+	local path;
+
+	path=${file%/*}
+	if [ ! -d "${path}" ]; then
+		 mkdir -p ${path} || error "Unable to create dir ${path}" $VZ_FS_NO_DISK_SPACE
+	fi
+
+	if [ ! -e "${file}" ]; then
+		touch "${file}" || error "Can't change file $file" $VZ_FS_NO_DISK_SPACE
+	fi
+
+	${CP} ${file} ${file}.$$ || error "Can't copy file $file" $VZ_FS_NO_DISK_SPACE
+	if grep -E "^\<$name\>" $file.$$ >/dev/null 2>&1; then
+		/bin/sed -e "s|^\<$name\>.*|$name $value|" < ${file} > ${file}.$$
+		if [ $? -ne 0 ]; then
+			rm -f ${file}.$$ 2>/dev/null
+			error "Can't change file $file" $VZ_FS_NO_DISK_SPACE
+		fi
+	else
+		echo "$name $value" >> $file.$$ || error "Can't change file $file" $VZ_FS_NO_DISK_SPACE
+	fi
+
+	mv -f ${file}.$$ ${file} || rm -f ${file}.$$
+}
+
+# Puts line
+# NAME=( value )
+# to config file. If NAME is found, line gets replaced,
+# otherwise it is added to the end of file.
+# Parameters:
+# $1 - config file
+# $2 - NAME
+# $3 - value
+function put_param3() {
+	local file=$1
+	local name=$2
+	local value=$3
+	local path
+
+	path=${file%/*}
+	if [ ! -d "${path}" ]; then
+		 mkdir -p ${path} || error "Unable to create dir ${path}" $VZ_FS_NO_DISK_SPACE
+	fi
+
+	if [ ! -e "${file}" ]; then
+		touch "${file}" || error "Can't change file $file" $VZ_FS_NO_DISK_SPACE
+	fi
+
+	${CP} ${file} ${file}.$$ || error "Can't copy file $file" $VZ_FS_NO_DISK_SPACE
+	if grep -E "^$name=\(.*\)" $file.$$ >/dev/null 2>&1; then
+		if [ -z "${value}" ]; then
+			/bin/sed -e "s|^$name=\(.*\)|$name=\( \)|" < ${file} > ${file}.$$
+		else
+			/bin/sed -e "s|^$name=\(.*\)|$name=\( \"$value\" \)|" < ${file} > ${file}.$$
+		fi
+		if [ $? -ne 0 ]; then
+			rm -f ${file}.$$ 2>/dev/null
+			error "Can't change file $file" $VZ_FS_NO_DISK_SPACE
+		fi
+	else
+		if [ -z "${value}" ]; then
+			echo "$name=( )" >> $file.$$ || error "Can't change file $file" $VZ_FS_NO_DISK_SPACE
+		else
+			echo "$name=( \"$value\" )" >> $file.$$ || error "Can't change file $file" $VZ_FS_NO_DISK_SPACE
+		fi
+	fi
+
+	mv -f ${file}.$$ ${file} || rm -f ${file}.$$
+
+}
+
+# Puts line
+# NAME=value
+# to config file. If NAME is found, line gets replaced,
+# otherwise it is added to the end of file.
+# Parameters:
+# $1 - config file
+# $2 - NAME
+# $3 - value
+function put_param4()
+{
+	local file="$1"
+	local name="$2"
+	local value="$3"
+	local path
+
+	path=${file%/*}
+	if [ ! -d "${path}" ]; then
+		 mkdir -p ${path} || error "Unable to create dir ${path}" $VZ_FS_NO_DISK_SPACE
+	fi
+
+	if [ ! -e "${file}" ]; then
+		touch "${file}" || error "Can't change file $file" $VZ_FS_NO_DISK_SPACE
+	fi
+
+	${CP} ${file} ${file}.$$ || error "Can't copy file $file" $VZ_FS_NO_DISK_SPACE
+	if grep -E "^$name=.*" $file.$$ >/dev/null 2>&1; then
+		/bin/sed -e "s|^$name=.*|$name=$value|" < ${file} > ${file}.$$
+		if [ $? -ne 0 ]; then
+			rm -f ${file}.$$ 2>/dev/null
+			error "Can't change file $file" $VZ_FS_NO_DISK_SPACE
+		fi
+	else
+		echo "$name=$value" >> $file.$$ || error "Can't change file $file" $VZ_FS_NO_DISK_SPACE
+	fi
+
+	mv -f ${file}.$$ ${file} || rm -f ${file}.$$
+}
+
+
+# Adds value to array NAME
+# in config file. If NAME is found, value gets added,
+# otherwise it is added to the end of file.
+# Parameters:
+# $1 - config file
+# $2 - NAME
+# $3 - value
+function add_param3() {
+	local file=$1
+	local name=$2
+	local value=$3
+	local path
+
+	path=${file%/*}
+	if [ ! -d "${path}" ]; then
+		 mkdir -p ${path} || error "Unable to create dir ${path}" $VZ_FS_NO_DISK_SPACE
+	fi
+
+	if [ ! -e "${file}" ]; then
+		touch "${file}" || error "Can't change file $file" $VZ_FS_NO_DISK_SPACE
+	fi
+
+	${CP} ${file} ${file}.$$ || error "Can't copy file $file" $VZ_FS_NO_DISK_SPACE
+	if grep -E "^$name=\(.*\)" $file.$$ >/dev/null 2>&1; then
+		/bin/sed -r "s|^$name=\((.*)\)|$name=\( \1 \"$value\" \)|" < ${file} > ${file}.$$
+		if [ $? -ne 0 ]; then
+			rm -f ${file}.$$ 2>/dev/null
+			error "Can't change file $file" $VZ_FS_NO_DISK_SPACE
+		fi
+	else
+		echo "$name=( \"$value\" )" >> $file.$$ || error "Can't change file $file" $VZ_FS_NO_DISK_SPACE
+	fi
+
+	mv -f ${file}.$$ ${file} || rm -f ${file}.$$
+}
+
+# Removes value from array NAME
+# in config file. If NAME is found, value gets removed,
+# otherwise this is a noop function.
+# Parameters:
+# $1 - config file
+# $2 - NAME
+# $3 - value
+function del_param3() {
+	local file=$1
+	local name=$2
+	local value=$3
+
+	[ ! -f $file ] && return
+
+	if grep -E "^$name=\(.*\)" $file>/dev/null 2>&1; then
+		${CP} ${file} ${file}.$$ || error "Can't copy file $file" $VZ_FS_NO_DISK_SPACE
+		/bin/sed -r "s|^($name=\( .*)\"$value\"(.* \))|\1\2|" < ${file} > ${file}.$$
+		if [ $? -ne 0 ]; then
+			rm -f ${file}.$$ 2>/dev/null
+			error "Can't change file $file" $VZ_FS_NO_DISK_SPACE
+		fi
+		mv -f ${file}.$$ ${file}
+	else
+		return
+	fi
+}
+
+function remove_debian_interface_by_proto()
+{
+	local dev="$1"
+	local proto=$2
+	local cfg="$3"
+
+	${CP} ${cfg} ${cfg}.$$ || \
+		error "Can't copy file ${cfg}" $VZ_FS_NO_DISK_SPACE
+
+	awk '
+		NF == 0 {next}
+		line=""
+		$1 == "auto" && $2 ~/'${dev}'$/ {line=$0; getline;}
+		$1 == "iface" && $3 ~/'$proto'$/ && $2 ~/'${dev}'$/ {skip = 1; next}
+		line != "" && !skip {print line}
+		line=""
+		$1 == "auto" && $2 ~/'${dev}':[0-9]+$/ {line=$0; getline;}
+		$1 == "iface" && $3 ~/'$proto'$/ && $2 ~/'${dev}':[0-9]+$/ {skip = 1; next}
+		line != "" && !skip {print line}
+		/^\t/ && skip {next}
+		{skip = 0; print}
+	' < ${cfg} > ${cfg}.$$ && mv -f ${cfg}.$$ ${cfg}
+
+	rm -f ${cfg}.$$ 2>/dev/null
+}
+
+function remove_debian_interface()
+{
+	local dev="$1"
+	local cfg="$2"
+
+	${CP} ${cfg} ${cfg}.$$ || \
+		error "Can't copy file ${cfg}" $VZ_FS_NO_DISK_SPACE
+
+	awk '
+		NF == 0 {next}
+		$1 == "auto" && $2 ~/'${dev}'$/ {next}
+		$1 == "iface" && $2 ~/'${dev}'$/ {skip = 1; next}
+		/^\t/ && skip {next}
+		{skip = 0; print}
+	' < ${cfg} > ${cfg}.$$ && mv -f ${cfg}.$$ ${cfg}
+
+	rm -f ${cfg}.$$ 2>/dev/null
+}
+
+restore_debian_venet_route()
+{
+	local proto=$1
+	local cmd iproto
+	local cfg=/etc/network/interfaces
+
+	if [ "$proto" = "-6" ]; then
+		iproto=inet6
+		cmd='up ip -6 r a default dev venet0'
+	else
+		iproto=inet
+		cmd='up route add default dev venet0'
+	fi
+
+	if grep -qe "$cmd" ${cfg}; then
+		return 0
+	fi
+
+	${CP} ${cfg} ${cfg}.$$ || \
+		error "Can't copy file ${cfg}" $VZ_FS_NO_DISK_SPACE
+
+	awk '
+		NF == 0 {next}
+		/^\t/ { print; next ;}
+		addgw { print "\t'"$cmd"'"; addgw=0; print; next }
+		$1 == "iface" && $2 == "venet0" && $3 == "'"$iproto"'" { addgw=1 }
+		{print}
+	' < ${cfg} > ${cfg}.$$ && mv -f ${cfg}.$$ ${cfg}
+
+	ip $proto r r default dev venet0 2>/dev/null
+	rm -f ${cfg}.$$
+}
+
+function add_debian_ip6()
+{
+	local ips=$1
+	local cfg=/etc/network/interfaces
+	local i c ip
+
+	[ "${IPV6}" != "yes" ] && return
+	[ -z "$ips" ] && return
+
+	${CP} ${cfg} ${cfg}.$$ || \
+		error "Can't copy file ${cfg}" $VZ_FS_NO_DISK_SPACE
+
+	for ip in $ips; do
+		if [ -z "$i" ]; then
+			i="address $ip"
+		else
+			i="$i
+	up ip addr add $ip dev venet0"
+		fi
+	done
+
+	if ! grep -qe "auto ${VENET_DEV}" ${CFGFILE} 2>/dev/null; then
+		c="auto ${VENET_DEV}"
+	fi
+
+	echo "$c
+iface ${VENET_DEV} inet6 static
+	${i}
+	up ip -6 r a default dev ${VENET_DEV}" >> ${cfg}.$$ && mv -f ${cfg}.$$ ${cfg}
+	rm -f ${cfg}.$$
+}
+
+function change_hostname()
+{
+	local cfg="$1"
+	local host="$2"
+	local ip="$3"
+	local comm='# Auto-generated hostname. Please do not remove this comment.'
+
+	[ -f "${cfg}" ] || touch ${cfg}
+	if [ "${host}" = "localhost" -o "${host}" = "localhost.localdomain" ];
+	then
+		put_param2 ${cfg} "127.0.0.1" "localhost.localdomain localhost"
+		return
+	fi
+	${CP} ${cfg} ${cfg}.$$ || \
+		error "Can't copy file ${cfg}" $VZ_FS_NO_DISK_SPACE
+	awk -v ip="${ip}" -v host="${host}" -v comm="${comm}" '
+	BEGIN {found = 0; skip = 0}
+	$0 == comm {found = 1; next}
+	found {
+		if (ip == "") {ip = $1}
+		found = 0;
+		next;
+	}
+	$0 ~ "\\<" host "\\>" {
+		if (!skip) {
+			skip = 1;
+		} else {
+			next;
+		}
+	}
+	{print}
+	END {
+		if (skip) exit 0;
+		if (ip == "") { ip ="127.0.0.1" }
+		print comm;
+		alias=""
+		if ((i=index(host, ".")) > 1) {
+			alias=substr(host, 1, i - 1);
+		}
+		print ip " " host " " alias;
+	}
+	' < ${cfg} > ${cfg}.$$
+	if [ $? -ne 0 ]; then
+		rm -f ${cfg}.$$ 2>/dev/null
+		error "Can't change file ${cfg}" $VZ_FS_NO_DISK_SPACE
+	fi
+	mv -f ${cfg}.$$ ${cfg} || rm -f ${cfg}.$$
+}
+
+function is_ipv6()
+{
+	if [ "${1#*:}" != "${1}" ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+function get_netmask()
+{
+	local dev=$1
+	local ip=$2
+
+	ip a l dev $dev 2>/dev/null | grep -e "inet[6]* ${ip}/" | sed -e 's/[^\/]*\/\([0-9]*\).*/\1/'
+}
+
+check_dhcp()
+{
+	for pkg in dhcpcd dhclient; do
+		for p in /sbin /usr/sbin; do
+			if [ -x $p/$pkg ]; then
+				return
+			fi
+		done
+	done
+	echo "Warning: DHCP client daemon not found"
+}
+
+check_dhcp_ipv6()
+{
+	for p in /sbin /usr/sbin; do
+		if [ -x $p/dhcp6c ]; then
+			return
+		fi
+	done
+	dhclient --help 2>&1 | grep -q -w -- -6 2>/dev/null
+	if [ $? -eq 0 ]; then
+		return
+	fi
+	echo "Warning: DHCP IPv6 client daemon not found"
+}
+
+is_default_route_configured()
+{
+	local dev=
+	local proto=$2
+
+	[ -n "$1" ] && dev="dev $1"
+ 
+	if ip $proto l r $dev 2>/dev/null | grep -qe "^default"; then
+		echo yes
+		return 0
+	else
+		echo no
+		return 1
+	fi
+}
+
+cleanup_vzquota()
+{
+	rm -f ${SCRIPTNAME}
+	rm -f /etc/mtab
+	ln -sf /proc/mounts /etc/mtab
+}
+
+is_quota_support_ext4()
+{
+	grep -q usrquota /proc/mounts && return 0
+
+	quotacheck -V | awk '/ version /{
+	i=split($4, a, ".");
+	if (i < 2) {
+		print("Unable to detect quota version: "$0);
+		exit 1;
+	}
+	if (a[1] >= 4) {
+		exit 0;
+	}
+	if (a[1] < 3 || (a[1] == 3 && a[2] < 17)) {
+		print "Old quota version detected " $0 " Quota should be > 3.16";
+		exit 1;
+	}
+}'
+}
+
+setup_quota()
+{
+	[ -f "$SCRIPTNAME" ] && cleanup_vzquota
+
+	if [ -z "$UGIDLIMIT" ]; then
+		quotaoff -a
+		rm -f /aquota.user /aquota.group 2>/dev/null
+	elif [ ! -f "/aquota.user" -o ! -f "/aquota.group" ]; then
+		is_quota_support_ext4 || exit 1
+	fi
+}
+
+is_wicked()
+{
+	readlink ${WICKED} 2>/dev/null | grep wicked > /dev/null
+	return $?
+}
+#!/bin/bash
+# Copyright (c) 1999-2017, Parallels International GmbH
+# Copyright (c) 2017-2019 Virtuozzo International GmbH. All rights reserved.
+#
+# This file is part of OpenVZ libraries. OpenVZ is free software; you can
+# redistribute it and/or modify it under the terms of the GNU Lesser General
+# Public License as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301, USA.
+#
+# Our contact details: Virtuozzo International GmbH, Vordergasse 59, 8200
+# Schaffhausen, Switzerland.
+#
+# This script configure IP alias(es) inside VPS for Debian like distros.
+#
+# Parameters are passed in environment variables.
+# Required parameters:
+#   IP_ADDR       - IP address(es) to add
+#                   (several addresses should be divided by space)
+# Optional parameters:
+#   VE_STATE      - state of VPS; could be one of:
+#                     starting | stopping | running | stopped
+#   IPDELALL      - delete all ip addresses
+#
+VENET_DEV=venet0
+CFGFILE=/etc/network/interfaces
+HOSTFILE=/etc/hosts
+USE_INET6=yes
+
+function fix_networking_conf()
+{
+	local cfg=/etc/init/networking.conf
+
+	[ ! -f ${cfg} ] && return 0
+
+	if grep -q "udevtrigger" ${cfg} 2>/dev/null; then
+		grep -v udevtrigger ${cfg} | \
+			sed "s,(local-filesystems,local-filesystems,g" > ${cfg}.tmp && \
+			mv -f ${cfg}.tmp ${cfg}
+	fi
+}
+
+function setup_network()
+{
+	echo -e "# This configuration file is auto-generated.
+# WARNING: Do not edit this file, otherwise your changes will be lost.
+# Please edit template $CFGFILE.template instead.
+" > ${CFGFILE}
+
+	if [ -f ${CFGFILE}.template ]; then
+		cat ${CFGFILE}.template >> ${CFGFILE}
+	fi
+	if ! grep -qw lo ${CFGFILE}; then
+		echo "auto lo
+iface lo inet loopback" >> ${CFGFILE}
+	fi
+	# Set up /etc/hosts
+	if [ ! -f $HOSTFILE ]; then
+		echo "127.0.0.1 localhost.localdomain localhost" > $HOSTFILE
+	fi
+	[ -z "${IP_ADDR}" ] && return
+	echo -e "
+# Auto generated venet0 interfaces
+auto ${VENET_DEV}
+iface ${VENET_DEV} inet static
+	address 127.0.0.1
+	netmask 255.255.255.255
+	broadcast 0.0.0.0" >> ${CFGFILE}
+	if [ "x${VE_STATE}" = "xstarting" -o "$(is_default_route_configured)" = "no" ]; then
+		echo -e "\tup route add default dev ${VENET_DEV}" >> ${CFGFILE}
+	fi
+
+	fix_networking_conf
+}
+
+function add_ip()
+{
+	local dev=$1
+	local ip=$2
+	local mask=$3
+	local cfg=
+
+	if ! grep -qe "auto $dev$" ${CFGFILE} 2>/dev/null; then
+		cfg="auto ${dev}"
+	fi
+	cfg="$cfg
+iface ${dev} inet static
+	address ${ip}"
+	if [ -z "${mask}" ]; then
+		mask=255.255.255.255
+	fi
+	cfg="${cfg}
+	netmask ${mask}"
+	echo -e "${cfg}\n" >> ${CFGFILE}
+}
+
+function add_ip6_alias()
+{
+	local ip=$1
+
+	awk '
+		BEGIN {found = 0}
+		NF == 0 {next}
+		!found && $1 == "iface" && $2 ~/'${VENET_DEV}'$/ && $3 == "inet6" {
+			found = 1;
+			print;
+			next;
+		}
+		found == 1 && !/^\t/{
+			print "\tup ip addr add '$ip' dev venet0";
+			found++;
+		}
+		{print}
+		END {
+			if (found == 1) {
+				print "\tup ip addr add '$ip' dev venet0";
+			}
+		}
+	' < ${CFGFILE} > ${CFGFILE}.$$ && mv -f ${CFGFILE}.$$ ${CFGFILE}
+	rm -f ${CFGFILE}.$$ 2>/dev/null
+}
+
+function get_all_aliasid()
+{
+	IFNUM=-1
+	IFNUMLIST=`grep -e "^auto ${VENET_DEV}:.*$" ${CFGFILE} 2>/dev/null | sed 's/^auto '${VENET_DEV}'://'`
+}
+
+function get_free_aliasid()
+{
+	# no main iface
+	grep -qe "^iface ${VENET_DEV} inet " ${CFGFILE} >/dev/null || return 0
+
+	[ -z "${IFNUMLIST}" ] && get_all_aliasid
+	while true; do
+		let IFNUM=IFNUM+1
+		echo "${IFNUMLIST}" | grep -q -E "^${IFNUM}$" 2>/dev/null || break
+	done
+	return 1
+}
+
+function setup()
+{
+	local ipm ip mask
+	local found
+	local dev=$VENET_DEV
+
+	# IPv6 is not supported for ubuntu-8.04
+	if grep -q "lenny" /etc/debian_version 2>/dev/null; then
+		USE_INET6=no
+	fi
+	if [ "${VE_STATE}" = "starting" ]; then
+		setup_network
+	elif ! grep -q "^auto ${VENET_DEV}\$" ${CFGFILE} 2>/dev/null; then
+		setup_network
+	fi
+	if [ "${IPDELALL}" = "yes" ]; then
+		ifdown ${VENET_DEV} >/dev/null 2>&1
+		remove_debian_interface "${VENET_DEV}:[0-9]*" ${CFGFILE}
+		setup_network
+	fi
+	for ipm in ${IP_ADDR}; do
+		ip=${ipm%%/*}
+		[ -z "${ip}" ] && continue
+		mask=
+		if echo "${ipm}" | grep -q '/'; then
+			mask=${ipm##*/}
+		fi
+
+		if grep -qw -e "^[[:space:]]*address $ip" -e "^[[:space:]]*up ip addr add $ip" ${CFGFILE} 2>/dev/null; then
+			continue
+		fi
+
+		if is_ipv6 "${ip}"; then
+			[ -z "$mask" ] && mask=128
+			if grep -q "iface ${dev} inet6" ${CFGFILE} 2>/dev/null; then
+				add_ip6_alias "${ip}/${mask}"
+			else
+				add_debian_ip6 "${ip}/${mask}"
+			fi
+		else
+			get_free_aliasid
+			if [ $? -ne 0 ]; then
+				add_ip "${dev}:${IFNUM}" "${ip}" "${mask}"
+			else
+				add_ip "${dev}" "${ip}" "${mask}"
+			fi
+		fi
+	done
+	if [ "x${VE_STATE}" = "xrunning" ]; then
+		/sbin/ifdown venet0 2>/dev/null
+		/sbin/ifup -a --force 2>/dev/null
+	fi
+}
+
+setup
+exit 0
