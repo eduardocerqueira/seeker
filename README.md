@@ -1,4 +1,11 @@
-# seeker
+# Code Seeker
+
+# TODO
+1. obfuscation sensitive data
+2. snippet dentro folder
+3. improve report
+4. release
+5. README (pre-commit run --all)
 
 find code snippets based on [configuration](seeker/seeker.conf)
 
@@ -21,13 +28,18 @@ find/get -> purge -> push
 * GitHub OauthAPI GITHUB_TOKEN
 * Python 3
 
+## Setup dev env
+
+```shell
+git clone git@github.com:eduardocerqueira/seeker.git
+cd seeker
+sh ops/scripts/set_dev_env.sh
+```
+
 ## Build
 
 ```shell
 sh ops/scripts/egg_build.sh
-
-# or manually
-python3 -m pip install --upgrade build
 ```
 
 ## Install
@@ -61,7 +73,7 @@ check [report](seeker/report.txt)
 ```shell
 # build
 sh ops/scripts/docker_build.sh
-# manually 
+# manually
 docker build --build-arg SEEKER_RUN="--test" -t seeker -f Dockerfile . --network host
 
 # run

@@ -1,9 +1,0 @@
-#date: 2022-05-05T16:56:58Z
-#url: https://api.github.com/gists/23504701a79862d30e40e83ac65849c7
-#owner: https://api.github.com/users/cgranade
-
-#!/bin/bash
-set -e
-
-echo "Hello!"
-touch ~/hello

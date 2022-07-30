@@ -10,5 +10,3 @@ curl -H "Accept: application/vnd.github.v3+json" https://api.github.com/gists/se
 curl -H "Accept: application/vnd.github.v3+json" https://api.github.com/search/code
 curl -H "Accept: application/vnd.github.v3+json" https://api.github.com/search/repositories
 ```
-
-
