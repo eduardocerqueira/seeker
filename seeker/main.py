@@ -1,9 +1,9 @@
 import click
 import logging
 from seeker.provider import Gists
-from seeker.util import git_push, purge
+from seeker.util import git_push, purge, obfuscate
 
-logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
 
 
 def run():
@@ -14,12 +14,14 @@ def run():
     g.get()
     logging.info("purging old snippets")
     purge()
+    logging.info("obfuscating sensitive data")
+    obfuscate()
     logging.info("pushing to repo")
     git_push()
 
 
 @click.command()
-@click.option('--test', is_flag=True, help="test seeker app")
+@click.option("--test", is_flag=True, help="test seeker app")
 def cli(test):
     if test:
         click.echo("seeker is fine!")
@@ -27,5 +29,5 @@ def cli(test):
     run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()

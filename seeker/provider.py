@@ -1,3 +1,5 @@
+import sys
+
 import requests
 from os import getenv
 from os.path import join
@@ -12,7 +14,12 @@ class Gists:
     user = get_config(_config, "user")
 
     def __init__(self):
-        assert getenv("GITHUB_TOKEN"), "Missing github TOKEN env variable"
+        try:
+            if not getenv("GITHUB_TOKEN"):
+                raise RuntimeError
+        except RuntimeError:
+            print("Missing github TOKEN env variable, GITHUB_TOKEN")
+            sys.exit(1)
 
     def get(self):
         session = requests.Session()
@@ -23,15 +30,17 @@ class Gists:
 
         for gist in resp:
             comment = "#"
-            for k, v in gist['files'].items():
-                if v['language'] in self.filter:
-                    if str(v['language']).lower() in ["go", "java"]:
+            for k, v in gist["files"].items():
+                if v["language"] in self.filter:
+                    if str(v["language"]).lower() in ["go", "java"]:
                         comment = "//"
-                    file_content = session.get(v['raw_url'])
-                    with open(join("./snippet", v['filename']), 'w') as snippet:
-                        data_header = f"{comment}date: {gist['created_at']}\n" \
-                                      f"{comment}url: {gist['url']}\n" \
-                                      f"{comment}owner: {gist['owner']['url']}"
+                    file_content = session.get(v["raw_url"])
+                    with open(join("./snippet", v["filename"]), "w") as snippet:
+                        data_header = (
+                            f"{comment}date: {gist['created_at']}\n"
+                            f"{comment}url: {gist['url']}\n"
+                            f"{comment}owner: {gist['owner']['url']}"
+                        )
                         data_body = f"{data_header}\n\n{file_content.text}"
                         snippet.write(data_body)
 
@@ -41,11 +50,15 @@ class GitHub:
     gh = Github(login_or_token=getenv("TOKEN"))
 
     def get_repo(self):
-        repos = self.gh.search_repositories(query='language:python', sort='stars', order='desc')
+        repos = self.gh.search_repositories(
+            query="language:python", sort="stars", order="desc"
+        )
         for repo in repos:
             if "public-apis" in repo.full_name:
                 continue
-            print(f"{repo.full_name} {repo.stargazers_count} {repo.forks_count} {repo.language}")
+            print(
+                f"{repo.full_name} {repo.stargazers_count} {repo.forks_count} {repo.language}"
+            )
 
     # repos = gh.search_repositories(query='filename:performance', sort='stars', order='desc')
     # for repo in repos:

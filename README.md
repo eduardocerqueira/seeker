@@ -1,10 +1,18 @@
-# seeker
+# Code Seeker
 
-find code snippets based on [configuration](seeker/seeker.conf)
+Code seeker is *in-development* repo for education purposes. The idea behind seeker is simply a BOT that seeks for
+latest new source codes pushed to random open source projects and public repositories hosted in Github, collecting
+code snippet for later to be analyzed.
 
-**life cycle**
+**The basic life-cyle is:**
 
-find/get -> purge -> push
+find & collect -> obfuscate -> purge (previous run) -> push
+
+1. seeker bot runs every day through [Github workflow](.github/workflows/run-seeker.yml)
+2. using Github API it searches for public repos and collects source code snippets based on a [configuration](seeker/seeker.conf)
+3. using obfuscation mechanism seeker bot will override any sensitive data from the snippets collected
+4. a header is added for each snippet as references for the source repo, author and file
+5. purges the local snippet, collected from the previous run and push the new snippets to [snippet folder](seeker/snippet)
 
 **report**
 
@@ -21,13 +29,18 @@ find/get -> purge -> push
 * GitHub OauthAPI GITHUB_TOKEN
 * Python 3
 
+## Setup dev env
+
+```shell
+git clone git@github.com:eduardocerqueira/seeker.git
+cd seeker
+sh ops/scripts/set_dev_env.sh
+```
+
 ## Build
 
 ```shell
 sh ops/scripts/egg_build.sh
-
-# or manually
-python3 -m pip install --upgrade build
 ```
 
 ## Install
@@ -61,13 +74,21 @@ check [report](seeker/report.txt)
 ```shell
 # build
 sh ops/scripts/docker_build.sh
-# manually 
+# manually
 docker build --build-arg SEEKER_RUN="--test" -t seeker -f Dockerfile . --network host
 
 # run
 sh ops/scripts/docker_run.sh
 # manually
 docker run -e GITHUB_TOKEN=$GITHUB_TOKEN -e GITHUB_USERNAME="eduardocerqueira" -e GITHUB_EMAIL="eduardomcerqueira@gmail.com" -it seeker /bin/bash
+```
+
+## Contributing
+
+Feel free to send PR's and/or file issues. Please remember running black as showing below before sending your PR.
+
+```shell
+pre-commit run --all
 ```
 
 ## Links

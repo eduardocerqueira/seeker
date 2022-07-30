@@ -19,12 +19,12 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "Operating System :: Linux",
     ],
-    packages=setuptools.find_packages(),
-    install_requires=['requests>=2.20.0', 'PyGithub>=1.55', 'click>=8.0.0'],
-    py_modules=['seeker'],
+    packages=setuptools.find_packages(include=["seeker", "seeker.*"]),
+    install_requires=["requests>=2.20.0", "PyGithub>=1.55", "click>=8.0.0"],
+    py_modules=["seeker"],
     entry_points={
-        'console_scripts': [
-            'seeker = seeker.main:cli',
+        "console_scripts": [
+            "seeker = seeker.main:cli",
         ],
     },
 )
