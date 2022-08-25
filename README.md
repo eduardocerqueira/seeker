@@ -6,7 +6,7 @@ code snippet for later to be analyzed.
 
 **The basic life-cyle is:**
 
-find & collect -> obfuscate -> purge (previous run) -> push
+![workflow](docs/seeker-workflow.png)
 
 1. seeker bot runs every day through [Github workflow](.github/workflows/run-seeker.yml)
 2. using Github API it searches for public repos and collects source code snippets based on a [configuration](seeker/seeker.conf)
