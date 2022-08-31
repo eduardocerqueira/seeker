@@ -1,48 +1,29 @@
-#date: 2022-08-30T17:08:29Z
-#url: https://api.github.com/gists/549be85bb5de2d98025fa7178d48b62d
-#owner: https://api.github.com/users/gaycookie
+#date: 2022-08-31T16:55:02Z
+#url: https://api.github.com/gists/2f09c0e569aa5e5120edbc22ad74aa84
+#owner: https://api.github.com/users/mypy-play
 
-from threading import Timer
-from requests import request
-import sqlite3
+from typing import NoReturn
 
-api_url = "https://socialclub.rockstargames.com/events/eventlisting?pageId=1&gameId=GTAV"
-article_url = "https://socialclub.rockstargames.com/events/{}/{}"
-webhook_url = ""
+def assert_never(x: NoReturn) -> NoReturn:
+    raise AssertionError(f"Invalid value: {x!r}")
+    
+class BaseAnimal:
+    pass
 
-def init_database():
-  db_conn = sqlite3.connect("database.sqlite")
-  cursor = db_conn.cursor()
-  cursor.execute("CREATE TABLE IF NOT EXISTS articles (hash varchar(16) PRIMARY KEY, slug text);")
-  db_conn.close()
+class Dog(BaseAnimal):
+    pass
 
-def main():
-  db_conn = sqlite3.connect("database.sqlite")
-  req = request("get", api_url)
-  data = req.json()
-  
-  for article in data["events"]:
-    if article["isLive"] == True:
-      cursor = db_conn.cursor()
-      cursor.execute("SELECT * FROM articles WHERE hash = ?;", (article["urlHash"], ))
-      stored = cursor.fetchone()
+class Cat(BaseAnimal):
+    pass
 
-      if not stored:
-        cursor = db_conn.cursor()
-        cursor.execute("INSERT INTO articles (hash, slug) VALUES (?, ?);", (article["urlHash"], article["slug"]))
-        db_conn.commit()
+Animal = Dog | Cat
 
-        request("post", webhook_url, json={
-          "username": "Newswire",
-          "avatar_url": "https://editors.dexerto.com/wp-content/uploads/2021/11/17/GTA-Vice-City-Rockstar-Logo.jpg",
-          "content": "[{}]({})".format(article["headerText"], article_url.format(article["urlHash"], article["slug"]))
-        })
+x: Animal = Dog()
 
-        print(article["headerText"])
-
-  db_conn.close()
-  Timer(60 * 30, main).start()
-
-if __name__ == "__main__":
-  init_database()
-  main()
+if isinstance(x, Dog):
+    print("dog")
+# elif isinstance(x, Cat):
+#     print("cat")
+else:
+    assert_never(x)
+    

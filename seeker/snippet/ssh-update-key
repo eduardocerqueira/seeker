@@ -1,0 +1,51 @@
+#date: 2022-08-31T17:06:12Z
+#url: https://api.github.com/gists/989d4196ee782e06b686d7c6a2e23d40
+#owner: https://api.github.com/users/jasonhildebrand
+
+#!/bin/bash
+
+# The use case is that I have an 1024-bit RSA key which I have used for many years to access many remote servers.
+# I want to stop using it (don't load it into my ssh-agent), and instead use my new ED25519 key.  
+# I need a convenient way to update the authorized_keys file on a remote server.
+
+# This solution is tested and working on Ubuntu 20.04 host
+# It works on many distributions/versions of remote servers, including Ubuntu 16.04/18.04/22.04 and CentOS 7.9.
+
+# Instructions:
+# Set the two variables below
+# Invoke using: ssh-update-key account@someserver.com
+
+### Configuration
+
+# Create ~/.ssh/deprecated directory and move your deprecated key (private and pub) into there.  Then set this variable.
+deprecated_key=id_rsa
+
+# Set this variable to your preferred key.  Should be located in ~/.ssh
+preferred_key=id_ed25519
+
+
+### Script 
+
+# create symlink, so that ssh-agent will find and load the deprecated key
+# (this happens automatically for me on Ubuntu 20.04)
+(cd ~/.ssh && 
+ln -s deprecated/$deprecated_key . && 
+ln -s deprecated/$deprecated_key.pub . 
+)
+
+# copy the preferred key to the remote server
+ssh-copy-id -i ~/.ssh/$preferred_key "$@"
+
+# now remove symlinks (only if they are symlinks - don't want an accident)
+(cd ~/.ssh &&
+ [ -L $deprecated_key ] && rm $deprecated_key &&
+ [ -L $deprecated_key.pub ] && rm $deprecated_key.pub
+)
+# ssh-agent does not reliably remove keys if the files are removed.
+# kill it to make sure.  For me on Ubuntu 20.04 it respawns automatically.
+killall ssh-agent
+
+# Now remove deprecated key from remote authorized_keys file
+# the awk regex escapes / characters which would otherwise mess up sed.
+ssh "$@" -o PasswordAuthentication= "**********"
+ '/$(awk '{gsub(/\//, "\\/"); print $2}' ~/.ssh/deprecated/$deprecated_key.pub)/d' ~/.ssh/authorized_keys"
