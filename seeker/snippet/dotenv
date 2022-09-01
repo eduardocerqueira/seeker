@@ -1,0 +1,7 @@
+#date: 2022-09-01T16:47:34Z
+#url: https://api.github.com/gists/793ee7afc16022885bb9e67add6fd46d
+#owner: https://api.github.com/users/selfawaresoup
+
+#!/usr/bin/env bash
+
+set -a; source .env; set +a; $@
