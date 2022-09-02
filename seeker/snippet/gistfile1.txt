@@ -1,0 +1,14 @@
+#date: 2022-09-02T17:06:30Z
+#url: https://api.github.com/gists/384c02f9ba4d64940dcf8a2052c28538
+#owner: https://api.github.com/users/tabish121
+
+#!/bin/sh
+# usage: get-release.sh https://dist.apache.org/repos/dist/dev/activemq/activemq-artemis/2.25.0
+wget -r -nH -nd -np -R index.html* -e robots=off $1
+
+echo "Checking SHA512 checksums"
+shasum -c *.sha512
+echo "Checking signatures"
+find . -name "*.asc" -exec gpg --verify {} \;
+
+
