@@ -1,19 +1,21 @@
-//date: 2022-09-05T17:07:43Z
-//url: https://api.github.com/gists/44b5217461a2e41c60f451393b270c97
-//owner: https://api.github.com/users/BetterProgramming
+//date: 2022-09-06T17:03:46Z
+//url: https://api.github.com/gists/acab39c37451d0ece5b186e6d46d6806
+//owner: https://api.github.com/users/Umenezumi
 
 package main
-import (
- "context"
-"github.com/aws/aws-lambda-go/events"
- "github.com/aws/aws-lambda-go/lambda"
-)
-func GenerateResponse(Body string, Code int) events.APIGatewayProxyResponse {
- return events.APIGatewayProxyResponse{Body: Body, StatusCode: Code, }
-}
-func HandleRequest(_ context.Context, request events.LambdaFunctionURLRequest) (events.APIGatewayProxyResponse, error) {
- return GenerateResponse("Hello World", 200), nil
-}
+
+import "fmt"
+
 func main() {
- lambda.Start(HandleRequest)
+
+	array := []string{"a1", "b1", "c1", "d1", "e1"}
+	fmt.Println(array)      // [a1 b1 c1 d1 e1]
+	fmt.Println(len(array)) // 5
+	fmt.Println(cap(array)) // 5
+
+	array2 := array
+	array2[0] = "f1"
+
+	fmt.Println(array)  // [f1 b1 c1 d1 e1]
+	fmt.Println(array2) // [f1 b1 c1 d1 e1]
 }
