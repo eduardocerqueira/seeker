@@ -1,8 +1,12 @@
-#date: 2022-09-08T17:10:58Z
-#url: https://api.github.com/gists/2ab88f75349ce0fce60179d6ab227b92
-#owner: https://api.github.com/users/ThVODKA
+#date: 2022-09-13T17:16:44Z
+#url: https://api.github.com/gists/4b7c7d5c0b2fc58229078197d11bd4db
+#owner: https://api.github.com/users/olegveisa
 
-def yaz(de):
-  print(de)
+price_btc = int(input())
+print('What is Bitcoin price today?', price_btc, sep = '\n')
 
-yaz("Hello World")
+money = int(input())
+print('How much $ do you have?', money, sep = '\n')
+
+btc = money / price_btc
+print(f"You can buy {btc} BTC")
