@@ -23,5 +23,6 @@ curl \
 --request POST \
 --data 'client_id= "**********"=[Application Client Secret]&refresh_token=[Refresh token granted by second step]&grant_type=refresh_token' \
 https: "**********"
-https: "**********"d by second step]&grant_type=refresh_token' \
+https: "**********"
+https: "**********"ant_type=refresh_token' \
 https://accounts.google.com/o/oauth2/token

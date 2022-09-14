@@ -1,5 +1,5 @@
-#date: 2022-09-13T17:17:12Z
-#url: https://api.github.com/gists/5985857989d3b2cbc0236ff82492655b
+#date: 2022-09-14T17:24:54Z
+#url: https://api.github.com/gists/739690d14175c43debcd72962eef7a45
 #owner: https://api.github.com/users/pkrawczyk437
 
 class HelloWorld:
