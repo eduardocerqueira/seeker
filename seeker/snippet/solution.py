@@ -1,15 +1,19 @@
-#date: 2022-09-08T17:21:16Z
-#url: https://api.github.com/gists/5a68fe2f7dd412b06fa73fa15fe7d17c
+#date: 2022-09-15T17:10:00Z
+#url: https://api.github.com/gists/d0a5e9b5cd183f5c0ea1b9b243305714
 #owner: https://api.github.com/users/mateidanut
 
 class Solution:
-    def thousandSeparator(self, n: int) -> str:
-        inverted_s = str(n)[::-1]
-        lst = []
-        for i, c in enumerate(inverted_s):
-            if i % 3 == 0:
-                lst.append('.')
-            lst.append(c)
-            
-        normal_s = ''.join(lst[1:])[::-1]
-        return normal_s
+    def countGoodTriplets(self, arr: List[int], a: int, b: int, c: int) -> int:
+        count = 0
+        
+        for i in range(len(arr)):
+            for j in range(i+1, len(arr)):
+                for k in range(j+1, len(arr)):
+                    
+                    if (abs(arr[i] - arr[j]) <= a and
+                        abs(arr[j] - arr[k]) <= b and
+                        abs(arr[i] - arr[k]) <= c):
+                        
+                        count += 1
+                        
+        return count
