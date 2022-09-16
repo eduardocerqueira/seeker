@@ -10,12 +10,14 @@ def run():
     logging.info("Seeker is running ...")
     g = Gists()
     # life cycle
-    logging.info("getting new snippets")
-    g.get()
     logging.info("purging old snippets")
     purge()
-    logging.info("obfuscating sensitive data")
-    obfuscate()
+    logging.info("pushing to repo")
+    git_push()
+    # logging.info("getting new snippets")
+    # g.get()
+    # logging.info("obfuscating sensitive data")
+    # obfuscate()
     logging.info("pushing to repo")
     git_push()
 

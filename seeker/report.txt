@@ -1,14 +1,38 @@
 --------------------------------------------------------------------------------
- 2022-09-16 21:52:57.013439
+ 2022-09-16 17:57:43.670705
 --------------------------------------------------------------------------------
-  On branch main
-Your branch is up to date with 'origin/main'.
+  On branch del_snippet
+nothing to commit, working tree clean
+
+--------------------------------------------------------------------------------
+ 2022-09-16 17:57:43.404393
+--------------------------------------------------------------------------------
+  On branch del_snippet
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   main.py
+	modified:   seeker.conf
+	deleted:    snippet/adb-dns.sh
+	deleted:    snippet/convert_url_files_to_bookmarks.sh
+	deleted:    snippet/main.py
+	deleted:    snippet/n8n-install-pi.sh
+	deleted:    snippet/namehash.go
+	deleted:    snippet/random_file_of_size.sh
+	deleted:    snippet/siamese_model.py
+	deleted:    snippet/solution.py
+	deleted:    snippet/yicheng_9_16_22.py
+	modified:   util.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
+ 2022-09-16 17:54:45.806361
+--------------------------------------------------------------------------------
 
 Untracked files:
   (use "git add <file>..." to include in what will be committed)
 	snippet/JoinListener.java
-
-nothing added to commit but untracked files present (use "git add" to track)
 
 --------------------------------------------------------------------------------
  2022-09-16 17:52:31.480437
