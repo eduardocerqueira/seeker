@@ -47,6 +47,7 @@ def purge():
             data = fp.read()
             dt = datetime.today() - timedelta(days=day)
             if dt.strftime("%Y-%m-%d") in data:
+                logging.info(f"deleting snippet/{file}")
                 remove(f"snippet/{file}")
 
 

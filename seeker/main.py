@@ -12,10 +12,12 @@ def run():
     # life cycle
     logging.info("purging old snippets")
     purge()
-    logging.info("getting new snippets")
-    g.get()
-    logging.info("obfuscating sensitive data")
-    obfuscate()
+    logging.info("pushing to repo")
+    git_push()
+    # logging.info("getting new snippets")
+    # g.get()
+    # logging.info("obfuscating sensitive data")
+    # obfuscate()
     logging.info("pushing to repo")
     git_push()
 
