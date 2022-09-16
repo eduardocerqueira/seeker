@@ -18,8 +18,8 @@ def run():
     # g.get()
     # logging.info("obfuscating sensitive data")
     # obfuscate()
-    logging.info("pushing to repo")
-    git_push()
+    # logging.info("pushing to repo")
+    # git_push()
 
 
 @click.command()
