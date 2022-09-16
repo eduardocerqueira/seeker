@@ -2,7 +2,7 @@
 #url: https://api.github.com/gists/e76f067aad0ac425c9f9008db94e143c
 #owner: https://api.github.com/users/SapiensAnatis
 
-# Dependencies: pyqt5 (install via pip)
+# Dependencies: pyqt5, msgpack (install via pip)
 
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
