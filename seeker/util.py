@@ -46,10 +46,14 @@ def purge():
     for file in files:
         with open(f"snippet/{file}", "r") as fp:
             data = fp.read()
-            dt = datetime.today() - timedelta(days=day)
-            if dt.strftime("%Y-%m-%d") in data:
-                logging.info(f"deleting snippet/{file}")
-                remove(f"snippet/{file}")
+            re_pattern = "(date:).(\d{4}-\d{2}-\d{2})"
+            for m in re.finditer(re_pattern, data):
+                if m.group(0).__len__() > 0:
+                    date_in_header = datetime.strptime(m.group(0).replace("date: ", ""), "%Y-%m-%d")
+                    dt = datetime.today() - timedelta(days=day)
+                    if date_in_header < dt:
+                        logging.info(f"header date {date_in_header} deleting snippet/{file}")
+                        remove(f"snippet/{file}")
 
 
 def build_regex():
