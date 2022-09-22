@@ -1,0 +1,57 @@
+#date: 2022-09-22T17:13:10Z
+#url: https://api.github.com/gists/aba6f644c4e03db34487dc9509e0e612
+#owner: https://api.github.com/users/sami-chaaban
+
+#! /bin/bash
+
+###Usage:
+###bash prepsubvols.bsh Refine3D/job054/run_class001.mrc MaskCreate/job055/mask.mrc Subtract/job056
+
+v=$1
+vol=${v##*/}
+vol="$(echo $vol | sed 's|.mrc||g')"
+
+m=$2
+mask=${m##*/}
+mask="$(echo $mask | sed 's|.mrc||g')"
+
+#Get coordinates from run.out
+xcoord="$(cat $3/run.out | grep coordinate | grep -o -P '(?<=\().*(?=\))' | sed 's/,.*//')"
+ycoord="$(cat $3/run.out | grep coordinate | grep -o -P '(?<=\().*(?=\))' | grep -o -P '(?<=,).*(?=,)')"
+zcoord="$(cat $3/run.out | grep coordinate | grep -o -P '(?<=\().*(?=\))' | sed 's:.*,::')"
+
+#Reverse the sign
+xcoord="$(echo "$xcoord*-1" | bc -l)"
+ycoord="$(echo "$ycoord*-1" | bc -l)"
+zcoord="$(echo "$zcoord*-1" | bc -l)"
+
+#Change the period to a 'p' for the filename
+xcoordname="$(echo $xcoord | sed 's/\./p/g')"
+ycoordname="$(echo $ycoord | sed 's/\./p/g')"
+zcoordname="$(echo $zcoord | sed 's/\./p/g')"
+
+#Get box size from job.star
+newbox="$(cat $3/job.star | grep new_box | sed 's/   */:/g' | sed 's:.*\:::' | tr -d " \t\n\r")"
+
+#Go!
+
+echo
+echo "Multiplying volume by mask"
+echo "relion_image_handler --i $1 --multiply $2 --o ${vol}-mult.mrc"
+relion_image_handler --i $1 --multiply $2 --o ${vol}-mult.mrc
+
+echo
+echo "Shifting and windowing volume"
+echo "relion_image_handler --i ${vol}-mult.mrc --shift_x $xcoord --shift_y $ycoord --shift_z $zcoord --new_box $newbox --o ${vol}-mult-shift_${xcoordname}_${ycoordname}_${zcoordname}_d${newbox}.mrc"
+relion_image_handler --i ${vol}-mult.mrc --shift_x $xcoord --shift_y $ycoord --shift_z $zcoord --new_box $newbox --o ${vol}-mult-shift_${xcoordname}_${ycoordname}_${zcoordname}_d${newbox}.mrc
+
+echo
+echo "Shifting and windowing mask"
+echo "relion_image_handler --i $2 --shift_x $xcoord --shift_y $ycoord --shift_z $zcoord --new_box $newbox --o ${mask}-shift_${xcoordname}_${ycoordname}_${zcoordname}_d${newbox}.mrc"
+relion_image_handler --i $2 --shift_x $xcoord --shift_y $ycoord --shift_z $zcoord --new_box $newbox --o ${mask}-shift_${xcoordname}_${ycoordname}_${zcoordname}_d${newbox}.mrc
+
+#remove temporary file
+rm -f ${vol}-mult.mrc
+
+echo
+exit 0
