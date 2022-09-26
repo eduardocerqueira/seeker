@@ -1,4 +1,69 @@
 --------------------------------------------------------------------------------
+ 2022-09-26 17:28:38.844722
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/.bash_profile
+	deleted:    snippet/.bashrc
+	deleted:    snippet/EllipticCurve.go
+	deleted:    snippet/KenneyToLibGdxAtlasConverter.java
+	deleted:    snippet/NativeCodeInstaller.java
+	deleted:    snippet/Rock_Paper_Scissors_Player_0.2.py
+	deleted:    snippet/ZuulConfiguration.java
+	deleted:    snippet/area.py
+	deleted:    snippet/async.py
+	deleted:    snippet/cloudns-update.py
+	deleted:    snippet/conditions.py
+	deleted:    snippet/configure.sh
+	deleted:    snippet/delete_empty_entity.py
+	modified:   snippet/for.py
+	deleted:    snippet/for_loop.py
+	deleted:    snippet/get-jira-id.go
+	deleted:    snippet/gist1.go
+	deleted:    snippet/kontrolyapilari.py
+	deleted:    snippet/main.java
+	deleted:    snippet/makeAGif.sh
+	deleted:    snippet/mdtoc.py
+	deleted:    snippet/mycobot.py
+	deleted:    snippet/opaque_predicates_ida.py
+	deleted:    snippet/parse-table.go
+	deleted:    snippet/power_spectral_density.py
+	deleted:    snippet/prepare_spark_container.sh
+	deleted:    snippet/relion_prepare_subtraction.bsh
+	deleted:    snippet/run.sh
+	deleted:    snippet/run_spark_jobs.sh
+	deleted:    snippet/setupusers.sh
+	deleted:    snippet/ssh-tunnel-as-systemd.sh
+	deleted:    snippet/stock.py
+	deleted:    snippet/wazuhinstall.sh
+	deleted:    snippet/while_loop.py
+	deleted:    snippet/wiener_deconvolution_example.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/GenerativeArter.py
+	snippet/Pattern1.java
+	snippet/SegNet.py
+	snippet/Tool.java
+	snippet/break.py
+	snippet/checkIfWt.sh
+	snippet/ciordia_objeto_generico.py
+	snippet/continue.py
+	snippet/convert-wav-to-mp3.sh
+	snippet/desempacotar_dados.py
+	snippet/elif.py
+	snippet/ifelse.py
+	snippet/order_book.py
+	snippet/tf_quantize_static.py
+	snippet/while.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2022-09-23 17:29:05.906518
 --------------------------------------------------------------------------------
   On branch main
