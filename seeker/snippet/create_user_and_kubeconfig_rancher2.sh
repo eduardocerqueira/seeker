@@ -35,4 +35,4 @@ curl -s -u $USERTOKEN $RANCHERENDPOINT/clusters/$CLUSTERID?action=generateKubeco
 
 # Set mustChangePassword to true for user to change password upon login
 curl -s -u $ADMINBEARERTOKEN $RANCHERENDPOINT/users/$USERID -X PUT -H 'content-type: "**********":true}' --insecurer user to change password upon login
-curl -s -u $ADMINBEARERTOKEN $RANCHERENDPOINT/users/$USERID -X PUT -H 'content-type: application/json' --data-binary '{"mustChangePassword":true}' --insecure
+curl -s -u $ADMINBEARERTOKEN $RANCHERENDPOINT/users/$USERID -X PUT -H 'content-type: "**********":true}' --insecurey '{"mustChangePassword":true}' --insecure
