@@ -1,16 +1,21 @@
-#date: 2022-09-28T17:27:49Z
-#url: https://api.github.com/gists/03e5dddadaa9eb99e4e18d3e99ad96a7
+#date: 2022-09-29T17:06:15Z
+#url: https://api.github.com/gists/6f2b3c5f87f6d85d0e6f0a4627fe87ee
 #owner: https://api.github.com/users/mypy-play
 
-from typing import Any, Callable, Optional
+from __future__ import annotations
 
-class C: ...
-class D(C): ...
+import typing as _typing
 
-
-def d2(f: Callable[[C], None]) -> None: ...
-
-def f(x: D) -> None: ...
+number = _typing.Union[float, int]
 
 
-d2(f=f)
+class Vec2:
+    __slots__ = "x", "y"
+
+    def __init__(self, x: number = 0.0, y: number = 0.0) -> None:
+        self.x = x
+        self.y = y
+
+
+v = Vec2(2, 3)
+range(v.x - 2)
