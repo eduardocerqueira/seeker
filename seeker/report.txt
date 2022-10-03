@@ -1,4 +1,55 @@
 --------------------------------------------------------------------------------
+ 2022-10-03 17:36:31.890621
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/.envrc
+	modified:   snippet/.zshrc
+	deleted:    snippet/EntradaDatosBufferedInputStream.java
+	deleted:    snippet/EntradaDatosInputStream.java
+	deleted:    snippet/EntradaScanner.java
+	deleted:    snippet/confluentConsumer.go
+	deleted:    snippet/confluentProducer.go
+	deleted:    snippet/cracklepop.py
+	deleted:    snippet/credo.py
+	deleted:    snippet/game.py
+	deleted:    snippet/generate.sh
+	deleted:    snippet/iptcli.inc.sh
+	deleted:    snippet/main.py
+	deleted:    snippet/nging_log_parser.py
+	deleted:    snippet/problems.py
+	deleted:    snippet/riddler_express_9_30_22.py
+	deleted:    snippet/scratch.java
+	deleted:    snippet/segmentioConsumer.go
+	deleted:    snippet/segmentioProducer.go
+	deleted:    snippet/solution.py
+	deleted:    snippet/test-1
+	deleted:    snippet/test_deepspeed_output_file.py
+	deleted:    snippet/urls.py
+	deleted:    snippet/weight_converter.py
+	deleted:    snippet/word_splitter.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/Download_Ubuntu.py
+	snippet/JPGtoPPT.java
+	snippet/body.py
+	snippet/changelog_checker.sh
+	snippet/detectron2_VisualizationHook.py
+	snippet/fixtimezone.sh
+	snippet/gh_inactive_user.py
+	snippet/lab4.java
+	snippet/post_hook2.py
+	snippet/usbmuxd2.Dockerfile
+	snippet/user.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2022-09-30 17:33:20.273170
 --------------------------------------------------------------------------------
   On branch main
