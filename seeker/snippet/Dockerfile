@@ -1,42 +1,36 @@
-#date: 2022-10-10T17:33:52Z
-#url: https://api.github.com/gists/d3fcdd10535e166af8caf88409d9e448
-#owner: https://api.github.com/users/ibLeDy
+#date: 2022-10-12T17:36:28Z
+#url: https://api.github.com/gists/0b12ac69c8abc808def0d550f55330f0
+#owner: https://api.github.com/users/scrossan
 
-# Tags should be as specific as possible
-FROM ubuntu:jammy-20220815
+# courtesy of @hinchliff / https://github.com/elastic/beats/issues/13707#issuecomment-1010119726
+# docker build . -t winlogbeat-on-linux:8.4.1
 
-# Add metadata to the image
-LABEL maintainer="ops@marfeel.com"
+FROM golang:8.4.1
 
-# Use diff-friendly syntax for multi-line commands
-# Do not install non-necessary packages
-# Sort dependencies
-# Clean non-necessary files after installing dependencies
-RUN : \
-    && apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-        curl \
-        sl \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && :
+ARG version=7.16.2
 
-# Do not cache Python dependencies
-# Sort dependencies
-RUN : \
-    && python3 -m pip --no-cache-dir install \
-        pre-commit \
-        virtualenv \
-    && :
+# Install virtualenv. Required for beats build processes.
+RUN apt-get update --no-install-recommends
 
-# Create non-privileged user
-RUN : \
-    && groupadd --gid 1001 marfeel \
-    && useradd --uid 1001 --gid marfeel --system --create-home --home-dir /home/marfeel marfeel \
-    && :
+# Python 3 venv (virtualenv)
+RUN apt-get install --no-install-recommends --yes python3-venv
 
-# Do not use an extra step to change ownership of files
-COPY --chown=marfeel:marfeel Dockerfile /Dockerfile    
+#RUN go get github.com/elastic/beats
+RUN mkdir -p $GOPATH/src/github.com/elastic
+RUN git -C $GOPATH/src/github.com/elastic clone --depth 1 --single-branch --branch v${version} https://github.com/elastic/beats
+WORKDIR $GOPATH/src/github.com/elastic/beats
 
-# Set non-privileged user as default
-USER marfeel
+# Target winlogbeat
+WORKDIR $GOPATH/src/github.com/elastic/beats/winlogbeat
+
+# Patch out the `init` function in winlogbeat to avoid this error on non-Windows systems:
+#   Exiting: Failed to create new event log. No event log API is available on this system
+#
+# This allows us to run `winlogbeat setup` on linux systems.
+RUN sed -i -e 's/^\(func .* \)\(init(.*) error {.*\)$/\1\2 return nil }\n\1_\2/' beater/winlogbeat.go
+
+# Compile winlogbeat
+RUN make
+
+# Generate winlogbeat's dashboards/templates/fields/etc
+RUN make update
