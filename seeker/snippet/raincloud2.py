@@ -25,22 +25,19 @@ for (cyl, group), c in zip(plot_df.groupby('cylinders'), colors):
     bxpstats = boxplot_stats(group['mpg'])
     ax.bxp(
         bxpstats, positions=[cyl], vert=False, widths=[box_width],
-        patch_artist=True, boxprops={'facecolor': c}, capwidths=[0],
+        patch_artist=True, boxprops={'facecolor': c, 'lw': 0}, capwidths=[0],
         medianprops={'color': 'k'}
     )
 
-    transform = offset_copy(ax.get_yaxis_transform(), y=5, fig=fig, units='points')
-    density_ax = ax.inset_axes([0, cyl + box_width * .5, 1, 2 - box_width * 1.5], transform=transform, sharex=ax)
+    density_ax = ax.inset_axes([0, cyl + (.5 * box_width), 1, 1 - (.5 * box_width)], transform=ax.get_yaxis_transform(), sharex=ax)
     density_ax.axis('off')
     density_ax.margins(0)
 
     kdeplot(
-        group, x='mpg', ax=density_ax, fill=True, bw_adjust=.25, alpha=.5,
-        color=c
+        group, x='mpg', ax=density_ax, fill=True, bw_adjust=.25, alpha=.5, color=c
     )
 
-    transform = offset_copy(ax.get_yaxis_transform(), y=-5, fig=fig, units='points')
-    hist_ax = ax.inset_axes([0, cyl - 2 + box_width, 1, 2 - 1.5 * box_width], transform=transform, sharex=ax)
+    hist_ax = ax.inset_axes([0, cyl - 1, 1, 1 - (.5 * box_width)], transform=ax.get_yaxis_transform(), sharex=ax)
     hist_ax.axis('off')
 
     icicles = group.groupby('mpg')['mpg'].count()
@@ -57,7 +54,7 @@ for (cyl, group), c in zip(plot_df.groupby('cylinders'), colors):
     hist_ax.margins(0)
     hist_ax.invert_yaxis()
 
-ax.set_ylim(2, 10)
+ax.set_ylim(3, 9)
 ax.autoscale_view()
 ax.set(ylabel='Cylinders', xlabel='MPG')
-fig.savefig('raincloud.png', bbox_inches='tight')
+fig.savefig('raincloud2.png', bbox_inches='tight')
