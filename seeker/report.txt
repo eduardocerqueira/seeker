@@ -1,4 +1,47 @@
 --------------------------------------------------------------------------------
+ 2022-10-28 17:19:48.858472
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/List Exercise.py
+	deleted:    snippet/benchmarking_tokenizers.py
+	deleted:    snippet/ejercicio10_3_3.java
+	deleted:    snippet/ejercicio7_3_3.java
+	deleted:    snippet/ejercicio8_3_3.java
+	deleted:    snippet/ejercicio9_3_3.java
+	deleted:    snippet/get_github_jira_ids.py
+	deleted:    snippet/ilp64_check.py
+	deleted:    snippet/imp_exp_json.py
+	deleted:    snippet/imp_exp_lists.py
+	deleted:    snippet/number_of_games_a_player_played_over_his_career.py
+	deleted:    snippet/retrieve_true_shooting_percentage_of_the_best_players_in_the_league.py
+	deleted:    snippet/skype.py
+	deleted:    snippet/yaml_ordered_map.go
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/.zshrc
+	snippet/1.java
+	snippet/2.java
+	snippet/3.java
+	snippet/4.java
+	snippet/5.java
+	snippet/How to Access the Presentation Properties in Python.py
+	snippet/Yellowbrick_ML_Viz_1.py
+	snippet/Yellowbrick_ML_Viz_2.py
+	snippet/clone.sh
+	snippet/data-model.java
+	snippet/new_lazy_bench.py
+	snippet/script.sh
+	snippet/whitespace.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2022-10-27 17:22:01.630360
 --------------------------------------------------------------------------------
   On branch main
