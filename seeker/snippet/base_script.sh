@@ -1,6 +1,6 @@
-#date: 2022-10-28T17:14:37Z
-#url: https://api.github.com/gists/f1bbb17a9685aed2ae2f8ec19055df01
-#owner: https://api.github.com/users/wheresalice
+#date: 2022-10-31T17:30:47Z
+#url: https://api.github.com/gists/e14d7dda0e4d7b5a6f30b20054d9bd44
+#owner: https://api.github.com/users/imamrb
 
 #!/usr/bin/env bash
 
