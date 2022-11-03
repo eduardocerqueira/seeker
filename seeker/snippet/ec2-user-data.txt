@@ -1,0 +1,20 @@
+#date: 2022-11-03T16:56:08Z
+#url: https://api.github.com/gists/f181dee0871f6309f859907798a829d1
+#owner: https://api.github.com/users/sivakumar058
+
+#!/bin/bash
+
+# update the machine
+yum update -y
+
+# install http
+yum install -y httpd.x86_64
+
+# start the service
+systemctl start httpd.service
+
+# enable service across reboots
+systemctl enable httpd.service
+
+# create the html page to render
+echo "<h1>Hello World from NKT Studios!</h1>" >/var/www/html/index.html
