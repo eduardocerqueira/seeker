@@ -1,4 +1,69 @@
 --------------------------------------------------------------------------------
+ 2022-11-07 17:23:25.201176
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/.zshrc
+	deleted:    snippet/CityName.java
+	deleted:    snippet/GugudanProgram.java
+	deleted:    snippet/Helloworld.Java
+	deleted:    snippet/agnoster.zsh-theme
+	deleted:    snippet/bu_dump.py
+	deleted:    snippet/calculating_ideal_recall_at_k.py
+	deleted:    snippet/calculating_recall_at_k.py
+	deleted:    snippet/client.sh
+	deleted:    snippet/config_easyjson.go
+	deleted:    snippet/containsDuplicate.py
+	deleted:    snippet/creating_the_df.py
+	deleted:    snippet/crypt.py
+	deleted:    snippet/data.py
+	deleted:    snippet/decrypt.py
+	deleted:    snippet/decrypt2.py
+	deleted:    snippet/doc.py
+	deleted:    snippet/ec2-user-data.txt
+	deleted:    snippet/encrypt1.py
+	deleted:    snippet/network_failover.sh
+	deleted:    snippet/numba_experiment.py
+	deleted:    snippet/numpy_implemenation_without_df.py
+	deleted:    snippet/numpy_implementation.py
+	deleted:    snippet/numpy_implementation_ideal_recall_at_k.py
+	deleted:    snippet/parse_journey.py
+	deleted:    snippet/read_2.py
+	deleted:    snippet/readlines.py
+	deleted:    snippet/remove_files.py
+	modified:   snippet/rename.py
+	deleted:    snippet/reverseVowels.go
+	deleted:    snippet/server.go
+	deleted:    snippet/sleep_efficiency.py
+	deleted:    snippet/status.py
+	deleted:    snippet/tb_logger.py
+	deleted:    snippet/tun2socks-init.sh
+	deleted:    snippet/ufw-rules.sh
+	deleted:    snippet/validate.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/Dockerfile
+	snippet/Login
+	snippet/MWAN3 with RNDIS failover.sh
+	"snippet/Password Al\303\251oratoire.py"
+	snippet/gistfile1.txt
+	snippet/lambda.py
+	snippet/main.py
+	snippet/mylib.py
+	snippet/percy_api.py
+	snippet/rm_duplicates.py
+	snippet/script.sh
+	snippet/sd.init.daemon
+	snippet/windows.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2022-11-04 17:17:53.728338
 --------------------------------------------------------------------------------
   On branch main

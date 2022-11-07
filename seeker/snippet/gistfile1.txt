@@ -1,0 +1,51 @@
+#date: 2022-11-07T17:05:39Z
+#url: https://api.github.com/gists/637897ececa2b493fd9b5b0ab91590dd
+#owner: https://api.github.com/users/stevekm
+
+#!/usr/bin/env python3
+
+# do an action in parallel across multiple threads in Python
+# example: get the average of lists of numbers
+
+# references;
+# https://stackoverflow.com/questions/8533318/multiprocessing-pool-when-to-use-apply-apply-async-or-map
+# https://e2eml.school/multiprocessing.html
+# https://docs.python.org/3.7/library/multiprocessing.html#multiprocessing.pool.Pool.apply_async
+
+from multiprocessing import Pool
+from typing import List, Tuple
+
+data = {
+    1: [1,2,3],
+    2: [3,4,5],
+    3: [4,5,6],
+    4: [5,6,7],
+    5: [6,7,8],
+    6: [7,8,9],
+    7: [8,9,10],
+    8: [10,11,12]
+}
+
+def avg(i: int, data: List[int]) -> Tuple[int, float]:
+    print("running ", i)
+    a = sum(data) / len(data)
+    return(i, a)
+
+pool = Pool(4) # run 4 instances in parallel
+results = [] # empty list to hold result objects
+for i in data:
+    print("submitting ", i)
+    result = pool.apply_async(avg, (i, data[i]))
+    results.append(result)
+
+final = {}
+
+for result in results:
+    i, a = result.get() # runs the function and gets the results
+    final[i] = a
+
+print("final: ", final)
+
+
+
+
