@@ -41,7 +41,7 @@ TARGET=$1
 check_creds
 login
 outputSP=""
-TOKEN=""
+TOKEN= "**********"
 TARGET=$1
 
 # Run
