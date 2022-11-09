@@ -1,0 +1,11 @@
+#date: 2022-11-09T17:08:55Z
+#url: https://api.github.com/gists/2b13007926c104e0cffd063d179ce617
+#owner: https://api.github.com/users/danyg
+
+#!/bin/bash
+
+currentBranchName=$(git branch --show-current)
+
+dg.git.backup
+git fetch --all
+git reset --hard origin/${currentBranchName}
