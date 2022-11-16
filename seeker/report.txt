@@ -1,4 +1,34 @@
 --------------------------------------------------------------------------------
+ 2022-11-16 17:13:17.364108
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/01_API_Playlist_Processing.py
+	deleted:    snippet/CreateRequest.java
+	deleted:    snippet/Increment.java
+	deleted:    snippet/SendIllegalPredict.java
+	deleted:    snippet/SendPredict.java
+	deleted:    snippet/bertopic_model.py
+	deleted:    snippet/crawl_news.py
+	deleted:    snippet/data_cleaning.py
+	deleted:    snippet/deberta.py
+	deleted:    snippet/har_to_excel.py
+	deleted:    snippet/myscript.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/PCA_from_VCF.sh
+	snippet/app.py
+	snippet/mvp_portfolio.py
+	snippet/upgrade.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2022-11-15 17:14:46.057465
 --------------------------------------------------------------------------------
   On branch main
