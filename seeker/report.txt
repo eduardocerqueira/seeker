@@ -1,4 +1,50 @@
 --------------------------------------------------------------------------------
+ 2022-11-21 13:59:01.463995
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/Dockerfile
+	deleted:    snippet/Fonction de 1+2+...+N.py
+	deleted:    snippet/Tag.java
+	deleted:    snippet/TrovaSottostringa.java
+	deleted:    snippet/VoxelBakedModel.java
+	deleted:    snippet/acdisable
+	deleted:    snippet/acenable
+	deleted:    snippet/badchars.py
+	deleted:    snippet/check-relay-registration-status.sh
+	deleted:    snippet/exercicio1.java
+	deleted:    snippet/fb_auth.java
+	deleted:    snippet/find-crash.py
+	deleted:    snippet/find-eip.py
+	deleted:    snippet/fuzzer.py
+	deleted:    snippet/git_configs.sh
+	deleted:    snippet/ivs-ffmpeg-restream-rtsp.sh
+	deleted:    snippet/jenkins_install.sh
+	deleted:    snippet/jump.py
+	deleted:    snippet/multiple_enums.go
+	deleted:    snippet/parseml.py
+	deleted:    snippet/randomImage
+	deleted:    snippet/realtor.property.sending-email-1.py
+	deleted:    snippet/realtor.property.sending-email-2.py
+	deleted:    snippet/shell.py
+	deleted:    snippet/tbtk_ascii.sh
+	deleted:    snippet/tic tac toe.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/[Mathematics for ML] Exercise 6.2.c.py
+	snippet/extractdocx.py
+	snippet/fix_spotify_permissions_for_spicetify.sh
+	snippet/gpx2svg.py
+	snippet/s3-get.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2022-11-18 17:14:00.334718
 --------------------------------------------------------------------------------
   On branch main
