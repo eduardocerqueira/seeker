@@ -1,0 +1,9 @@
+#date: 2022-11-30T17:08:57Z
+#url: https://api.github.com/gists/c1a6f15f8836b965491f2d42e0485c91
+#owner: https://api.github.com/users/NanditaSahu03
+
+#!/bin/bash
+
+sudo apt update
+sudo apt -y install nginx
+sudo systemctl status nginx

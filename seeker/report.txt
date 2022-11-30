@@ -1,4 +1,28 @@
 --------------------------------------------------------------------------------
+ 2022-11-30 17:12:18.891529
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/GoL.java
+	deleted:    snippet/autogit.sh
+	deleted:    snippet/darin.sh
+	deleted:    snippet/get-nodes.sh
+	deleted:    snippet/titiler_zarr.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/backup-image
+	snippet/deploy.sh
+	snippet/gistfile1.txt
+	snippet/replace_screenshot_keybinding.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2022-11-29 17:10:53.106665
 --------------------------------------------------------------------------------
   On branch main

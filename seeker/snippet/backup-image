@@ -1,0 +1,100 @@
+#date: 2022-11-30T16:59:50Z
+#url: https://api.github.com/gists/7a0e18acd4876a9416667b7694467013
+#owner: https://api.github.com/users/shawnburke
+
+#! /bin/bash
+set -e
+
+# usage
+
+# backup-image -s source-device -n max-to-save [TARGET-DIR]
+#
+# Example cron to run every night at 3am, saving 5 images
+#
+#
+# m h  dom mon dow   command
+# 0 3 * * * /opt/scripts/backup-image -m 5 /mnt/backup/my-rpi
+#
+# This will create images of the current drive named by date in that mountpoint directory
+
+function usage {
+    echo "Usage: $0 -s source-device -m max-to-save -n name [TARGET-DIR]" 1>&2
+}
+
+while getopts ":s:m:h" o; do
+    case "${o}" in
+        n) 
+            name=${OPTARG}
+            ;;
+        s)
+            source=${OPTARG}
+            ;;
+        m)
+            max_items=${OPTARG}
+            ;;
+        h) 
+            usage
+            exit
+            ;;
+		*)
+			usage
+			exit 1
+            ;;
+
+    esac
+done
+shift $((OPTIND-1))
+
+
+target=$1
+
+if [ -z "$target" ]
+then
+    usage
+fi
+
+if [ ! -d "$target" ]
+then
+	echo "ERROR: $target is not a directory"
+	exit 1
+fi
+
+current_device=$(df $(pwd) | grep -oE "/dev/[^ ]+")
+source=${source:-$current_device}
+
+
+if ! ls $source 2>&1 >/dev/null 
+then
+    echo "ERROR: Source ($source) is not a valid device or directory "
+    exit 1
+fi
+
+name=${name:-backup}
+
+mkdir -p $target
+fullname="$target/$(date --rfc-3339=date)-$name.img.gz"
+
+# now do the backup
+cmd="dd if=$source bs=4k status=progress | gzip -c > $fullname"
+echo "Running backup: $cmd"
+eval $cmd
+
+if [ -n "$max_items" ]
+then
+    n=$(($max_items+1))
+    to_delete=$(ls -r $target/*.img.gz | tail -n+$n)
+    
+    echo "$to_delete" | while read p
+    do
+        if [ -z "$p" ]
+        then    
+            continue
+        fi
+        to_remove="$p"
+        echo "Removing $to_remove"
+        rm $to_remove
+    done
+fi
+
+echo "Done"
+
