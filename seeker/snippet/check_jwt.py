@@ -14,4 +14,4 @@ def check_jwt():
         claims.validate()
     except Exception as e:
         abort(f"Invalid token: "**********"
-    logging.debug(f"Token claims: "**********"n claims: {claims}")
+    logging.debug(f"Token claims: "**********": {claims}")laims}")
