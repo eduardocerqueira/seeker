@@ -1,24 +1,13 @@
-#date: 2022-12-09T16:42:28Z
-#url: https://api.github.com/gists/9b216a8a698b13d3bb56cc7b05d0205e
-#owner: https://api.github.com/users/gustavojcd
+#date: 2022-12-12T16:46:41Z
+#url: https://api.github.com/gists/e7b4cb1438be6857ca6b4a176ffd2ff3
+#owner: https://api.github.com/users/iamdebangshu
 
-#Importing library and thir function
-from pydub import AudioSegment
-from pydub.silence import split_on_silence
-from sys import argv
+# n= input("Enter your name ") 
+# v = input("Enter your age")
+# print("Hello",n ,"your age is",v)
+#
 
-#reading from audio mp3 file
-filename = argv[1]
-song = AudioSegment.from_mp3(filename)
-save_path = './split_songs/'
+n = int(input("Enter the length : "))
+v = int(input("Enter the breadth : "))
+print(f'The perimeter is 2x{n + v}={2*(n+v)}' )
 
-# spliting audio files
-audio_chunks = split_on_silence(song, min_silence_len=500, silence_thresh=-40 )
-
-#loop is used to iterate over the output list
-for i, chunk in enumerate(audio_chunks):
-   output_file = save_path + "chunk{0}.mp3".format(i)
-   print("Exporting file", output_file)
-   chunk.export(output_file, format="mp3")
-
-# chunk files saved as Output
