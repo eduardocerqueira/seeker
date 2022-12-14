@@ -1,4 +1,36 @@
 --------------------------------------------------------------------------------
+ 2022-12-14 17:11:16.841957
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/01_trida_bez_init.py
+	deleted:    snippet/02_zoo.py
+	deleted:    snippet/5.py
+	deleted:    snippet/HTTPDemo.java
+	deleted:    snippet/countdown_app.py
+	deleted:    snippet/extractMkvSubtitles.sh
+	deleted:    snippet/linear_regression.py
+	modified:   snippet/main.py
+	deleted:    snippet/wireshark_notes.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/.zshrc
+	snippet/Dockerfile
+	"snippet/dizideki \303\247ift say\304\261lar\304\261n en b\303\274y\303\274\304\237\303\274 ile en k\303\274\303\247\303\274\304\237\303\274n\303\274n ortalamas\304\261n\304\261 bulma.py"
+	snippet/ezmsg-bci2000.py
+	snippet/gchq_2022.py
+	snippet/greeting_subtest_success_two.sh
+	snippet/install.sh
+	snippet/run.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2022-12-13 17:10:49.470963
 --------------------------------------------------------------------------------
   On branch main

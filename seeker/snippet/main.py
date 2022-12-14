@@ -1,13 +1,20 @@
-#date: 2022-12-12T16:46:41Z
-#url: https://api.github.com/gists/e7b4cb1438be6857ca6b4a176ffd2ff3
-#owner: https://api.github.com/users/iamdebangshu
+#date: 2022-12-14T17:05:04Z
+#url: https://api.github.com/gists/8dac6763092cf5017a93d84e8d282b2d
+#owner: https://api.github.com/users/mypy-play
 
-# n= input("Enter your name ") 
-# v = input("Enter your age")
-# print("Hello",n ,"your age is",v)
-#
+from typing import List, Type, cast
 
-n = int(input("Enter the length : "))
-v = int(input("Enter the breadth : "))
-print(f'The perimeter is 2x{n + v}={2*(n+v)}' )
+class Base(object):
+    pass
 
+class ChildOne(Base):
+    pass
+
+class ChildTwo(Base):
+    pass
+
+my_list: List[Type[Base]] = [ChildOne, ChildTwo]
+
+my_new_list: List[Type[Base]] = [ChildOne if x == ChildTwo else x for x in my_list]
+
+my_other_list: List[Type[Base]] = [cast(Type[Base], ChildOne) if x == ChildTwo else x for x in my_list]
