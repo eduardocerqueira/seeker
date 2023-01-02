@@ -1,0 +1,30 @@
+#date: 2023-01-02T16:57:36Z
+#url: https://api.github.com/gists/aa6f70bb20127b1e18e05dff5e470022
+#owner: https://api.github.com/users/edsu
+
+#!/bin/bash
+
+if [[ -z "${EDITOR}" ]]; then
+  echo "Please set EDITOR to something (e.g. vim, emacs) in your environment"
+  exit
+fi
+
+if [[ -z "${MASTODON_POST_TOKEN}" ]]; then
+  echo "Please set MASTODON_POST_TOKEN in your environment"
+  exit
+fi
+
+post_dir=`mktemp -dt "mastodon-post.XXXXXXXXXX"`
+post_file="$post_dir/post.txt"
+
+$EDITOR $post_file
+cat $post_file
+
+if [[ -f $post_file ]]; then
+  echo "posting! $post_file"
+  #curl -H "Authorization: "**********"://botsin.space/api/v1/statuses --verbose -F status="I like cheese"
+else
+  echo "not posting"
+fi
+t posting"
+fi

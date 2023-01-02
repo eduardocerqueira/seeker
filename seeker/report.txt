@@ -1,4 +1,65 @@
 --------------------------------------------------------------------------------
+ 2023-01-02 17:10:27.881774
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/0_beautifulsoup.py
+	deleted:    snippet/10_basic.py
+	deleted:    snippet/15_make_soup.py
+	deleted:    snippet/18_output.py
+	deleted:    snippet/2022-12-29_12-05-14.java
+	deleted:    snippet/20_search.py
+	deleted:    snippet/25_navigation.py
+	deleted:    snippet/30_edit.py
+	deleted:    snippet/40_encoding.py
+	deleted:    snippet/50_parse_only_part.py
+	deleted:    snippet/LVMPartitionRHEL.sh
+	deleted:    snippet/MultiUser_ChatGPT_Example.py
+	deleted:    snippet/PythonEnvironmentVariables.py
+	deleted:    snippet/Version.java
+	deleted:    snippet/VersionTest.java
+	deleted:    snippet/bench_blas_lapack.py
+	deleted:    snippet/bootstrap-arch
+	deleted:    snippet/colors.bash
+	deleted:    snippet/delete-string-in-text.py
+	deleted:    snippet/extract_aus.sh
+	deleted:    snippet/getdata.py
+	deleted:    snippet/gistfile1.py
+	deleted:    snippet/helloworld.java
+	deleted:    snippet/install Azure Speech CLI on  m1 mac.sh
+	deleted:    snippet/interface.go
+	deleted:    snippet/interface_test.go
+	deleted:    snippet/main.py
+	deleted:    snippet/port.py
+	deleted:    snippet/pve_kvm_template-ubuntu-22.04.sh
+	deleted:    snippet/template.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/BracketMatch.java
+	snippet/InventoryClient.java
+	snippet/MaxSubarraySum.java
+	snippet/MaxSubarraySumBruteForce.java
+	snippet/MiniAssignment004.java
+	snippet/app.py
+	snippet/build_gdcm_ios.sh
+	snippet/division.py
+	snippet/exercise-web-crawler.go
+	snippet/gmail_imap_dump_eml.py
+	snippet/make.sh
+	snippet/post
+	snippet/yq-functions.sh
+	snippet/~.env
+	"snippet/\320\227\320\260\320\264\320\260\321\207\320\260 C. \320\224\320\262\320\260 \320\277\321\200\320\276\320\277\320\260\320\262\321\210\320\270\321\205 \321\207\320\270\321\201\320\273\320\260 (c \321\210\320\270\321\204\321\200\320\276\320\262\320\260\320\275\320\270\320\265\320\274).py"
+	"snippet/\320\227\320\260\320\264\320\260\321\207\320\260 D. \320\224\320\262\320\260 \320\272\320\262\320\260\320\264\321\200\320\260\321\202\320\260.py"
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2022-12-30 17:10:20.860968
 --------------------------------------------------------------------------------
   On branch main
