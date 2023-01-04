@@ -1,0 +1,73 @@
+#date: 2023-01-04T17:07:31Z
+#url: https://api.github.com/gists/1958e421923142d4bae480dc75759a18
+#owner: https://api.github.com/users/robole
+
+#!/bin/bash
+#
+# Tests the links in a sitemap XML file to verify that they are active links. It
+# will output a CSV with the URL and its HTTP status code.
+
+function _help() {
+    echo "Description: Test the links in a sitemap XML file to see if they are active webpages. It produces a CSV file with the URL and HTTP status code of each link. By default, it will write to a file named 'output.csv'."
+    echo ""
+    echo "Usage: sitetest [sitemap file] [output file (optional)]"
+}
+
+function _verify(){
+	echo "Verifying your sitemap now"
+
+	infile=$1
+	outfile="output.csv"
+
+	if [[ -n "$2" ]]; then
+		outfile="$2"
+	fi
+
+	# remove outputfile if exists already
+	if [[ -f "$outfile" ]]; then
+		rm "$outfile" > /dev/null
+	fi
+
+	output=$(xmllint --xpath "//*[local-name()='loc']/text()" "$infile")
+
+	errors=0
+	counter=0
+
+	echo "URL,HTTP Status Code" >> "$outfile"
+
+	for link in $output; do
+		echo -n "."
+
+		code=$(curl -I "$link" 2>/dev/null| head -n 1 | cut -d$' ' -f2)
+		echo "$link,$code" >> "$outfile"
+
+		((counter+=1))
+
+		if [ "$code" != "200" ]; then
+				((errors+=1))
+		fi
+
+		if [[ $((counter % 10)) == 0 ]]; then
+			wait # wait if background tasks (curl commands) have not finished
+			echo -n ","
+		fi
+
+		#  
+		sleep 1s
+	done
+
+	printf "\nLinks: %d" "$counter"
+	printf "\nErrors: %d\n" "$errors"
+}
+
+case "$#" in
+    0)
+        _help
+        ;;
+    1)
+       _verify "$1"
+       ;;
+		2)
+       _verify "$1" "$2"
+       ;;
+esac
