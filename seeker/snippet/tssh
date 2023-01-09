@@ -1,0 +1,15 @@
+#date: 2023-01-09T16:49:10Z
+#url: https://api.github.com/gists/b1c9c2c3bc20dfa3b5cab61e261a52dc
+#owner: https://api.github.com/users/L3viathan
+
+#!/bin/bash
+hosts=( "$@" )
+tmux new-window
+tmux send-keys "ssh ${hosts[0]}"
+for i in $(seq 1 $((${#hosts[@]} - 1)))
+do
+  tmux split-window
+  tmux send-keys "ssh ${hosts[$i]}"
+done
+tmux setw synchronize-panes
+tmux send-keys Enter
