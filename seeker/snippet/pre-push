@@ -1,0 +1,112 @@
+#date: 2023-01-13T17:01:53Z
+#url: https://api.github.com/gists/a8d3dd211934d5945401f9e9a2dc3146
+#owner: https://api.github.com/users/burus86
+
+#!/bin/bash
+
+RESET='\e[0m'
+RED='\e[31m'
+GREEN='\e[32m'
+YELLOW='\e[33m'
+
+
+#----------------------------------------------------------------------------------------------------------------------
+# FUNCTIONS
+#----------------------------------------------------------------------------------------------------------------------
+
+function __displayBox() #(color, message)
+{
+    caption=$(printf "%-72s" "${2}")
+
+    echo -e "${1}"
+    echo -e "┌──────────────────────────────────────────────────────────────────────────┐"
+    echo -e "│ ${RESET}${caption}${1} │"
+    echo -e "└──────────────────────────────────────────────────────────────────────────┘"
+    echo -e "${RESET}"
+}
+
+function __checkEasyCodingStandard()
+{
+    task=$(printf "%-40s" "Easy Coding Standard (ECS)")
+
+    output=$(composer cs-fix)
+    RETVAL=$?
+
+    if [[ $RETVAL != 0 ]]
+    then
+        hasErrors=1
+
+        echo -e "    ${task}"
+        echo -e ""
+        echo -e "${output}"
+    else
+        echo -e "    ${task}"
+    fi
+
+    if [[ $hasErrors == 1 ]]
+    then
+        __displayBox ${RED} 'GIT PUSH IS NOT ALLOWED!'
+        exit 1
+    fi
+}
+
+function __checkPhpStan()
+{
+    task=$(printf "%-40s" "PHPSTAN - PHP Static Analyzer")
+
+    output=$(composer phpstan)
+    RETVAL=$?
+
+    if [[ $RETVAL != 0 ]]
+    then
+        hasErrors=1
+
+        echo -e "    ${task}"
+        echo -e "${output}";
+    else
+        echo -e "    ${task}"
+    fi
+
+    if [[ $hasErrors == 1 ]]
+    then
+        __displayBox ${RED} 'GIT PUSH IS NOT ALLOWED!'
+        exit 1
+    fi
+}
+
+function __checkPhpUnit()
+{
+    task=$(printf "%-40s" "PhpUnit")
+
+    output=$(composer test)
+    RETVAL=$?
+
+    if [[ $RETVAL != 0 ]]
+    then
+        hasErrors=1
+
+        echo -e "    ${task}"
+        echo -e "${output}";
+    else
+        echo -e "    ${task}"
+    fi
+
+    if [[ $hasErrors == 1 ]]
+    then
+        __displayBox ${RED} 'GIT PUSH IS NOT ALLOWED!'
+        exit 1
+    fi
+}
+
+
+#----------------------------------------------------------------------------------------------------------------------
+# MAIN LOGIC
+#----------------------------------------------------------------------------------------------------------------------
+
+__checkEasyCodingStandard
+__checkPhpStan
+__checkPhpUnit
+
+
+__displayBox ${GREEN} 'GIT PUSH IS ALLOWED!'
+exit 0
