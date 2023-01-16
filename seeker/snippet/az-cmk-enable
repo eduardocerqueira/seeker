@@ -1,0 +1,120 @@
+#date: 2023-01-16T16:43:04Z
+#url: https://api.github.com/gists/aadebcac3536a5dbe30d70ff81231d15
+#owner: https://api.github.com/users/DrizzlyOwl
+
+#! /bin/bash
+
+# Echo usage if something isn't right.
+usage() {
+    echo "Usage: $0"
+    echo "  [-r <resource-group>]  Name of the Azure Resource Group"
+    echo "  [-v <keyvault>]        Name of the Key Vault that will hold the Customer Managed Key"
+    echo "  [-s <storage-account>] Name of the target Storage Account that needs to have CMK Encryption enabled"
+    echo "  [-k <key-name>]        Name of the new CMK"
+    echo "  [-e <email>]           Email address of the user-managed identity that can access the Key Vault" 1>&2; exit 1;
+}
+
+while getopts ":r:v:s:k:e:" o; do
+    case "${o}" in
+        r)
+            rgName=${OPTARG}
+            ;;
+        v)
+            kvName=${OPTARG}
+            ;;
+        s)
+            saName=${OPTARG}
+            ;;
+        k)
+            keyName=${OPTARG}
+            ;;
+        e)
+            userEmail=${OPTARG}
+            ;;
+        :)
+            echo "ERROR: Option -$OPTARG requires an argument"
+            usage
+            ;;
+        \?)
+            echo "ERROR: Invalid option -$OPTARG"
+            usage
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+# Check required switches exist
+if [ -z "${rgName}" ] || [ -z "${kvName}" ] || [ -z "${saName}" ] || [ -z "${userEmail}" ] || [ -z "${keyName}" ]; then
+    usage
+fi
+
+echo
+echo ">>>>>"
+echo "Resource Group: ${rgName}"
+echo "Key Vault: ${kvName}"
+echo "Storage Account: ${saName}"
+echo "User Identity: ${userEmail}"
+echo "Key Name: ${keyName}"
+echo ">>>>>"
+echo
+
+read -p "Are you sure? (y/n)" -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+  # 1. Assign the Key Vault Crypto Officer role to yourself.
+  # This role enables you to create a key in the key vault.
+  # The following example assigns this role to a user, scoped to the key vault:
+  kvResourceId=$(az keyvault show --resource-group $rgName \
+      --name $kvName \
+      --query id \
+      --output tsv)
+
+  az role assignment create --assignee "$userEmail" \
+      --role "Key Vault Crypto Officer" \
+      --scope $kvResourceId
+
+  # 2. Create a CMK
+  az keyvault key create \
+      --name $keyName \
+      --vault-name $kvName
+
+  # 3. Grant Key Vault Crypto Service Encryption User role to user
+  # The user-assigned managed identity must have permissions to access the key in the key vault.
+  # The following example shows how to retrieve the user-assigned managed identity and assign to it the
+  # required RBAC role, scoped to the key vault.
+  identityResourceId=$(az identity show --name <user-assigned-identity> \
+      --resource-group $rgName \
+      --query id \
+      --output tsv)
+
+  principalId=$(az identity show --name <user-assigned-identity> \
+      --resource-group $rgName \
+      --query principalId \
+      --output tsv)
+
+  az role assignment create --assignee-object-id $principalId \
+      --role " Key Vault Crypto Service Encryption User" \
+      --scope $kvResourceId
+
+  # 4. Configure customer-managed keys for an existing storage account
+  # Next, call az storage account update to update the storage account's encryption settings. Include the
+  # --encryption-key-source parameter and set it to Microsoft.Keyvault to enable customer-managed keys for the account,
+  # and set encryption-key-version to an empty string to enable automatic updating of the key version.
+  #
+  # If the storage account was previously configured for customer-managed keys with a specific key version,
+  # then setting the key version to an empty string will enable automatic updating of the key version going forward.
+  keyVaultUri=$(az keyvault show \
+      --name $kvName \
+      --resource-group $rgName \
+      --query properties.vaultUri \
+      --output tsv)
+
+  az storage account update \
+      --name "$saName" \
+      --resource-group $rgName \
+      --encryption-key-name $keyName \
+      --encryption-key-version "" \
+      --encryption-key-source Microsoft.Keyvault \
+      --encryption-key-vault $keyVaultUri
+fi
