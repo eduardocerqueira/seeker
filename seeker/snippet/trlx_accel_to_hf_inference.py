@@ -48,5 +48,5 @@ inputs = "**********"
 raw_outputs = model.generate(**inputs, **config.method.gen_kwargs)
 text = "**********"=True)
 trlx.utils.print_rank_0(text)
- skip_special_tokens=True)
+ skip_special_tokens= "**********"
 trlx.utils.print_rank_0(text)
