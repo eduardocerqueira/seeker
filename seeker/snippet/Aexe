@@ -1,0 +1,72 @@
+#date: 2023-01-18T16:43:01Z
+#url: https://api.github.com/gists/9902359ddf09b24129277ce121e3e86d
+#owner: https://api.github.com/users/perpen
+
+#!/bin/rc
+# Runs a command in an acme window, as with button 2
+# Tries to restore original selection.
+
+rfork e
+
+if(! ~ $#* 1 2)
+	exit 'usage: exe PARAM [WINID]'
+cmd=$1
+id=$2
+
+if(~ $#id 0)
+	id=$winid
+w=/mnt/acme/$id
+if(! test -d $w)
+	exit 'invalid window id:'^$id
+
+if(echo $cmd | grep -s '^[ 	]*(Put|Putall)[ 	]*$')
+	exit 'invalid command: '^$cmd
+# using a temp file to avoid issues with `{} swallowing tabs
+cmdfile=/tmp/Aexe.$pid
+echo -n $cmd >$cmdfile
+cmdlen=`{wc -c <$cmdfile}
+
+# save selection
+<$w/addr {
+	echo 'addr=dot' >$w/ctl
+	preaddr=`{cat | awk '{print "#" $1 ",#" $2}'}
+}
+
+# detect 'Edit ,' or whole text selection
+commarx='^[ 	]*Edit[ 	]+,'
+if(echo $cmd | grep -s $commarx){
+	sed 's/'^$commarx^'/Edit /' <$cmdfile >$cmdfile.2
+	mv $cmdfile.2 $cmdfile
+	bodylen=`{cat $w/body | wc -c}
+	addr='#0,#'^$bodylen
+}
+if not
+	addr=$preaddr
+
+# construct event
+beg=`{cat $w/body | wc -c}
+cat $cmdfile > $w/body
+end=`{echo $beg + $cmdlen | hoc}
+event=MX^$beg^' '^$end
+
+# run command on hacked selection
+echo -n $addr >$w/addr
+echo 'dot=addr' >$w/ctl
+echo $event >$w/event
+
+# save post-command selection
+<$w/addr {
+	echo 'addr=dot' >$w/ctl
+	postaddr=`{cat | awk '{print "#" $1 ",#" $2}'}
+}
+
+# delete command text
+>$w/addr {
+	echo -n '$-#'^$cmdlen^',$'
+	echo 'dot=addr' >$w/ctl
+	echo -n >$w/wrsel
+	# restore post-command selection
+	echo -n $postaddr
+	echo 'dot=addr' >$w/ctl
+}
+rm $cmdfile
