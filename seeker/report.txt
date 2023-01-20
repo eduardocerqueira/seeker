@@ -1,4 +1,43 @@
 --------------------------------------------------------------------------------
+ 2023-01-20 17:11:36.983110
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/Aexe
+	deleted:    snippet/Demo_neu.py
+	deleted:    snippet/copy_cache.py
+	deleted:    snippet/docker.sh
+	deleted:    snippet/frantech.py
+	deleted:    snippet/homework.py
+	deleted:    snippet/k8s.sh
+	deleted:    snippet/pdftoimage.py
+	deleted:    snippet/server_queue.py
+	deleted:    snippet/setup_coral_pcie_1.sh
+	deleted:    snippet/setup_coral_pcie_2.sh
+	deleted:    snippet/udphex
+	deleted:    snippet/using_python_to_interact_with_directory.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/.bashrc
+	snippet/Ejercicio4.java
+	snippet/NoRepl.java
+	snippet/RDF4JLoad.java
+	snippet/TD_autocommit.py
+	snippet/backup_script.sh
+	snippet/eeg_to_spectrogram.py
+	snippet/main.java
+	snippet/trigrams.py
+	snippet/use_service.py
+	snippet/vpn-fix.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2023-01-19 17:12:03.965127
 --------------------------------------------------------------------------------
   On branch main
