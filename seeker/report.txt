@@ -1,4 +1,49 @@
 --------------------------------------------------------------------------------
+ 2023-01-23 17:11:51.122857
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/.bashrc
+	deleted:    snippet/Ejercicio4.java
+	deleted:    snippet/NoRepl.java
+	deleted:    snippet/RDF4JLoad.java
+	deleted:    snippet/TD_autocommit.py
+	deleted:    snippet/WebSocketConfig.java
+	deleted:    snippet/backup_script.sh
+	deleted:    snippet/check_cpu_gpu_diff_real_weight_image.py
+	deleted:    snippet/eeg_to_spectrogram.py
+	deleted:    snippet/git-setup.sh
+	deleted:    snippet/git-taggy
+	modified:   snippet/main.java
+	deleted:    snippet/main.py
+	deleted:    snippet/mkimg.sh
+	deleted:    snippet/node-setup.sh
+	deleted:    snippet/reset_index.py
+	deleted:    snippet/setup.sh
+	deleted:    snippet/trigrams.py
+	deleted:    snippet/use_service.py
+	deleted:    snippet/vpn-fix.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/Add_COG.pyt
+	snippet/ConnectionWrapper.java
+	snippet/ImageV1Handler.java
+	snippet/account_views.py
+	snippet/change_port.sh
+	snippet/jupyter_sample_config.py
+	snippet/mmx_duplicates.py
+	snippet/pam-tid-sudo.sh
+	snippet/tg_photo_add_exif.py
+	snippet/turnstile_service.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2023-01-20 17:11:36.983110
 --------------------------------------------------------------------------------
   On branch main

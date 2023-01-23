@@ -1,9 +1,0 @@
-#date: 2023-01-19T16:59:41Z
-#url: https://api.github.com/gists/44e095cebabb83bcf19b5fd1ba25a1a6
-#owner: https://api.github.com/users/Sam-Gram
-
-#!/bin/bash
-
-# Show last 10 tags by creation date
-
-git for-each-ref --sort=-creatordate refs/tags --format='%(refname:lstrip=2)' --count=10
