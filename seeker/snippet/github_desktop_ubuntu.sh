@@ -1,6 +1,6 @@
-#date: 2023-01-24T16:42:53Z
-#url: https://api.github.com/gists/3ce1af5d4df69611f6b16afd8dc0f751
-#owner: https://api.github.com/users/joshiyke
+#date: 2023-01-26T17:10:16Z
+#url: https://api.github.com/gists/ca7865aa4452ac6712f0f221f3f580f3
+#owner: https://api.github.com/users/ivoxavier
 
 ## Follow this link for further updates to Github Desktop for Ubuntu https://github.com/shiftkey/desktop/releases/latest
 # UPDATE (2022-11-07): Thanks to Sxvxgee's message, the updated code is as follows

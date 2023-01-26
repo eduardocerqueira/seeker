@@ -1,0 +1,10 @@
+#date: 2023-01-26T16:50:36Z
+#url: https://api.github.com/gists/bdfe4c4cf58a280cb58537b8a02e56ce
+#owner: https://api.github.com/users/jdugarte
+
+#!/usr/bin/env bash
+[[ -f "${TM_SUPPORT_PATH}/lib/bash_init.sh" ]] && . "${TM_SUPPORT_PATH}/lib/bash_init.sh"
+
+TM_PROJECT_DIRECTORY="$TM_PROJECT_DIRECTORY/"
+echo -n "${TM_FILEPATH#$TM_PROJECT_DIRECTORY}" | pbcopy
+echo 'Relative path copied to clipboard: '"${TM_FILEPATH#$TM_PROJECT_DIRECTORY}"
