@@ -37,4 +37,4 @@ curl -X GET "https://springhealth.atlassian.net/rest/api/2/search?jql=assignee%2
 
 curl -X GET "https://springhealth.atlassian.net/rest/api/2/search?jql=assignee%20in%20($JIRA_ID)%20AND%20createdDate%3E%3D%202022-01-01%20ORDER%20BY%20status%20DESC" \
 -u "geoffrey.ducharme@springhealth.com: "**********"atus%20DESC" \
--u "geoffrey.ducharme@springhealth.com:$JIRA_TOKEN" | jq '.total'
+-u "geoffrey.ducharme@springhealth.com: "**********"| jq '.total'
