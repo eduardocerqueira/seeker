@@ -1,12 +1,30 @@
-#date: 2023-02-01T16:45:57Z
-#url: https://api.github.com/gists/f5e21caa675c153d4f8bda6b26e7451e
+#date: 2023-02-02T16:46:12Z
+#url: https://api.github.com/gists/d71f32addd640429793c4f60c164d374
 #owner: https://api.github.com/users/mypy-play
 
-from typing import *
+from typing import assert_never
+from enum import Enum, auto
 
-MyString = NewType("MyString", str)
 
-def foo(bar: MyString):
-    print(bar)
+def f(x: int | list[int] | str) -> None:
+    if isinstance(x, int):
+        ...
+    elif isinstance(x, str):
+        ...
+    else:
+        assert_never(x)
+
+
+class E(Enum):
+    A = auto()
+    B = auto()
+    C = auto()
+
     
-foo("blah")
+def g(e: E) -> None:
+    if e is E.A:
+        ...
+    elif e is E.B:
+        ...
+    else:
+        assert_never(e)
