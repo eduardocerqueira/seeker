@@ -1,0 +1,93 @@
+#date: 2023-02-09T16:55:48Z
+#url: https://api.github.com/gists/c112fb86412da3b27c5d116c93712a0d
+#owner: https://api.github.com/users/fkhair
+
+#!/bin/sh
+# This Gist specially design for School Of Freelancing remote training.
+# FORK THIS GIST THEN RUN ALL COMMANDS ONE BY ONE
+# Select The Fastest Apt Mirror and Adjust Ubuntu Default Setting: https://youtu.be/lWHOECQ7t9Q
+# Then follow Ubuntu Default settings https://youtu.be/IxmYFA9vneo
+# Follow Workground 1 and Workground 2 as attached into this Gist comment section then RUN ALL COMMANDS ONE BY ONE.
+# Open your terminal by ctrl+alt+t and run all commands one by one. You can copy and paste into terminal too.
+
+
+sudo -i
+apt update -y && apt upgrade -y 
+apt install build-essential checkinstall
+apt install ubuntu-restricted-extras
+apt install software-properties-common
+apt install apt-show-versions
+apt upgrade -o APT::Get::Show-Upgraded=true
+apt-show-versions | grep upgradeable
+apt install git
+git config --global user.name "name"
+git config --global user.email mail@domain.com
+ssh-keygen -t rsa -b 4096 -C "email@gmail.com"
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_rsa
+# Add SSH Key the GitHub
+cat /root/.ssh/id_rsa.pub
+apt upgrade -y && apt update
+apt -f install && apt autoremove 
+apt -y autoclean && apt -y clean 
+apt upgrade -y && apt update
+reboot
+
+# Telegram Install Ubuntu 20.10 LTS Desktop Linux
+apt install telegram-desktop
+
+# AnyDesk Install Ubuntu 20.10 LTS Desktop Linux
+wget -qO - https://keys.anydesk.com/repos/DEB-GPG-KEY | sudo apt-key add -
+echo "deb http://deb.anydesk.com/ all main" > /etc/apt/sources.list.d/anydesk-stable.list
+apt update -y && apt upgrade -y
+apt install anydesk
+
+# Google Chrome Install & Configure Ubuntu 20.10 LTS Desktop Linux
+apt install libxss1
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+apt install ./google-chrome-stable_current_amd64.deb
+apt -f install 
+apt autoremove 
+apt update -y
+apt install apt-transport-https curl
+curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg arch=amd64] https://brave-browser-apt-release.s3.brave.com/ stable main"|sudo tee /etc/apt/sources.list.d/brave-browser-release.list
+
+apt update && apt upgrade
+apt install brave-browser
+apt update
+
+# Install Kazam Ubuntu 20.10 LTS Desktop Linux
+apt install kazam
+
+# Google Remote Desktop Install & Configure Ubuntu 20.10 LTS Desktop Linux
+apt install --assume-yes wget tasksel
+
+[[ $(/usr/bin/lsb_release --codename --short) == "stretch" ]] && \
+   sudo apt install --assume-yes libgbm1/stretch-backports
+
+wget https://dl.google.com/linux/direct/chrome-remote-desktop_current_amd64.deb
+apt install --assume-yes ./chrome-remote-desktop_current_amd64.deb
+apt -f install 
+apt autoremove 
+
+# Install Brave Browser On Ubuntu 20.10 LTS Desktop Linux
+apt install apt-transport-https curl
+curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg arch=amd64] https://brave-browser-apt-release.s3.brave.com/ stable main"|sudo tee /etc/apt/sources.list.d/brave-browser-release.list
+apt update
+apt install brave-browser
+
+# Install OBS On Ubuntu 20.10 LTS Desktop Linux
+sudo apt install ffmpeg
+apt update -y && apt upgrade
+sudo add-apt-repository ppa:obsproject/obs-studio
+sudo apt-get update
+sudo apt-get install obs-studio
+apt update -y && apt upgrade
+
+apt -y autoclean 
+apt -y clean 
+apt update -y && apt upgrade -y
+reboot
+
