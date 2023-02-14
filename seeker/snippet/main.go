@@ -1,47 +1,37 @@
-//date: 2023-02-13T17:06:11Z
-//url: https://api.github.com/gists/bdc3a6391682d351516ebcf766229e5b
-//owner: https://api.github.com/users/Integralist
+//date: 2023-02-14T16:49:36Z
+//url: https://api.github.com/gists/3fc0268cb395eda620d55d29ba87d355
+//owner: https://api.github.com/users/himcc
 
 package main
 
 import (
-	"time"
+	"database/sql"
+	"fmt"
+	"log"
 
-	"github.com/theckman/yacspin"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
-	spinner, _ := yacspin.New(yacspin.Config{
-		CharSet:           yacspin.CharSets[9],
-		Frequency:         100 * time.Millisecond,
-		StopCharacter:     "✓",
-		StopColors:        []string{"fgGreen"},
-		StopFailCharacter: "✗",
-		StopFailColors:    []string{"fgRed"},
-		Suffix:            " ",
-		// NotTTY:            true,
-	})
+	fmt.Println("KKKK")
 
-	_ = spinner.Start()
-	spinner.Message("1.")
+	db, err := sql.Open("sqlite3", "./foo.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 
-	time.Sleep(4 * time.Second)
-
-	spinner.Message("2.")
-
-	time.Sleep(4 * time.Second)
-
-	spinner.StopMessage("2.")
-
-	_ = spinner.Stop()
-
-	_ = spinner.Start()
-
-	spinner.Message("3.")
-
-	time.Sleep(4 * time.Second)
-
-	spinner.StopFailMessage("3.")
-
-	_ = spinner.StopFail()
+	rows, err := db.Query(".tables")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var n string
+		err = rows.Scan(&n)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(n)
+	}
 }
