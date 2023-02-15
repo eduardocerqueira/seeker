@@ -1,0 +1,148 @@
+#date: 2023-02-15T16:53:50Z
+#url: https://api.github.com/gists/ae6888cf7ea7656e7282c895d353ef01
+#owner: https://api.github.com/users/devtooligan
+
+#!/bin/bash
+
+alias c='code .'
+alias cdh='cd $HOME'
+alias ls='ls -la'
+alias sl="ls"
+alias cls='clear'
+alias g='git status'
+alias gap='git add -p'
+alias gl='git log'
+# alias dt="dapp test -m 'testUnit' && dapp test -m 'testFail' && dapp test -m 'testFuzz'"
+# alias dp="dapp test -m prove"
+alias "git clone"="git clone --recursive"
+alias ft="forge test"
+alias fcb="forge clean && forge build"
+
+
+# change directories and ls
+cdd() {
+  cd $1
+  ls -la
+}
+
+# git clone a repo and cd into it
+gcc() {
+  git clone $1
+  cd $(echo $1 | grep -oE '([^/]+)\.git$' | sed 's/\.git$//')
+}
+
+# forge install --no-commit
+finc () {
+  forge install $1 --no-commit
+}
+
+gcm() {
+ git commit -m $@
+}
+
+function gcp() {
+  git cherry-pick $1
+}
+
+function ftm() {
+  forge test -vvv -m $1
+}
+
+# from Bo
+alias gitl='git log --graph --decorate --pretty=format:'\''%Cred%h%Creset %Cgreen(%cr) %C(bold blue)<%an>%Creset%C(yellow)%d%Creset %s %Creset'\'' --abbrev-commit -20'
+
+alias gitla='git log --graph --decorate --pretty=format:'\''%Cred%h%Creset %Cgreen(%cD) %C(bold blue)<%an>%Creset%C(yellow)%d%Creset %s %Creset'\'' --abbrev-commit --branches --remotes --tags'
+
+alias gls='git log --graph --pretty=format:'\''%Cred%h%Creset %Cgreen(%cr) %C(bold blue)<%an>%Creset%C(yellow)%d%Creset %s %Creset'\'' --abbrev-commit --branches --remotes --tags -10 && echo ======= && git status -s'
+
+# foundryup and huffup
+gm() {
+  echo
+  echo -e "${BLUE}Hello${RESET} ${BOLD}devtooligan${RESET}${BLUE}.${RESET}"
+  echo -e "${YELLOW}Shall we ${RESET}${BOLD}${GREEN}foundryup${RESET}${YELLOW} and ${RESET}${BOLD}${GREEN}huffup${RESET}${YELLOW}?${RESET}"
+  echo
+  foundryup
+  echo
+  echo -e ${BOLD}Finished${GREEN} foundryup${RESET}${BOLD}.  Beginning ${GREEN}huffup${RESET}.
+  echo
+  huffup
+  echo
+  echo -e ${BOLD}Finished${GREEN} huffup${RESET}.
+}
+
+interface() {
+  echo 'interface <pathToAbi> or <address> <contractName>, <etherscanapikey>'
+
+  if [[ $1 == 0x* ]]; then
+    cast interface $1 -c ${2:-mainnet} --etherscan-api-key ${3:-$ETHERSCAN_API_KEY}
+  else
+    cast interface <(forge inspect $1 abi)
+  fi
+}
+
+# open a new Solidity-Sandbox
+scratch() {
+  cd /Users/devtooligan/dev/devtooligan/solidity-sandbox
+  bash newTest.sh $1 $2
+}
+
+
+RESET="\e[0m"
+BOLD="\e[1m"
+RED="\e[31m"
+GREEN="\e[32m"
+YELLOW="\e[33m"
+BLUE="\e[34m"
+
+# randomize primary bar colors in vsCode to differentiate different projects
+importVSCodeSettings() {
+  mkdir -p .vscode
+  timestamp=$(date +%s)
+
+  theme=$((${timestamp} % 2)) #  theme 0 or 1
+
+  declare -a lightColors=(
+    [1]="#ffffff" # white
+    [2]="#ffc8c8" # pink
+    [3]="#84ff8d" # light green
+    [4]="#8ccbfe" # light blue
+    [5]="#e1e1e1" # light grey
+    [6]="#ffa565" # orange
+    [7]="#d5d166" # lightYello
+  )
+
+  darkChoices=7
+
+  declare -a darkColors=(
+    [1]="#b67300" # brown
+    [2]="#000000" # black
+    [3]="#178803" # dark green
+    [4]="#050388" # dark blue
+    [5]="#656565" # dark grey
+    [6]="#860303" # dark red
+    [7]="#e30000" # red
+  )
+  lightChoices=7
+
+
+  timestamp=$(date +%s)
+  lightColorIndex=$((${timestamp} % ${lightChoices} + 1))  # pseudo random based on timestamp
+  lightColor=${lightColors[${lightColorIndex}]}
+
+  timestamp=$(date +%s)
+  darkColorIndex=$((${timestamp} % 123456 % ${darkChoices} + 1))  # different pseudo random based on timestamp % 123456
+  darkColor=${darkColors[${darkColorIndex}]}
+
+
+  if [ ${theme} -gt 0 ]; then
+      foreground=${lightColor}
+      background=${darkColor}
+  else
+      foreground=${darkColor}
+      background=${lightColor}
+  fi
+  cat ${HOME}/dev/utils/settings.json \
+    | sed "s/FOREGROUND/${foreground}/g" \
+    | sed "s/BACKGROUND/${background}/g" \
+    > ./.vscode/settings.json
+}
