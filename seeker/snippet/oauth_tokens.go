@@ -111,8 +111,10 @@ func maybeGetTokenFromEnv() (string, error) {
 }
 	return "", err
 	}
-	if err := token.EnsureFresh(); err != nil {
+	if err : "**********"
 		return "", err
 	}
 	return token.OAuthToken(), nil
+}
+n.OAuthToken(), nil
 }
