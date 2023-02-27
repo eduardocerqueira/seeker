@@ -1,18 +1,15 @@
-#date: 2023-02-24T17:08:06Z
-#url: https://api.github.com/gists/db17b5ffdc0f53476a7873dffce3e870
+#date: 2023-02-27T16:55:14Z
+#url: https://api.github.com/gists/22b72e434e979c16b0fec6ebce7437b8
 #owner: https://api.github.com/users/mypy-play
 
-from typing import Optional
 
+from typing import *
 
-def area_of_square(width: Optional[float] = None, 
-                   height: Optional[float] = None) -> float:
-    if width is not None and height is not None:
-        raise ValueError('Please specify a width or height, not both')
-    elif width is not None:
-        area = width**2 
-    elif height is not None:
-        area = height**2
-    else:
-        raise ValueError('You have not specified a width or height')
-    return area
+T = TypeVar("T")
+
+def foo(x: T, y: T) -> T:
+    print(x, y)
+    return x
+    
+    
+foo(1, "2")
