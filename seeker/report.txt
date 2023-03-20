@@ -1,4 +1,52 @@
 --------------------------------------------------------------------------------
+ 2023-03-20 17:11:30.802218
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/Dockerfile
+	deleted:    snippet/Go zap logger init.go
+	deleted:    snippet/Principal.java
+	deleted:    snippet/Reparacion.java
+	deleted:    snippet/Taller.java
+	deleted:    snippet/Vehiculo.java
+	deleted:    snippet/applyScannedEffectToPdf.sh
+	deleted:    snippet/client.py
+	deleted:    snippet/dms_task_creation.py
+	deleted:    snippet/extract_first_letters.py
+	deleted:    snippet/fauxalysis.py
+	deleted:    snippet/fragnet_merging.py
+	deleted:    snippet/long_gpt.py
+	deleted:    snippet/mac-clear-icon-cache.sh
+	deleted:    snippet/main.py
+	deleted:    snippet/publish.py
+	deleted:    snippet/race2.sh
+	deleted:    snippet/reviewer_suggestions.sh
+	deleted:    snippet/ruby_bindgen.sh
+	deleted:    snippet/server.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/AL2-tools-install.sh
+	snippet/Car.java
+	snippet/Midterm.java
+	snippet/Rental.java
+	snippet/Truck.java
+	snippet/Vehicle.java
+	snippet/alpha-beta.py
+	snippet/commit-msg
+	snippet/gojira-api.py
+	snippet/gojira-gh.py
+	snippet/num_to_ranges.py
+	snippet/pre-commit
+	snippet/qemu_mips_ld_libs.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2023-03-17 17:11:09.664058
 --------------------------------------------------------------------------------
   On branch main

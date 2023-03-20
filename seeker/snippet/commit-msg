@@ -1,0 +1,12 @@
+#date: 2023-03-20T17:07:04Z
+#url: https://api.github.com/gists/903b6b95917328c21064b7d3c9248417
+#owner: https://api.github.com/users/JadsonLucena
+
+#!/bin/sh
+
+# https://git-scm.com/docs/githooks#_commit_msg
+
+#https://commitlint.js.org/#/reference-cli
+npx commitlint --edit $1
+
+exit $?
