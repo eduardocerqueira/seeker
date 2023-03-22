@@ -1,0 +1,102 @@
+#date: 2023-03-22T16:58:05Z
+#url: https://api.github.com/gists/50e386246aec09d12d23be3c840a2076
+#owner: https://api.github.com/users/tos-kamiya
+
+#!/bin/bash
+
+# Set default values
+interval=5
+logfile="output-by-logging-watch.log"
+clear_log=false
+
+# Function to display usage information
+usage() {
+  echo "Usage: $0 [OPTIONS] COMMAND..."
+  echo ""
+  echo "Options:"
+  echo "  -n, --interval SEC    Interval in seconds between runs (default: 5)"
+  echo "  -l, --logfile FILE    Log file to save the output (default: output-by-logging-watch.log)"
+  echo "  -C, --clear-log       Clear the log file before starting"
+  echo "  -h, --help            Display this help and exit"
+  echo ""
+  echo "Example:"
+  echo "  $0 -n 3 -l mylog.txt -C echo \"Hello, world!\""
+}
+
+# Function to handle the interrupt signal
+interrupt_handler() {
+  echo ""
+  echo "Info: Execution interrupted. Log saved to file: $logfile"
+  exit 130
+}
+
+# Parse arguments
+while getopts ":n:l:Ch-:" opt; do
+  case "$opt" in
+    n)
+      interval="$OPTARG"
+      ;;
+    l)
+      logfile="$OPTARG"
+      ;;
+    C)
+      clear_log=true
+      ;;
+    h)
+      usage
+      exit 0
+      ;;
+    -)
+      case "$OPTARG" in
+        interval)
+          interval="${!OPTIND}"
+          OPTIND=$((OPTIND + 1))
+          ;;
+        logfile)
+          logfile="${!OPTIND}"
+          OPTIND=$((OPTIND + 1))
+          ;;
+        clear-log)
+          clear_log=true
+          ;;
+        help)
+          usage
+          exit 0
+          ;;
+        *)
+          usage
+          exit 1
+          ;;
+      esac
+      ;;
+    *)
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+# Remove option arguments and process the remaining ones
+shift $((OPTIND - 1))
+
+if [ "$#" -eq 0 ]; then
+  usage
+  exit 1
+fi
+
+# Set the interrupt signal handler after option parsing
+trap interrupt_handler SIGINT
+
+# Clear the log file if necessary
+if $clear_log; then
+  echo -n > "$logfile"
+fi
+
+while true; do
+    date | tee -a "$logfile"
+    echo "" | tee -a "$logfile"
+    # Save both standard output and standard error to the log file
+    ("$@" 2>&1) | tee -a "$logfile"
+    echo "------------------------------------" | tee -a "$logfile"
+    sleep "$interval"
+done
