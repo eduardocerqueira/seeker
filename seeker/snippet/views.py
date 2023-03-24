@@ -1,11 +1,11 @@
-#date: 2023-03-23T17:06:11Z
-#url: https://api.github.com/gists/4fd8f3a5b58d2fd71b79c3189f3720ae
-#owner: https://api.github.com/users/Lord-sarcastic
+#date: 2023-03-24T17:00:58Z
+#url: https://api.github.com/gists/a717a2798b2246623c4934eb513e669d
+#owner: https://api.github.com/users/chrisgrande
 
-from rest_framework_simplejwt.views import TokenObtainPairView
+from mixins import RedirectOn404Mixin
+from django.views.generic import DetailView
 
-from .serializers import LoginSerializer
 
-
- "**********"c "**********"l "**********"a "**********"s "**********"s "**********"  "**********"L "**********"o "**********"g "**********"i "**********"n "**********"A "**********"P "**********"I "**********"V "**********"i "**********"e "**********"w "**********"( "**********"T "**********"o "**********"k "**********"e "**********"n "**********"O "**********"b "**********"t "**********"a "**********"i "**********"n "**********"P "**********"a "**********"i "**********"r "**********"V "**********"i "**********"e "**********"w "**********") "**********": "**********"
-    serializer_class = LoginSerializer
+class TestDetail(RedirectOn404Mixin, DetailView):
+    model = Test
+    redirect_url_name = 'test-index'
