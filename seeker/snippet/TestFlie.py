@@ -1,11 +1,14 @@
-#date: 2023-03-28T16:52:01Z
-#url: https://api.github.com/gists/385f4c4b4ff7aec207b79d9cd8ee243b
+#date: 2023-03-28T16:51:19Z
+#url: https://api.github.com/gists/d1d134394baf27ca86dd45bd6fbc8243
 #owner: https://api.github.com/users/ProjektPendelF
 
 import pygame
 from pygame.locals import *
 from math import *
 from datetime import datetime
+#import matplotlib.pyplot as plt
+import numpy as np
+import pygame.gfxdraw
 
 # Konstanten
 g = 98.1
@@ -182,19 +185,10 @@ class Physics():
 
         ##### PYCHARM BENUTZT BOGENMAß
 
-        if winkel > 0:
-            # entspricht Ausschlag nach rechts
-            x = sin(winkel) * groesse
-            y = cos(winkel) * groesse
+        # entspricht Ausschlag nach rechts
+        x = sin(winkel) * groesse
+        y = cos(winkel) * groesse
 
-
-        elif winkel < 0:
-            # entspricht Ausschlag nach links
-            x = sin(winkel) * groesse
-            y = cos(winkel) * groesse
-
-        else:
-            return (0, groesse)
 
         if abs(x) < 0.000000001:
             x = 0
@@ -205,7 +199,7 @@ class Physics():
 
     # RENDER
 
-    def Pfeil(self, color=RED, startpos=(0, 0), endpos=(0, 0), width=1, L=500, H=100):
+    def Pfeil(self, color=RED, startpos=(0, 0), endpos=(0, 0), width=1):
         pygame.draw.line(Surface, color, startpos, endpos, width)
 
     def Pendelbogen(self, pendelkoordinaten):
@@ -221,13 +215,17 @@ class Physics():
     def PfeilBeschl(self, Kugel, color=CYAN):
 
         # Beschleunigung der Kugel
-
         pygame.draw.line(Surface, color, (Kugel.getX(), Kugel.getY()), (Kugel.getX() + Kugel.getxBes(), Kugel.getY()),
                          width=2)
         pygame.draw.line(Surface, color, (Kugel.getX(), Kugel.getY()), (Kugel.getX(), Kugel.getY() + Kugel.getyBes()),
                          width=2)
         pygame.draw.line(Surface, color, (Kugel.getX(), Kugel.getY()),
                          (Kugel.getX() + Kugel.getxBes(), Kugel.getY() + Kugel.getyBes()), width=2)
+        arrow_points = [(Kugel.getX() + Kugel.getxBes() + 1, Kugel.getY() + Kugel.getyBes()),
+                        (Kugel.getX() + Kugel.getxBes() + 10, Kugel.getY() + Kugel.getyBes() - 10),
+                        (Kugel.getX() + Kugel.getxBes(), Kugel.getY() + Kugel.getyBes() - 10),
+                        ((Kugel.getX() + Kugel.getxBes() - 10, Kugel.getY() + Kugel.getyBes() - 10))]
+        pygame.draw.polygon(Surface, color, arrow_points)
 
     def PfeilGeschw(self, Kugel, color=BLUE):
         # Geschwindigkeit der Kugel
@@ -297,7 +295,8 @@ while mode == 'running' or mode == 'stopped':
         Physics.grav(Kugel, g, fps)
         Physics.bewegen(Kugel, fps)
         Physics.PfeilGesamt(Kugel)
-        Physics.Pfeil(WHITE, Zentrum, (Kugel.getX(), Kugel.getY()), width=3)
+        Physics.Pfeil(WHITE, Zentrum, (Kugel.getX(), Kugel.getY()), width=1)
+
         Kugel.zeichnen()
         Surface.blit(Kraefte.text, Kraefte.textpos)
         Physics.PfeilGeschw(Kugel)
