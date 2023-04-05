@@ -1,0 +1,41 @@
+#date: 2023-04-05T17:10:32Z
+#url: https://api.github.com/gists/f0968d135ad2b2336e1fbb5e213143c2
+#owner: https://api.github.com/users/Slebluue
+
+#!/bin/bash
+
+# pr_info will grab details about a particular pull request from Github
+#
+# You will need a GH_TOKEN set in your path, it will need read access to reviewtrackers repositories
+#
+# Args:
+# repo - this is just the bit after /reviewtrackers, example: rx-intel
+# issue_number - this is the pull number, just the number will do. example: 5
+#
+# Output:
+# comma separated list of data about the PR
+#
+# output is intentionally comma separated, so that the output can be written to a .csv file
+# 
+# Example usage: pr_info rtx-intel 1 > intel_pr_data.csv
+
+repo=$1
+issue_number=$2
+gh_url=https://api.github.com
+
+pr=$(curl -s -H "Authorization: "**********"
+author=`echo $pr | jq '.user.login'`
+url=`echo $pr | jq '.html_url'`
+created_at=`echo $pr | jq '.created_at' | ./format_iso_8601`
+merged_at=`echo $pr | jq '.merged_at' | ./format_iso_8601`
+
+events=$(curl -s -H "Authorization: "**********"
+needs_one_at=`echo $events | jq '.[] | "\(.created_at) \(.label.name)"' | grep -m 1 'Needs +1' | sed 's/Needs +1//' | ./format_iso_8601`
+
+reviews=$(curl -s -H "Authorization: "**********"
+first_review_at=`echo $reviews | jq '.[0].submitted_at' | ./format_iso_8601`
+approved_at=`echo $reviews | jq '.[] | "\(.state) \(.submitted_at)"' | grep -m 1 'APPROVED' | sed 's/APPROVED//' | ./format_iso_8601`
+
+echo $author,$issue_number,$repo,$url,$created_at,$needs_one_at,$first_review_at,$approved_at,$merged_atstate) \(.submitted_at)"' | grep -m 1 'APPROVED' | sed 's/APPROVED//' | ./format_iso_8601`
+
+echo $author,$issue_number,$repo,$url,$created_at,$needs_one_at,$first_review_at,$approved_at,$merged_at

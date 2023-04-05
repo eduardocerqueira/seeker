@@ -1,19 +1,36 @@
-#date: 2023-04-04T16:39:46Z
-#url: https://api.github.com/gists/89d4165650a1ac437f36c36e576a4b6b
-#owner: https://api.github.com/users/Angelina91
+#date: 2023-04-05T16:47:26Z
+#url: https://api.github.com/gists/1353d82204d50e519dfac593dd7cb78a
+#owner: https://api.github.com/users/ejariza-evowill
 
-FROM python:3.7-slim
+# Base image
+FROM python:3.9-slim-buster
 
-RUN mkdir /app
-
-COPY requirements.txt /app
-
-RUN pip3 install -r /app/requirements.txt --no-cache-dir
-
-#COPY . .
-
-COPY api_yamdb/ app
- 
+# Set work directory
 WORKDIR /app
 
-CMD ["gunicorn", "api_yamdb.wsgi:application", "--bind", "0:8000" ] 
+# Install system dependencies
+RUN apt update && apt install build-essential libpq-dev -y
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    postgresql-client \
+    gcc \
+    musl-dev \
+    libpq-dev \
+    redis-server\
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --upgrade pip
+
+# Install dependencies
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt
+
+
+# Copy app code
+COPY . .
+
+# Expose ports
+EXPOSE 8000
+EXPOSE 5432
+EXPOSE 6379
+
+CMD ["./docker-entrypoint.sh"]
