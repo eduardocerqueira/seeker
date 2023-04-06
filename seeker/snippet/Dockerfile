@@ -1,36 +1,18 @@
-#date: 2023-04-05T16:47:26Z
-#url: https://api.github.com/gists/1353d82204d50e519dfac593dd7cb78a
-#owner: https://api.github.com/users/ejariza-evowill
+#date: 2023-04-06T17:08:28Z
+#url: https://api.github.com/gists/7e0f71dd7fc33fc5193c1b3de47ab584
+#owner: https://api.github.com/users/BlackthornYugen
 
-# Base image
-FROM python:3.9-slim-buster
+FROM --platform=linux/arm64 amazonlinux:2
+RUN yum install -y openssh-server
+RUN useradd -ms /bin/bash jumpuser
+RUN mkdir -v /run/sshd
+RUN ssh-keygen -A
 
-# Set work directory
-WORKDIR /app
+USER jumpuser
+RUN mkdir ~/.gnupg ~/.ssh
+RUN echo 'eval `ssh-agent -s` > /dev/null' >> ~/.bashrc
+RUN echo 'export SSH_AUTH_SOCK=$HOME/S.gpg-agent.ssh' >> ~/.bashrc
 
-# Install system dependencies
-RUN apt update && apt install build-essential libpq-dev -y
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    postgresql-client \
-    gcc \
-    musl-dev \
-    libpq-dev \
-    redis-server\
-    && rm -rf /var/lib/apt/lists/*
-
-RUN pip install --upgrade pip
-
-# Install dependencies
-COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
-
-
-# Copy app code
-COPY . .
-
-# Expose ports
-EXPOSE 8000
-EXPOSE 5432
-EXPOSE 6379
-
-CMD ["./docker-entrypoint.sh"]
+USER root
+COPY entrypoint.sh /
+ENTRYPOINT [ "/entrypoint.sh" ]
