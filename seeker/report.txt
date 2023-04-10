@@ -1,4 +1,72 @@
 --------------------------------------------------------------------------------
+ 2023-04-10 17:09:55.120916
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/Dockerfile
+	deleted:    snippet/GRFPredictor.py
+	deleted:    snippet/Game.py
+	deleted:    snippet/ImprovedGcsSession.java
+	deleted:    snippet/TerminalSnake.py
+	deleted:    snippet/add.go
+	deleted:    snippet/aes.py
+	deleted:    snippet/automounter.sh
+	deleted:    snippet/blueskyAtp.py
+	deleted:    snippet/calc-pare.go
+	deleted:    snippet/check_roi_selection.py
+	deleted:    snippet/compound_status.py
+	deleted:    snippet/const.py
+	deleted:    snippet/core.py
+	deleted:    snippet/design2_infra_diagram.py
+	deleted:    snippet/entrypoint.sh
+	deleted:    snippet/gistfile1.sh
+	deleted:    snippet/gistfile1.txt
+	deleted:    snippet/grource-video.sh
+	deleted:    snippet/install-gh.sh
+	deleted:    snippet/main.go
+	deleted:    snippet/models.py
+	deleted:    snippet/notion_export_html_to_pdf.py
+	deleted:    snippet/permissions.py
+	deleted:    snippet/peterbe__run-all-tests.sh
+	deleted:    snippet/regi.java
+	deleted:    snippet/remove dotfile symlinks.sh
+	modified:   snippet/serializers.py
+	deleted:    snippet/settings.py
+	deleted:    snippet/sgtk_app_bg_shotgun_request.py
+	deleted:    snippet/signin.java
+	deleted:    snippet/telegram27.java
+	deleted:    snippet/test_llama.py
+	deleted:    snippet/ue_types.py
+	deleted:    snippet/urls.py
+	deleted:    snippet/views.py
+	deleted:    snippet/wel.java
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/AbstractSObject.java
+	snippet/Account.java
+	snippet/SObjectAttributes.java
+	snippet/SObjectInterface.java
+	snippet/SObjectType.java
+	snippet/SalesforceClient.java
+	snippet/SfResponse.java
+	snippet/TestObject__c.java
+	snippet/apple_music_ios_rpc.py
+	snippet/fix_qif_societe_generale.py
+	snippet/format_and_f-strings.py
+	snippet/parsefunction.py
+	snippet/script.py
+	snippet/test.py
+	snippet/zicarecoding.go
+	snippet/zicarecoding_test.go
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2023-04-07 17:09:43.895671
 --------------------------------------------------------------------------------
   On branch main
