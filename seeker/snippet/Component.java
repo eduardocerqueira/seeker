@@ -1,0 +1,30 @@
+//date: 2023-04-12T16:54:31Z
+//url: https://api.github.com/gists/de2a864eafe60db3f9bc7fc602ac0829
+//owner: https://api.github.com/users/sindrihardar
+
+import javafx.scene.shape.Rectangle;
+
+public class Component {
+
+    private Rectangle rectangle;
+    private int startPositionX;
+    private int startPositionY;
+
+    public Component(int size, int startPositionX, int startPositionY) {
+        this.startPositionX = startPositionX;
+        this.startPositionY = startPositionY;
+        rectangle = new Rectangle(startPositionX, startPositionY, size, size);
+    }
+
+    public Rectangle getRectangle() {
+        return rectangle;
+    }
+
+    public int getStartPositionX() {
+        return startPositionX;
+    }
+
+    public int getStartPositionY() {
+        return startPositionY;
+    }
+}

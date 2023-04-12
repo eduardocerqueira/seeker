@@ -1,4 +1,64 @@
 --------------------------------------------------------------------------------
+ 2023-04-12 17:09:51.611713
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/AbstractSObject.java
+	deleted:    snippet/Account.java
+	modified:   snippet/Main.java
+	deleted:    snippet/SObjectAttributes.java
+	deleted:    snippet/SObjectInterface.java
+	deleted:    snippet/SObjectType.java
+	deleted:    snippet/SalesforceClient.java
+	deleted:    snippet/SfResponse.java
+	deleted:    snippet/TestObject__c.java
+	deleted:    snippet/apple_music_ios_rpc.py
+	deleted:    snippet/fix_qif_societe_generale.py
+	deleted:    snippet/format_and_f-strings.py
+	deleted:    snippet/parsefunction.py
+	deleted:    snippet/script.py
+	deleted:    snippet/serializers.py
+	deleted:    snippet/test.py
+	deleted:    snippet/zicarecoding.go
+	deleted:    snippet/zicarecoding_test.go
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/Application.java
+	snippet/Card.java
+	snippet/CardSuit.java
+	snippet/CardValue.java
+	snippet/Change_battery_electric_car.py
+	snippet/Combination.java
+	snippet/Component.java
+	snippet/Controller.java
+	snippet/DraggableMaker.java
+	snippet/DraggableMakerGrid.java
+	snippet/Game.java
+	snippet/GridBase.java
+	snippet/GridHandler.java
+	snippet/Taste_split.py
+	snippet/facebook,py
+	snippet/jopbuild.sh
+	snippet/k4a_publish_ros1.py
+	snippet/k4a_publish_ros2.py
+	snippet/liberated-notes-to-joplin.py
+	snippet/problem_1.py
+	snippet/problem_2.py
+	snippet/pseudoquine.sh
+	snippet/sample_tables.py
+	snippet/taste_plot.py
+	snippet/xcode_support_file
+	snippet/zed2i_publish_ros1.py
+	snippet/zed2i_publish_ros2.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2023-04-11 17:09:36.102220
 --------------------------------------------------------------------------------
   On branch main

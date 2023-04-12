@@ -1,50 +1,33 @@
-//date: 2023-04-11T16:58:06Z
-//url: https://api.github.com/gists/fb44945e1128bf2a6ffbf614a2b2b032
-//owner: https://api.github.com/users/YesunPark
+//date: 2023-04-12T16:41:32Z
+//url: https://api.github.com/gists/0edd086b691bf6bb0a629d86da700472
+//owner: https://api.github.com/users/GG1RRka
 
-// 23.4.12 4월(6주차) Mission1_깜짝과제1 - html파일 작성해보기
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.sql.SQLOutput;
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        // 파일 저장
-        try {
-            File file = new File("property.html");
-            BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-            writer.write("<head>");
-            writer.write("<meta charset=\"UTF-8\" />");
-            writer.write("<style>" +
-                    "table { border-collapse: collapse; width: 100%; }" +
-                    "th, td { border:solid 1px #000;}" +
-                    "</style>");
-            writer.write("</head>");
-
-            writer.write("<body>");
-
-            writer.write("<h1>자바 환경정보</h1>");
-            writer.write("<table>" +
-                    "<th>키</th>" +
-                    "<th></th>");
-            // 자바 시스템 속성값 출력
-            for (Object k : System.getProperties().keySet()) {
-                String key = k.toString();
-                String value = System.getProperty(key);
-
-                writer.write("<tr>" +
-                        "<td>" + key + "</td>"
-                        + "<td>" + value + "</td>"
-                        + "</tr>");
-            }
-            writer.write("</table>");
-            
-            writer.write("</body>");
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        Scanner input = new Scanner(System.in);
+        System.out.println("Добро пожаловать в покер!");
+        System.out.println("Покер (англ. poker) — карточная игра, цель которой собрать выигрышную комбинацию или вынудить всех соперников прекратить участвовать в игре. Игра идёт с полностью или частично закрытыми картами. Конкретные правила могут варьироваться в зависимости от разновидности покера. Обобщающими элементами всех разновидностей покера являются комбинации и наличие торговли в процессе игры. Ввиду того, что игрок не знает карты своих противников, покер является игрой с неполной информацией, как и многие другие карточные игры, в отличие от, например, шахмат, в которых оба игрока видят положение всех фигур на доске. ");
+        System.out.println("Вы хотите начать игру? Напишите yes или no:");
+        String s = input.next();
+        s = s.toLowerCase();
+        if (s.equals("no")) {
+            System.out.println("До свидания!");
+            return;
         }
+        do {
+            System.out.println("Началась новая игра!");
+            Game game = new Game();
+            System.out.println(game.play());
+            System.out.println("Хотите ли вы продолжить игру? Напишите yes или no:");
+            s = input.next();
+            s = s.toLowerCase();
+            if (s.equals("no")) {
+                System.out.println("До свидания!");
+                return;
+            }
+        } while (true);
     }
 }

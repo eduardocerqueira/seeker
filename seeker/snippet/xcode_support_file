@@ -1,0 +1,57 @@
+#date: 2023-04-12T16:53:02Z
+#url: https://api.github.com/gists/679b20586c90a855e320943be8e49cda
+#owner: https://api.github.com/users/mehsam
+
+#!/bin/bash
+
+function help() {
+  echo "
+  usage: xcode_support_file [-d][-i][-h] <ios version>
+
+  download xcode supported device file from:
+  https://github.com/filsv/iOSDeviceSupport
+  and installs it on:
+  /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/DeviceSupport
+        -h print this usage text
+        -d <directory> download it to <directory> but do not install it
+        -i <file path> install it from specified <path>
+  example:
+        ./xcode_support_file 16.4
+        "
+}
+function download() {
+  echo "downloading..."
+  github_address="https://github.com/filsv/iOSDeviceSupport/raw/master/${filename}"
+  echo $github_address
+  wget ${github_address} -O ${download_path}/$filename
+}
+function install() {
+  destination_path="/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/DeviceSupport"
+  unzip -o ${install_from_path} -d ${destination_path}
+}
+while getopts :d:i:h flag;
+do
+  case "${flag}" in
+    d) download_path=${OPTARG};;
+    i) install_from_path=${OPTARG};;
+    h) help;exit 0;;
+    \?) echo "-${OPTARG} option not recognized";exit 1;;
+  esac
+done
+shift $(expr $OPTIND - 1 )
+filename="$1.zip"
+if [[ -z $download_path ]]; then
+  download_path=$TMPDIR
+  download
+else
+  download
+  exit 0
+fi
+
+if [[ -z $install_from_path ]]; then
+  install_from_path=$TMPDIR$filename
+  install
+else
+  install
+  exit
+fi
