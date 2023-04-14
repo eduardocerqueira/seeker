@@ -1,0 +1,21 @@
+#date: 2023-04-14T16:45:00Z
+#url: https://api.github.com/gists/079660a3830b8df38803915a1a7c56c6
+#owner: https://api.github.com/users/t3ly
+
+#!/bin/bash
+
+function clean_branches() {
+  git branch --merged | grep -v "\*" | grep -v master | grep -v dev | xargs -n 1 git branch -d
+}
+
+function update_branch() {
+  git switch main
+  git pull
+  bundle install
+  yarn install
+  git switch -
+}
+
+function new_branch() {
+  git switch -c $1
+}
