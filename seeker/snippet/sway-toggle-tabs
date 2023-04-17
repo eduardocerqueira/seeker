@@ -1,0 +1,29 @@
+#date: 2023-04-17T16:57:24Z
+#url: https://api.github.com/gists/4478ebb09962cbc5b033f57a13981c24
+#owner: https://api.github.com/users/senko
+
+#!/bin/bash
+#
+# Cycle through all workspaces and set them to tabbed if "small" and
+# split horizontally if "big". "Small" is defined as having width less
+# than 2880, otherwise it's big.
+#
+# Looks a bit messy for a split second, but then returns to the current
+# workspace.
+
+workspaces_json="$(swaymsg -t get_workspaces)"
+current_ws=$(echo "$workspaces_json" | jq '.[]|select(.focused==true).num')
+small_workspaces=$(echo "$workspaces_json" | jq '.[] | select(.rect.width < 2880) | .num')
+big_workspaces=$(echo "$workspaces_json" | jq '.[] | select(.rect.width >= 2880) | .num')
+
+for ws in $small_workspaces; do
+    swaymsg "workspace number $ws"
+    swaymsg "layout tabbed"
+done
+
+for ws in $big_workspaces; do
+    swaymsg "workspace number $ws"
+    swaymsg "layout splith"
+done
+
+swaymsg "workspace number $current_ws"

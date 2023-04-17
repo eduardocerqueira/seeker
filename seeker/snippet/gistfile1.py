@@ -1,40 +1,29 @@
-#date: 2023-04-14T16:59:29Z
-#url: https://api.github.com/gists/f16fe77083579f7b31f61ebe849f9387
-#owner: https://api.github.com/users/Name-shitty-github-profile
+#date: 2023-04-17T16:43:57Z
+#url: https://api.github.com/gists/2c9b4a3c4aed56f315716730006f02a4
+#owner: https://api.github.com/users/rcmadden
 
-'''
-sin(x) = x-x^3/3!+x^5/5!-x^7/7!+..-
-'''
-import math
+import os
+from dotenv import load_dotenv
+from atlassian import Confluence
+from bs4 import BeautifulSoup
+import pandas as pd
 
-def fact(n):
-    if n==0:
-       return 1 
-    else: 
-      return n*fact(n-1) 
+load_dotenv(dotenv_path="./.env.local")
 
-def pow(x,y):
-    p = 1
-    for i in range(1,y+1):
-        p *= x
-    return p
+user = os.environ['CONFLUENCE_USERNAME']
+api_key = os.environ['CONFLUENCE_API_KEY']
+server = os.environ['BASE_URL']
+confluence = "**********"=server, username=user, password=api_key)
+page = confluence.get_page_by_title("Space", "Title", expand="body.storage")
+body = page["body"]["storage"]["value"]
 
-def abs(x,y):
-    if x > y:
-       return x-y
-    else:
-       return y-x 
-
-def sin(x):
-    eps = 0.0001
-    n = 2  
-    v1 = x
-    v2 = v1 - pow(x,3)*1.0/fact(3)
-    while abs(v1,v2) >= eps:
-          v1 = v2
-          v2 += pow(-1,n)*pow(x,2*n+1)*1.0/fact(2*n+1) 
-          n = n + 1
-    return v2
-
-print 'sin(5) = ', math.sin(5)
-print'sin(5) = ', sin(5)
+tables_raw = [[[cell.text for cell in row("th") + row("td")]
+               for row in table("tr")] 
+               for table in BeautifulSoup(body, features="lxml")("table")]
+tables_df = [pd.DataFrame(table) for table in tables_raw]
+for table_df in tables_df:
+    print(table_df)
+# query dataframes
+df = pd.DataFrame(tables_df[0])
+# summary dataframes
+df2 = pd.DataFrame(tables_df[1])])

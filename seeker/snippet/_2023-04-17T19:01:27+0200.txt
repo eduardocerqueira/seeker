@@ -1,0 +1,96 @@
+#date: 2023-04-17T17:01:28Z
+#url: https://api.github.com/gists/e2ec0a758719c4a542382723e450a64d
+#owner: https://api.github.com/users/tyronyiu
+
+#!/bin/bash
+# Set German locale
+export LC_TIME=de_DE.UTF-8
+
+# Get current datetime in desired format
+datetime_formatted=$(date +"%d-%B-%Y - %H:%M")
+datetime=$(date +"%Y-%m-%dT%H:%M:%S%z")
+
+
+# gist ls
+if [ -n "$1" ] && [ "$1" = "ls" ]; then
+  echo "$(gh gist list)" >&1
+  exit 0
+fi
+
+# gist view
+if [ -n "$1" ] && [ "$1" = "view" ]; then
+  if [ -z "$2" ]; then
+    id=$(gh gist list | head -1 | awk '{print $1}')
+    if [ -n "$id" ]; then
+      # If no id, delete most recently created gist
+      gh gist view "$(gh gist list | head -1 | awk '{print $1}')"
+      exit 0
+    else
+      echo "view error" >&2
+      exit 1
+      fi
+    else
+      id="$2"
+      if [ -n "$id" ]; then
+        # If no id, delete most recently created gist
+        gh gist view "$id"
+        exit 0
+      else
+        echo "view error" >&2
+        exit 1
+        fi
+      fi 
+    fi
+
+# gist rm
+if [ -n "$1" ] && [ "$1" = "rm" ]; then
+  if [ -z "$2" ]; then
+    id=$(gh gist list | head -1 | awk '{print $1}')
+    if [ -n "$id" ]; then
+      # If no id, delete most recently created gist
+      gh gist view "$(gh gist list | head -1 | awk '{print $1}')" | pbcopy &&
+      echo "copied $id" &&
+      gh gist delete "$(gh gist list | head -1 | awk '{print $1}')"
+      echo "deleted $id" >&1
+      exit 0
+    else
+      echo "deletion error" >&2
+      exit 1
+      fi
+    else
+      id="$2"
+      if [ -n "$id" ]; then
+        # If no id, delete most recently created gist
+        gh gist view "$id" | pbcopy &&
+        echo "copied $id" &&
+        gh gist delete "$id"
+        echo "deleted $id" >&1
+        exit 0
+      else
+        echo "deletion error" >&2
+        exit 1
+        fi
+      fi 
+    fi
+
+
+# Set description dynamically
+description="$1"
+description_raw="$1"
+if [ -z "$description" ]; then
+  # description empty
+  description=$(echo "$datetime")
+else
+  description=$(echo "$1 ($datetime_formatted)")
+fi
+
+# Set filename dynamically
+filename="$2"
+if [ -z "$filename" ]; then
+  # filename empty
+  filename=$(echo "${description_raw// /_}_$datetime.txt")
+else
+  filename=$(echo "${filename// /_}_$datetime.txt")
+fi
+
+pbpaste | gh gist create -d "$description" -f "$filename" --public | pbcopy
