@@ -79,9 +79,10 @@ completion = "**********"=True)
 # Display
 print(prompt, end="")
 cprint(completion, color="green")
-ompletion_tokens = tokens[0][inputs['input_ids'].size(1):]
-completion = tokenizer.decode(completion_tokens, skip_special_tokens=True)
+ompletion_tokens = tokens[0 "**********"[inputs['input_ids' "**********".size(1): "**********"
+completion = "**********"=True)
 
 # Display
 print(prompt, end="")
 cprint(completion, color="green")
+or="green")
