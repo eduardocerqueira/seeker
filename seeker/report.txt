@@ -1,4 +1,38 @@
 --------------------------------------------------------------------------------
+ 2023-05-04 17:09:45.497813
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/JavaStudy02.java
+	deleted:    snippet/JuliaColor.py
+	deleted:    snippet/Main.java
+	deleted:    snippet/MainImproved.java
+	deleted:    snippet/Practice1.java
+	deleted:    snippet/Task_10_111.py
+	deleted:    snippet/TransactionFillException.java
+	deleted:    snippet/TrxStorageManager.java
+	deleted:    snippet/batch.py
+	deleted:    snippet/code.py
+	deleted:    snippet/colors.py
+	deleted:    snippet/count-loc-per-user.sh
+	deleted:    snippet/deploy-from-github.sh
+	deleted:    snippet/faderainbow.py
+	deleted:    snippet/gcp-aws-site-to-site-vpn.sh
+	deleted:    snippet/grafana-export-dashboards.sh
+	deleted:    snippet/test_25_3_1.py
+	deleted:    snippet/test_PetFriends_25_5_1(HW-4)_Azarova.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/ddg
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2023-05-03 17:10:28.470225
 --------------------------------------------------------------------------------
   On branch main
