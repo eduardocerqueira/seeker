@@ -1,4 +1,48 @@
 --------------------------------------------------------------------------------
+ 2023-05-05 17:10:04.976897
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/ReferenceTokenEncoder.java
+	deleted:    snippet/atcoder-abc-299-b.py
+	deleted:    snippet/c4d.py
+	deleted:    snippet/clang_refactor.py
+	deleted:    snippet/gistfile1.txt
+	deleted:    snippet/git_squash_current.sh
+	deleted:    snippet/hello_world.py
+	deleted:    snippet/install-apache2-mariadb-php.sh
+	modified:   snippet/main.py
+	deleted:    snippet/qrcode.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/.p10k.zsh
+	snippet/.zshrc
+	snippet/Averages.java
+	snippet/Main.java
+	snippet/Proyecto_Final_ED_src_Logic_Sort_Find.java
+	snippet/Proyecto_Final_ED_src_Logic_TreeNode.java
+	snippet/Proyecto_Final_ED_src_Logic_testTree.java
+	snippet/Proyecto_Final_ED_src_prueba.java
+	snippet/alphabetnn.py
+	snippet/dl.py
+	snippet/findFullName.java
+	snippet/generateAWSCredentials.sh
+	snippet/khayyam_pascal_triangle.py
+	snippet/learning_app_examples.py
+	snippet/main.java
+	snippet/noise_boilerplate_removal.py
+	snippet/opentabs.sh
+	snippet/predict.py
+	snippet/tkinter_fixcode.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2023-05-04 17:09:45.497813
 --------------------------------------------------------------------------------
   On branch main
