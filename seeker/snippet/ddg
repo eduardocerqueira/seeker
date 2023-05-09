@@ -1,9 +1,0 @@
-#date: 2023-05-04T17:09:41Z
-#url: https://api.github.com/gists/b1831f7b8724976154a430f2143801bb
-#owner: https://api.github.com/users/creeper6530
-
-#!/bin/bash
-url="https://lite.duckduckgo.com/lite?q="
-value="$*"
-encoded_value=$(python3 -c "import urllib.parse; print(urllib.parse.quote('''$value''', safe=''))")
-lynx ${url}${encoded_value} -trace
