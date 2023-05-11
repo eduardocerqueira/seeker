@@ -1,7 +1,0 @@
-#date: 2023-05-09T16:59:28Z
-#url: https://api.github.com/gists/b10423a48cad63fc6011ebc84d9ea64f
-#owner: https://api.github.com/users/aweeraman
-
-#!/bin/sh
-
-git push origin main

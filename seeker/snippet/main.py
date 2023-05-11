@@ -1,73 +1,69 @@
-#date: 2023-05-09T16:42:11Z
-#url: https://api.github.com/gists/dc7cfe278de686ba5035c9998e1ba86e
-#owner: https://api.github.com/users/MedvedAnastasiya
+#date: 2023-05-11T16:44:29Z
+#url: https://api.github.com/gists/f65638e1a7296dd97925cc5d4621c655
+#owner: https://api.github.com/users/mypy-play
 
-"""
-Working with a sequence of numbers
-"""
-array = [int(x) for x in input("Введите целые числа в любом порядке, через пробел: ").split()]
+from typing import Literal, Optional, TypeAlias
+from dataclasses import dataclass
 
+@dataclass(eq=True, frozen=True)
+class X:
+    pass
+# Want to explain why eq and frozen would be set
+@dataclass(eq=True, frozen=True)
+class O:
+    pass
 
-def merge_sort(array):
-    if len(array) < 2:
-        return array[:]
-    else:
-        middle = len(array) // 2
-        left = merge_sort(array[:middle])
-        right = merge_sort(array[middle:])
-        return merge(left, right)
+Token : "**********"
 
+Cell : "**********"
 
-def merge(left, right):
-    result = []
-    i, j = 0, 0
+GridPos : TypeAlias = Literal[1,2,3,4,5,6,7,8,9]
 
-    while i < len(left) and j < len(right):
-        if left[i] < right[j]:
-            result.append(left[i])
-            i += 1
-        else:
-            result.append(right[j])
-            j += 1
+# GridPos -> Cell
+Grid : TypeAlias = dict[GridPos, Cell]
 
-    while i < len(left):
-        result.append(left[i])
-        i += 1
+# initGrid : Void -> Grid
+def initGrid() -> Grid:
+    grid: Grid = {
+        1:None, 2:None, 3:None,
+        4:None, 5:None, 6:None,
+        7:None, 8:None, 9:None
+        
+    }
+    return grid
 
-    while j < len(right):
-        result.append(right[j])
-        j += 1
+# getCell : Grix x GridPos -> Cell option
+def getCell(grid: Grid, pos: GridPos) -> Optional[Cell]:
+    if pos not in grid:
+        return None
+        
+    return grid[pos]
+    
+# placeToken : "**********"
+def placeToken(token: "**********": GridPos, grid: Grid) -> Optional[Grid]:
+    if getCell(grid, pos) != None:
+        return None
+    
+    new_grid = grid.copy()
+    new_grid[pos] = "**********"
+    return new_grid
 
-    return result
+# gridToString : Grid -> String
+def gridTostring(grid: Grid) -> str:
+    return f"""
+    {cellToString(getCell(grid, 1))}|{cellToString(getCell(grid, 2))}|{cellToString(getCell(grid, 3))}
+    {cellToString(getCell(grid, 4))}|{cellToString(getCell(grid, 5))}|{cellToString(getCell(grid, 6))}
+    {cellToString(getCell(grid, 7))}|{cellToString(getCell(grid, 8))}|{cellToString(getCell(grid, 9))}
+    """
 
+# cellToString : Cell -> String
+def cellToString(cell: Cell) -> str:
+    if isinstance(cell, (X, O)):
+        return tokenToString(cell)
+    return " "
 
-array = merge_sort(array)
-print(array)
-
-while True:
-    try:
-        element = int(input("Введите любое положительное целое число из полученного списка: "))
-        if element < min(array) or element > max(array):
-            print("Указанное число не входит в диапазон списка!")
-        if element <= 0:
-            raise Exception
-        break
-    except ValueError:
-        print("Нужно ввести целое число!")
-    except Exception:
-        print("Нужно ввести положительное число!")
-
-
-def binary_search(array, element, left, right):
-    if left > right:
-        return False
-    middle = (right + left) // 2
-    if array[middle] == element:
-        return middle
-    elif element < array[middle]:
-        return binary_search(array, element, left, middle - 1)
-    else:
-        return binary_search(array, element, middle + 1, right)
-
-
-print(binary_search(array, element, 0, len(array) - 1))
+# tokenToString : "**********"
+def tokenToString(token: "**********":
+ "**********"  "**********"  "**********"  "**********"  "**********"i "**********"f "**********"  "**********"i "**********"s "**********"i "**********"n "**********"s "**********"t "**********"a "**********"n "**********"c "**********"e "**********"( "**********"t "**********"o "**********"k "**********"e "**********"n "**********", "**********"  "**********"X "**********") "**********": "**********"
+        return "X"
+    return "O"
