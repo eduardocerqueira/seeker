@@ -1,0 +1,15 @@
+#date: 2023-05-19T16:50:17Z
+#url: https://api.github.com/gists/280a3771ebebfec01466493c823e37fa
+#owner: https://api.github.com/users/Div123
+
+#!/usr/bin/env bash
+set -o errexit #fail on first error
+set -o pipefail
+
+mkdir -p .cache
+HASH=$(md5sum <<< "$@" | awk '{print $1}')
+if [ ! -f ".cache/${HASH}" ]; then
+  "$@" | tee ".cache/${HASH}"
+else
+  cat ".cache/${HASH}"
+fi

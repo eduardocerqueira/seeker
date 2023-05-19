@@ -1,25 +1,45 @@
-#date: 2023-05-17T16:45:56Z
-#url: https://api.github.com/gists/9e44057acfa24a10a382cce24dea48f1
-#owner: https://api.github.com/users/voxelin
+#date: 2023-05-19T16:53:46Z
+#url: https://api.github.com/gists/8ff2ce1c763af2e3429024d2a4d30d9f
+#owner: https://api.github.com/users/ernestoongaro
 
-import random
+import enum
+import os
+import time
 
-above_zero_count = 0
-temperatures = []
+# Be sure to `pip install requests` in your python environment
+import requests
 
-for i in range(7):
-    temperatures.append(random.randint(-10, 5))
+ACCOUNT_ID = 39
+JOB_ID = 302
 
-print("Температури:", temperatures)
-
-for i in range(len(temperatures)):
-    if temperatures[i] >= 0:
-        above_zero_count += 1
-        print("День:", i + 1, "-", "Температура:", temperatures[i])
-
-print(above_zero_count)
+# Store your dbt Cloud API token securely in your workflow tool
+API_KEY = '<put in your dbt Cloud API key here'
 
 
-# Знайти та вивести добуток найбільшого та найменшого елементів списку.
-print("Завдання 2:", min(temperatures) * max(temperatures))
+def _trigger_job() -> int:
+    res = requests.post(
+        url=f"https://emea.dbt.com/api/v2/accounts/{ACCOUNT_ID}/jobs/{JOB_ID}/run/",
+        headers={'Authorization': "**********"
+        json={
+            'cause': f"Triggered by Fivetran",
+        }
+    )
+
+    response_payload = res.json()
+    return response_payload['data']['id']
+
+
+
+def run(request):
+    job_run_id = _trigger_job()
+
+    return(f"job_run_id = {job_run_id}")
+
+  
+
+
+)
+
+  
+
 
