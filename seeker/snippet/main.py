@@ -1,45 +1,56 @@
-#date: 2023-05-19T16:53:46Z
-#url: https://api.github.com/gists/8ff2ce1c763af2e3429024d2a4d30d9f
-#owner: https://api.github.com/users/ernestoongaro
+#date: 2023-05-22T16:45:04Z
+#url: https://api.github.com/gists/3f7f06a1610e100ef169cc4abe203499
+#owner: https://api.github.com/users/Ivannnnnnn05
 
-import enum
-import os
-import time
-
-# Be sure to `pip install requests` in your python environment
-import requests
-
-ACCOUNT_ID = 39
-JOB_ID = 302
-
-# Store your dbt Cloud API token securely in your workflow tool
-API_KEY = '<put in your dbt Cloud API key here'
+import telebot
+from config import keys, TOKEN
+from extensions import get_ptice, APIException
 
 
-def _trigger_job() -> int:
-    res = requests.post(
-        url=f"https://emea.dbt.com/api/v2/accounts/{ACCOUNT_ID}/jobs/{JOB_ID}/run/",
-        headers={'Authorization': "**********"
-        json={
-            'cause': f"Triggered by Fivetran",
-        }
-    )
-
-    response_payload = res.json()
-    return response_payload['data']['id']
+bot = "**********"
 
 
+@bot.message_handler(commands=['start', 'help'])
+def help(message: telebot.types.Message):
+    text = 'Чтобы начать работу введите комманду боту в следующем формате: \n<имя валюты> \
+<в какую валюту перевести> \
+<количество переводимой валюты>\nУвидеть список всех доступных валют: /values'
+    bot.reply_to(message, text)
 
-def run(request):
-    job_run_id = _trigger_job()
 
-    return(f"job_run_id = {job_run_id}")
+@bot.message_handler(commands=['values'])
+def values(message: telebot.types.Message):
+    text = 'Доступные валюты:'
+    for key in keys.keys():
+        text = '\n'.join((text, key, ))
+    bot.reply_to(message, text)
 
-  
+@bot.message_handler(content_types=['text', ])
+def convert(message: telebot.types.Message):
+    try:
+        values = message.text.split(' ')
+
+        if len(values) != 3:
+            raise APIException('Слишком много параметров')
+
+        quote, base, amount = values
+        total_base = get_ptice.convert(quote, base, amount)
+    except APIException as e:
+        bot.reply_to(message, f'Ошибка пользователя\n{e}')
+    except Exception as e:
+        bot.reply_to(message, f'Не удалось обработать команду\n{e}')
+    else:
+        text = f'Цена {amount} {quote} в {base} - {total_base}'
+        bot.send_message(message.chat.id, text)
 
 
-)
+bot.polling()
 
-  
+
+
+
+ing()
+
+
 
 
