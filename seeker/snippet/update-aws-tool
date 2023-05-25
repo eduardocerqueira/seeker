@@ -1,0 +1,83 @@
+#date: 2023-05-25T16:47:02Z
+#url: https://api.github.com/gists/807be251e2ee5567afa6993fd6e66535
+#owner: https://api.github.com/users/dcarbone
+
+#!/usr/bin/env zsh
+
+set -e
+
+_local="${HOME}/.local"
+_local_opt="${_local}/opt"
+_local_bin="${_local}/bin"
+
+_aws_cli_archive='awscli-exe-linux-x86_64.zip'
+_aws_sam_cli_archive='aws-sam-cli-linux-x86_64.zip'
+
+_aws_cli_src="https://awscli.amazonaws.com/${_cli_archive}"
+_aws_sam_cli_src="https://github.com/aws/aws-sam-cli/releases/latest/download/${_aws_sam_cli_archive}"
+
+_aws_cli_opt="${_local_opt}/aws"
+_aws_sam_cli_opt="${_local_opt}/aws-sam"
+
+_aws_cli_lib="${_local}/aws-cli"
+_aws_sam_cli_lib="${_local}/aws-sam-cli"
+
+_var_tool="${1}"
+
+_tool=
+_archive_name=
+_src=
+_opt_dir=
+_lib_dir=
+
+case "${_var_tool}" in
+  cli|aws-cli)
+    echo "Installing / updating aws-cli..."
+    _tool="cli"
+    _archive_name="${_aws_cli_archive}"
+    _src="${_aws_cli_src}"
+    _opt_dir="${_aws_cli_opt}"
+    _lib_dir="${_aws_cli_lib}"
+    ;;
+  sam-cli|aws-sam-cli)
+    echo "Installing / updating aws-sam-cli..."
+    _tool="sam-cli"
+    _archive_name="${_aws_sam_cli_archive}"
+    _src="${_aws_sam_cli_src}"
+    _opt_dir="${_aws_sam_cli_opt}"
+    _lib_dir="${_aws_sam_cli_lib}"
+    ;;
+
+  *)
+    echo "First argument must be one of: [ cli aws-cli sam-cli aws-sam-cli ]"
+    exit 1
+esac
+
+if ! [ -d "${_opt_dir}" ]; then
+  echo "Creating dir \"${_opt_dir}"
+  mkdir -p "${_opt_dir}"
+
+  echo "Creating temp dir..."
+  _tmp_dir="$(mktemp -d)"
+  _tmp_path="${_tmp_dir}/${_archive_name}"
+  
+  echo "Downloading \"${_src}\"..."
+  wget -O- "${_src}" > "${_tmp_path}"
+  
+  echo "Decomprsessing into \"${_opt_dir}\"..."
+  unzip -d "${_opt_dir}" "${_tmp_path}"
+
+  echo "Cleaning up temp dir..."
+  rm -rf "${_tmp_dir}"
+
+fi
+
+_args=(
+  '--bin-dir' "${_local_bin}"
+  '--install-dir' "${_lib_dir}"
+  '--update'
+)
+
+echo "Executing: ${_opt_dir}/install ${_args[*]}"
+
+exec "${_opt_dir}/install" "${_args[@]}"
