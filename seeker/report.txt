@@ -1,4 +1,66 @@
 --------------------------------------------------------------------------------
+ 2023-05-30 17:08:39.384729
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/AccountActivity.java
+	snippet/AccountAdapter.java
+	snippet/ActivityResultHelper.java
+	snippet/ApiBaseResponse.java
+	snippet/ApiClient.java
+	snippet/ApiService.java
+	snippet/BaseActivity.java
+	snippet/BaseFunction.java
+	snippet/Batik.java
+	snippet/BatikAdapter.java
+	snippet/CameraActivity.java
+	snippet/Constant.java
+	snippet/DetailBatikActivity.java
+	snippet/DetectionActivity.java
+	snippet/DetectionAdapter.java
+	snippet/Dockerfile
+	snippet/FavoriteActivity.java
+	snippet/Final code.py
+	snippet/ImageBatik.java
+	snippet/ImageBatikAdapter.java
+	snippet/ImagePreviewActivity.java
+	snippet/IntroActivity.java
+	snippet/IntroCategoryAdapter.java
+	snippet/IntroFiveFragment.java
+	snippet/IntroFourFragment.java
+	snippet/IntroOneFragment.java
+	snippet/IntroThreeFragment.java
+	snippet/IntroTwoFragment.java
+	snippet/LinePagerIndicator.java
+	snippet/LoginActivity.java
+	snippet/MainActivity.java
+	snippet/Menu.java
+	snippet/MenuAdapter.java
+	snippet/ProfileActivity.java
+	snippet/Session.java
+	snippet/Store.java
+	snippet/StoreActivity.java
+	snippet/StoreAdapter.java
+	snippet/StoreImage.java
+	snippet/StoreImageAdapter.java
+	snippet/TopBatikLike.java
+	snippet/TopBatikLikeAdapter.java
+	snippet/User.java
+	snippet/github-clone-projects.bash
+	snippet/gitlab-clone-projects.bash
+	snippet/montyhall.py
+	snippet/ok.py
+	snippet/s3.sh
+	snippet/start-vnc.sh
+	snippet/tic-tac-toe.py
+	snippet/unxor.py
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+--------------------------------------------------------------------------------
  2023-05-29 17:10:04.036389
 --------------------------------------------------------------------------------
   On branch main
