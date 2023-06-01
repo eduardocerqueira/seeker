@@ -1,4 +1,82 @@
 --------------------------------------------------------------------------------
+ 2023-06-01 17:09:50.486193
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/AccountActivity.java
+	deleted:    snippet/AccountAdapter.java
+	deleted:    snippet/ActivityResultHelper.java
+	deleted:    snippet/ApiBaseResponse.java
+	deleted:    snippet/ApiClient.java
+	deleted:    snippet/ApiService.java
+	deleted:    snippet/BaseActivity.java
+	deleted:    snippet/BaseFunction.java
+	deleted:    snippet/Batik.java
+	deleted:    snippet/BatikAdapter.java
+	deleted:    snippet/CameraActivity.java
+	deleted:    snippet/Constant.java
+	deleted:    snippet/DetailBatikActivity.java
+	deleted:    snippet/DetectionActivity.java
+	deleted:    snippet/DetectionAdapter.java
+	deleted:    snippet/Dockerfile
+	deleted:    snippet/FavoriteActivity.java
+	deleted:    snippet/Final code.py
+	deleted:    snippet/ImageBatik.java
+	deleted:    snippet/ImageBatikAdapter.java
+	deleted:    snippet/ImagePreviewActivity.java
+	deleted:    snippet/IntroActivity.java
+	deleted:    snippet/IntroCategoryAdapter.java
+	deleted:    snippet/IntroFiveFragment.java
+	deleted:    snippet/IntroFourFragment.java
+	deleted:    snippet/IntroOneFragment.java
+	deleted:    snippet/IntroThreeFragment.java
+	deleted:    snippet/IntroTwoFragment.java
+	deleted:    snippet/LinePagerIndicator.java
+	deleted:    snippet/LoginActivity.java
+	deleted:    snippet/MainActivity.java
+	deleted:    snippet/Menu.java
+	deleted:    snippet/MenuAdapter.java
+	deleted:    snippet/ProfileActivity.java
+	deleted:    snippet/Session.java
+	deleted:    snippet/Store.java
+	deleted:    snippet/StoreActivity.java
+	deleted:    snippet/StoreAdapter.java
+	deleted:    snippet/StoreImage.java
+	deleted:    snippet/StoreImageAdapter.java
+	deleted:    snippet/TopBatikLike.java
+	deleted:    snippet/TopBatikLikeAdapter.java
+	deleted:    snippet/User.java
+	deleted:    snippet/github-clone-projects.bash
+	deleted:    snippet/gitlab-clone-projects.bash
+	deleted:    snippet/montyhall.py
+	deleted:    snippet/ok.py
+	deleted:    snippet/s3.sh
+	deleted:    snippet/start-vnc.sh
+	deleted:    snippet/tic-tac-toe.py
+	deleted:    snippet/unxor.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/6-5.py
+	snippet/InitConfig.java
+	snippet/JavaStudy06.java
+	snippet/RestaranServerBackend2Application.java
+	snippet/onefile.py
+	snippet/oopspractis2.java
+	snippet/sweep.py
+	snippet/test_cpu.py
+	snippet/toastkenizer.py
+	snippet/train.py
+	snippet/videoframes.py
+	snippet/waitgroup.go
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2023-05-31 17:10:09.183725
 --------------------------------------------------------------------------------
   On branch main
