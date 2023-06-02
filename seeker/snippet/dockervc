@@ -1,0 +1,43 @@
+#date: 2023-06-02T16:44:16Z
+#url: https://api.github.com/gists/c0c275baf2e326e7e9be3559322513d8
+#owner: https://api.github.com/users/randomowo
+
+#!/bin/bash
+# copy content from one volume to other or create volume dump "{volume_name}_dump"
+
+VOLUME="$1"
+DUMP_VOLUME="$2"
+
+if [[ -z "$VOLUME" ]]; then
+    echo "error: volume name not passed"
+    exit 1
+fi
+
+docker volume inspect "$VOLUME" > /dev/null
+if [ $? -eq 1 ]; then
+    echo "error: volume with name $VOLUME doesn't exist"
+    exit 1
+fi
+
+if [[ -z "$DUMP_VOLUME" ]]; then
+    DUMP_VOLUME="${VOLUME}_dump"
+fi
+
+docker volume inspect "$DUMP_VOLUME" > /dev/null
+if [ $? -eq 0 ]; then
+
+    docker volume rm "$DUMP_VOLUME" > /dev/null
+    if [ $? -eq 1 ]; then
+        echo "error: something wrong then try to remove $DUMP_VOLUME"
+        exit 1
+    fi
+fi
+
+docker volume create --name "$DUMP_VOLUME"
+
+docker run --rm -it \
+    -v "$VOLUME":/from \
+    -v "$DUMP_VOLUME":/to \
+    alpine \
+    ash -c "cd /from; cp -a . /to"
+

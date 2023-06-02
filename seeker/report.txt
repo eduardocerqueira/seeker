@@ -1,4 +1,47 @@
 --------------------------------------------------------------------------------
+ 2023-06-02 17:09:35.513495
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/MainWindow.py
+	deleted:    snippet/Practice.java
+	deleted:    snippet/VirtualBatteryMonitor.py
+	deleted:    snippet/backupwatch.sh
+	deleted:    snippet/controller.py
+	deleted:    snippet/cropNV21.java
+	deleted:    snippet/gistfile1.txt
+	deleted:    snippet/ll.py
+	deleted:    snippet/main.pyw
+	deleted:    snippet/vanya.java
+	deleted:    snippet/view.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/DiscordBotArchiveAllGuilds.py
+	snippet/How to Transform SVG to PDF using Java.java
+	snippet/MainActivity.java
+	snippet/chat.py
+	snippet/convert.py
+	snippet/create_rails_app.sh
+	snippet/dockervc
+	snippet/fifth_lab.py
+	snippet/first_lab.py
+	snippet/fourth_lab.py
+	snippet/list-git-remotes.sh
+	snippet/projekt_zaliczeniowy.py
+	snippet/run_qlora.sh
+	snippet/second_lab.py
+	snippet/seventh_lab.py
+	snippet/sixth_lab.py
+	snippet/third_lab.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2023-06-01 17:09:50.486193
 --------------------------------------------------------------------------------
   On branch main
