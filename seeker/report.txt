@@ -1,4 +1,38 @@
 --------------------------------------------------------------------------------
+ 2023-06-06 17:10:07.123020
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   snippet/main.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/.bash_profile
+	snippet/JavaStudy07.java
+	snippet/calculadora.py
+	snippet/chat-gpt.py
+	snippet/demo2_mvnw
+	snippet/demo2_src_main_java_com_example_demo2_Demo2Application.java
+	snippet/demo2_src_main_java_com_example_demo2_entity_Department.java
+	snippet/demo2_src_main_java_com_example_demo2_entity_Role.java
+	snippet/demo2_src_main_java_com_example_demo2_entity_User.java
+	snippet/demo2_src_main_java_com_example_demo2_repository_DepartmentRepository.java
+	snippet/demo2_src_main_java_com_example_demo2_repository_RoleRepository.java
+	snippet/demo2_src_main_java_com_example_demo2_repository_UserRepository.java
+	snippet/demo2_src_main_java_config_JpaConfiguration.java
+	snippet/demo2_src_test_java_com_example_demo2_Demo2ApplicationTests.java
+	snippet/dns_dotroll.sh
+	snippet/ghost.sh
+	snippet/gistfile1.java
+	snippet/java_download.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2023-06-05 17:10:00.583374
 --------------------------------------------------------------------------------
   On branch main
