@@ -1,4 +1,48 @@
 --------------------------------------------------------------------------------
+ 2023-06-08 17:10:42.455190
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/.bash_profile
+	deleted:    snippet/JavaStudy07.java
+	deleted:    snippet/calculadora.py
+	deleted:    snippet/chat-gpt.py
+	deleted:    snippet/demo2_mvnw
+	deleted:    snippet/demo2_src_main_java_com_example_demo2_Demo2Application.java
+	deleted:    snippet/demo2_src_main_java_com_example_demo2_entity_Department.java
+	deleted:    snippet/demo2_src_main_java_com_example_demo2_entity_Role.java
+	deleted:    snippet/demo2_src_main_java_com_example_demo2_entity_User.java
+	deleted:    snippet/demo2_src_main_java_com_example_demo2_repository_DepartmentRepository.java
+	deleted:    snippet/demo2_src_main_java_com_example_demo2_repository_RoleRepository.java
+	deleted:    snippet/demo2_src_main_java_com_example_demo2_repository_UserRepository.java
+	deleted:    snippet/demo2_src_main_java_config_JpaConfiguration.java
+	deleted:    snippet/demo2_src_test_java_com_example_demo2_Demo2ApplicationTests.java
+	deleted:    snippet/dns_dotroll.sh
+	deleted:    snippet/ghost.sh
+	deleted:    snippet/gistfile1.java
+	deleted:    snippet/java_download.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/How to Convert OneNote to Word using Java.java
+	snippet/Surprise03.java
+	snippet/fetch
+	snippet/get_gitlab_saas_version.py
+	snippet/http_request.go
+	snippet/mergeWithOrder.go
+	snippet/nginx.sh
+	snippet/paper-backup.py
+	snippet/test_bad.py
+	snippet/test_good.py
+	snippet/z1_parametrize_test.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2023-06-07 17:09:36.172703
 --------------------------------------------------------------------------------
   On branch main
