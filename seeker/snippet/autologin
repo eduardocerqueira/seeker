@@ -1,0 +1,13 @@
+#date: 2023-06-16T16:47:17Z
+#url: https://api.github.com/gists/e099306dc4546cee448e4d2a7f4ce83e
+#owner: https://api.github.com/users/ManishGru
+
+#!/bin/bash
+
+wget -q --tries=10 --timeout=10  http://10.100.1.1:8090/httpclient.html
+if [[ $? -eq 0 ]]; then
+    w3m -post - http: "**********":8090/httpclient.html <<<'mode=191&username=077bei021&password=2021-3686&a=1551345153461'
+        echo "Online!"
+else
+        echo "Unreachable!"
+fi
