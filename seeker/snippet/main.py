@@ -1,22 +1,32 @@
-#date: 2023-06-15T16:46:16Z
-#url: https://api.github.com/gists/83bafb47437a3ae3eb750d305532f828
+#date: 2023-06-19T17:07:02Z
+#url: https://api.github.com/gists/00fcdf8b22f22300f59cabb022e3680e
 #owner: https://api.github.com/users/mypy-play
 
-from typing import Type, TypeVar
+class Foo():
+    @classmethod
+    def something(cls) -> None:
+        print("foo")
+        
+class Bar():
+    @classmethod
+    def something(cls) -> None:
+        print("bar")
+        
+class Fake():
+    @classmethod
+    def not_something(cls) -> None:
+        print("fake")
 
-class B:
-    pass
-class C:
-    pass
-class D1(C, B):
-    pass
-class D2(C, B):
-    pass
 
-T = TypeVar("T", bound=B)
+# Works        
+my_list: list[type[Foo | Bar]] = [Foo, Bar]
 
-def fn(a: Type[T]) -> None:
-    pass
+for item in my_list:
+    item.something()
+    
+    
+# Does not work
+my_fake_list: list[type[Foo | Bar | Fake]] = [Foo, Bar, Fake]
 
-val: Type[D1] | Type[D2]
-fn(val)
+for item2 in my_fake_list:
+    item2.something()
