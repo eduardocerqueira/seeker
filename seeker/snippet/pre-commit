@@ -1,0 +1,34 @@
+#date: 2023-06-21T16:38:41Z
+#url: https://api.github.com/gists/501f2fb1edaff8b32b301caf485a6e3e
+#owner: https://api.github.com/users/eevmanu
+
+#!/bin/bash
+
+# Replace with the actual directory path to search in
+search_dir=$(git rev-parse --show-toplevel 2>/dev/null || git rev-parse --git-dir 2>/dev/null | sed 's/\.git$//')
+
+# Replace with your list of strings
+search_strings=("< pattern 1 >" "< pattern 2 >" "< pattern 3 >")
+
+# Create a pattern by joining the search strings with a pipe (|) as the separator
+pattern=$(printf "%s\\|" "${search_strings[@]}")
+# Remove the trailing pipe
+pattern=${pattern%\\|}
+
+# Find all files matching the pattern "*.md" in the search directory and loop over them
+while IFS= read -r -d '' file; do
+    matches=$(grep -i "$pattern" "$file")
+    if [ -n "$matches" ]; then
+        IFS=$'\n' read -r -d '' -a match_list <<< "$matches"
+        for match in "${match_list[@]}"; do
+            echo "file: $file match found: $match"
+        done
+        if [ "${#match_list[@]}" -gt 0 ]; then
+          echo "clean matches"
+          exit 1
+        fi
+    fi
+done < <(find "$search_dir" -name "*.md" -type f -print0)
+# done < <(git ls-tree --name-only --full-tree -r HEAD)
+
+exit 0
