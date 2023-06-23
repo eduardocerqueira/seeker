@@ -101,8 +101,11 @@ def main():
 
 if __name__ == "__main__":
     main()ecode text
-                text = tokenizer.decode(generated_sequence, clean_up_tokenization_spaces=True)
+                text = "**********"=True)
                 print(text)
+
+if __name__ == "__main__":
+    main()   print(text)
 
 if __name__ == "__main__":
     main()

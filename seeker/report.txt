@@ -1,4 +1,48 @@
 --------------------------------------------------------------------------------
+ 2023-06-23 17:11:38.558966
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/.config.d-alias.sh
+	deleted:    snippet/.config.d-path.sh
+	deleted:    snippet/.zshrc
+	deleted:    snippet/.zshrc.d-environment.zsh
+	deleted:    snippet/.zshrc.d-prompt.zsh
+	deleted:    snippet/bitcoin_core_rpc.py
+	deleted:    snippet/create_table_func.py
+	deleted:    snippet/delete_item.py
+	deleted:    snippet/delete_table.py
+	modified:   snippet/ds_benchmark.py
+	deleted:    snippet/exploit.py
+	deleted:    snippet/install_Qt_Ubuntu
+	deleted:    snippet/pre-commit
+	deleted:    snippet/qbittorrent2transmission.py
+	deleted:    snippet/query_table_filter.py
+	deleted:    snippet/rigol_capture.py
+	deleted:    snippet/setup.sh
+	deleted:    snippet/simple_rest_custom_log.py
+	deleted:    snippet/text_file_to_dynamoDB.py
+	deleted:    snippet/validador_cedula_ecuador.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/08_python_package_manager.py
+	snippet/arithmetics.py
+	snippet/canvasscale_frame2.py
+	snippet/canvasscale_frame3.py
+	snippet/element.sh
+	snippet/lista7.py
+	snippet/model.py
+	snippet/plastic_seq_ex.py
+	snippet/script.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2023-06-22 17:09:53.216185
 --------------------------------------------------------------------------------
   On branch main
