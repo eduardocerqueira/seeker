@@ -1,0 +1,8 @@
+#date: 2023-06-29T17:01:45Z
+#url: https://api.github.com/gists/b779c832813d8fe0b1270881c9c812b9
+#owner: https://api.github.com/users/zhou13
+
+#!/bin/bash
+
+date +'%Y-%m-%d %H:%M:%S'
+~/bin/perf stat -I 1000 -e cycles,instructions,context-switches -p $1 # 4069
