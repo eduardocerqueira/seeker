@@ -1,22 +1,22 @@
-#date: 2023-06-28T16:46:59Z
-#url: https://api.github.com/gists/6f33a923369bac3ccfd12fa91a725fe5
+#date: 2023-06-30T16:43:28Z
+#url: https://api.github.com/gists/f21c217c6d9e961948560192ccf691b1
 #owner: https://api.github.com/users/elicharlese
 
-class Solution(object):
-    def decodeString(self, s):
-        stack = []; curNum = 0; curString = ''
-        for c in s:
-            if c == '[':
-                stack.append(curString)
-                stack.append(curNum)
-                curString = ''
-                curNum = 0
-            elif c == ']':
-                num = stack.pop()
-                prevString = stack.pop()
-                curString = prevString + num*curString
-            elif c.isdigit():
-                curNum = curNum*10 + int(c)
-            else:
-                curString += c
-        return curString
+# Definition for a binary tree node.
+# class TreeNode:
+#     def __init__(self, val=0, left=None, right=None):
+#         self.val = val
+#         self.left = left
+#         self.right = right
+class Solution:
+    def levelOrder(self, root):
+        if not root:
+            return []
+        ans, level = [], [root]
+        while level:
+            ans.append([node.val for node in level])
+            temp = []
+            for node in level:
+                temp.extend([node.left, node.right])
+            level = [leaf for leaf in temp if leaf]
+        return ans
