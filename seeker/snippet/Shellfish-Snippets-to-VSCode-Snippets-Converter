@@ -1,0 +1,24 @@
+#date: 2023-07-05T16:42:28Z
+#url: https://api.github.com/gists/289a8efdeb98d11e8db823011b41ca8a
+#owner: https://api.github.com/users/Cdaprod
+
+#!/usr/bin/env python3
+
+import json
+
+# Load shellfish-snippets.json
+with open("shellfish-snippets.json", "r") as shellfish_file:
+    shellfish_snippets = json.load(shellfish_file)
+
+# Convert to vscode-snippets.json format
+vscode_snippets = {}
+for key, snippet in shellfish_snippets.items():
+    vscode_snippets[snippet["description"]] = {
+        "prefix": snippet["description"],
+        "body": snippet["body"] if isinstance(snippet["body"], list) else [snippet["body"]],
+        "description": snippet.get("description", ""),
+    }
+
+# Write vscode-snippets.json
+with open("vscode-snippets.json", "w") as vscode_file:
+    json.dump(vscode_snippets, vscode_file, indent=4)
