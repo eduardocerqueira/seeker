@@ -1,4 +1,54 @@
 --------------------------------------------------------------------------------
+ 2023-07-06 17:12:05.575634
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/cli_download_books.py
+	deleted:    snippet/cli_options_kindle_object.py
+	deleted:    snippet/convert.py
+	deleted:    snippet/custom_data_quality.py
+	deleted:    snippet/git_set_ssh_remote.sh
+	deleted:    snippet/kubeClenaup.sh
+	deleted:    snippet/masking_07.py
+	deleted:    snippet/moira__drop_all_metrics.sh
+	deleted:    snippet/rename_phoenix_project.sh
+	deleted:    snippet/show-rpm-by-install-date.sh
+	deleted:    snippet/synthio_volume_note_w_button.py
+	deleted:    snippet/wide-fov-warp-depth-alignment-host-vs-device.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/Aliases.py
+	snippet/Ejercicio4.java
+	snippet/Function_Syntax.py
+	snippet/Std_Library_Module.py
+	snippet/aws_translate_api.py
+	snippet/backend.py
+	snippet/calling.py
+	snippet/count_pdf_pages_recursively.sh
+	snippet/creating_modules.py
+	snippet/database.py
+	snippet/def_Arg.py
+	snippet/embedimages.py
+	snippet/forKate.py
+	snippet/importing.py
+	snippet/logs.sh
+	snippet/medical.py
+	snippet/medical1.py
+	snippet/module.py
+	snippet/recursive.py
+	snippet/return.py
+	snippet/rm-docker-files.sh
+	snippet/test.sh
+	snippet/var-len-arg.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2023-07-05 17:12:12.919046
 --------------------------------------------------------------------------------
   On branch main
