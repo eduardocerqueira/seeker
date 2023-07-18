@@ -1,28 +1,18 @@
-#date: 2023-07-17T16:46:00Z
-#url: https://api.github.com/gists/98f51d9fa1f7280719dc6df5da23503b
+#date: 2023-07-18T16:58:23Z
+#url: https://api.github.com/gists/f3d66b02b1d88fccd72b43e319c5e1c2
 #owner: https://api.github.com/users/mypy-play
 
-from __future__ import annotations
-
-from typing import Generic, TypeVar, cast
-
-
-T = TypeVar("T")
-U = TypeVar("U")
+from pathlib import Path
+from typing import Optional
 
 
-class Foo(Generic[T, U]):
-    def __init__(self, x: T, y: U):
-        self.x = x
-        self.y = y
+def get_build_dir(cluster: str, cwd: Optional[Path] = None) -> Path:
+    if cluster == "local":
+        relpath = Path("foo")
+    else:
+        relpath = Path("bar")
 
-    def op1(self) -> float:
-        if not isinstance(self.y, float):
-            raise ValueError("can't use op1 with non-numeric types")
-        return self.y * 2.5
-
-
-
-Foo(0, 1).op1()     # ok
-Foo(0, 1.0).op1()   # ok (float type for bound of U also accepts ints)
-Foo(0, "1").op1()   # error: Value of type variable "U" of "Foo" cannot be "str"  [type-var]
+    if cwd is not None:
+        return (cwd / relpath).absolute()
+    else:
+        return relpath.absolute()
