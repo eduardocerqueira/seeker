@@ -1,0 +1,52 @@
+#date: 2023-07-19T17:00:39Z
+#url: https://api.github.com/gists/4694cb74bf55937d3391f8159a0a3a71
+#owner: https://api.github.com/users/mkgvb
+
+#!/bin/bash
+
+# Tired of pesky corporations with no respect for your privacy applying
+# man in the middle attacks to your network traffic in the name of security?
+# This script wont fix that but it will allow you use the internet.
+# This comes with no warranty and is very unsafe to use. 
+# Again No warranty and I take no responsibility, you are using this script at your own risk.
+
+# Check if the script is being run with superuser privileges
+if [[ $EUID -ne 0 ]]; then
+  echo "Please run this script as root (or using sudo)."
+  exit 1
+fi
+
+# Check the distribution to determine the appropriate certificate location
+if command -v dpkg &> /dev/null; then
+  # Debian or Ubuntu
+  CERT_LOCATION="/usr/local/share/ca-certificates/"
+elif command -v rpm &> /dev/null; then
+  # RHEL, CentOS, Fedora, etc.
+  CERT_LOCATION="/etc/pki/ca-trust/source/anchors/"
+else
+  echo "Unsupported distribution. Exiting..."
+  exit 1
+fi
+
+# Check if the certificate file exists
+CERT_FILE="/tmp/mim-fix.crt"
+if [ ! -f "$CERT_FILE" ]; then
+  echo "The certificate file '$CERT_FILE' does not exist in the current directory. Please place the certificate file in the same directory as this script and try again."
+  exit 1
+fi
+
+# Copy the certificate file to the appropriate location
+cp "$CERT_FILE" "$CERT_LOCATION"
+
+# Update CA certificates
+if [[ $CERT_LOCATION == "/usr/local/share/ca-certificates/" ]]; then
+  # For Debian-based systems, update the certificates
+  update-ca-certificates
+elif [[ $CERT_LOCATION == "/etc/pki/ca-trust/source/anchors/" ]]; then
+  # For RHEL-based systems, update the trust store
+  update-ca-trust
+fi
+
+echo "Certificate file '$CERT_FILE' has been copied to '$CERT_LOCATION' and the CA certificates have been updated."
+
+exit 0
