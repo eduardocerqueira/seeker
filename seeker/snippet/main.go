@@ -1,99 +1,77 @@
-//date: 2023-07-18T17:03:51Z
-//url: https://api.github.com/gists/68a147f28d75ebc49345a497a130bc91
-//owner: https://api.github.com/users/hlubek
+//date: 2023-07-20T17:02:14Z
+//url: https://api.github.com/gists/a920dcfea6cca057e517443c8a9423c0
+//owner: https://api.github.com/users/delveper
 
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"reflect"
+	"context"
+
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/notif"
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/notif/email"
+	"github.com/GenesisEducationKyiv/main-project-delveper/internal/notif/tmpl"
+	"github.com/GenesisEducationKyiv/main-project-delveper/sys/logger"
 )
 
-type Something interface{}
-
-type Something1 struct {
-	Aaa, Bbb string
-}
-
-type Something2 struct {
-	Ccc, Ddd string
-}
-
-var _ Something = Something1{}
-var _ Something = Something2{}
-
-// We need to register all known message types here to be able to unmarshal them to the correct interface type.
-var knownImplementations = []Something{
-	//	Something1{},
-	Something2{},
-}
-
-type Container struct {
-	Value Something `json:"value"`
-}
-
-func (c *Container) UnmarshalJSON(bytes []byte) error {
-	var data struct {
-		Type  string
-		Value json.RawMessage
-	}
-	if err := json.Unmarshal(bytes, &data); err != nil {
-		return err
-	}
-
-	for _, knownImplementation := range knownImplementations {
-		knownType := reflect.TypeOf(knownImplementation)
-		if knownType.String() == data.Type {
-			// Create a new pointer to a value of the concrete message type
-			target := reflect.New(knownType)
-			// Unmarshal the data to an interface to the concrete value (which will act as a pointer, don't ask why)
-			if err := json.Unmarshal(data.Value, target.Interface()); err != nil {
-				return err
-			}
-			// Now we get the element value of the target and convert it to the interface type (this is to get rid of a pointer type instead of a plain struct value)
-			c.Value = target.Elem().Interface().(Something)
-			return nil
-		}
-	}
-
-	return fmt.Errorf("value type not known: %s", data.Type)
-}
-
-func (c Container) MarshalJSON() ([]byte, error) {
-	// Marshal to type and actual data to handle unmarshaling to specific interface type
-	return json.Marshal(struct {
-		Type  string
-		Value any
-	}{
-		Type:  reflect.TypeOf(c.Value).String(),
-		Value: c.Value,
-	})
-}
-
 func main() {
-	c := Container{
-		Value: Something1{
-			Aaa: "aaa",
-			Bbb: "bbb",
-		},
+	log := logger.New(logger.LevelDebug, "sys.log")
+
+	cfg := email.Config{
+		Host:     "smtp.ionos.com",
+		Port:     "465",
+		UserName: "yevhen@bilyk.dev",
+		Password: "**********"
 	}
 
-	data, err := json.Marshal(c)
+	/*
+		addr := net.JoinHostPort(cfg.Host, cfg.Port)
+		tlsCfg := tls.Config{InsecureSkipVerify: false, ServerName: cfg.Host}
+		conn, err := tls.Dial("tcp", addr, &tlsCfg)
+		if err != nil {
+			log.Errorf("connecting SMTP server: %v", err)
+		}
+
+		clt, err := smtp.NewClient(conn, cfg.Host)
+
+		auth : "**********"
+		if err := clt.Auth(auth); err != nil {
+			log.Fatalf("starting %s authentication: %v", auth, err)
+		}
+
+		if err := clt.Mail("yevhen@bilyk.dev"); err != nil {
+			log.Fatal("mail: %v", err)
+		}
+
+		if err := clt.Rcpt("yevhen@bilyk.dev"); err != nil {
+			log.Fatal("rcpt: %v", err)
+		}
+
+		if _, err = clt.Data(); err != nil {
+			log.Fatal("data: %v", err)
+		}
+
+		if err := clt.Quit(); err != nil {
+			log.Fatal("quit: %v", err)
+		}
+	*/
+	clt := email.NewSMTPClient(cfg)
+	t, err := tmpl.Load()
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed to load template: %v", err)
+	}
+	msg := &notif.Message{
+		From:    "yevhen@bilyk.dev",
+		To:      []string{"yevhen@bilyk.dev"},
+		Subject: "Hello",
+		Body:    "Hello",
 	}
 
-	var unmarshaled Container
-	err = json.Unmarshal(data, &unmarshaled)
-	if err != nil {
-		panic(err)
-	}
+	mail := email.NewService(clt, t)
 
-	switch v := unmarshaled.Value.(type) {
-	case Something1:
-		println(v.Aaa)
-	default:
-		panic(fmt.Sprintf("unexpected value type: %T", v))
+	if err := mail.Send(context.Background(), msg); err != nil {
+		log.Fatalf("failed to send email: %v", err)
+	}
+}
+		log.Fatalf("failed to send email: %v", err)
 	}
 }
