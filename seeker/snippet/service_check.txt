@@ -1,0 +1,16 @@
+#date: 2023-07-24T17:05:27Z
+#url: https://api.github.com/gists/cc9a27d96ea53939650e6663f78fdb7f
+#owner: https://api.github.com/users/yudevan
+
+#!/bin/bash
+
+echo "Waiting Some Service to be running..."
+
+while ! nc -z localhost 8080; do
+sleep 0.1
+echo -n .
+done
+
+echo "Service Started"
+
+# do other stuff here after service running
