@@ -1,26 +1,28 @@
-//date: 2023-07-24T16:57:16Z
-//url: https://api.github.com/gists/40f24daed1470b0b2b630663886de379
-//owner: https://api.github.com/users/Winniebob
+//date: 2023-07-25T16:58:50Z
+//url: https://api.github.com/gists/5d0809bcf06f22ebb833f2fb2b4d201a
+//owner: https://api.github.com/users/meltoid872
 
-package genealogy_tree;
-import genealogy_tree.WriterAndReader.*;
+package com.example.warpplugin;
 
+import org.bukkit.plugin.java.JavaPlugin;
 
+import com.example.warpplugin.SetWarpCommand;
+import com.example.warpplugin.WarpCommand;
 
-public class Main {
-    public static void main (String[] args) {
-        /*VeneologiTree geneologiTree = new VeneologiTree();
-        Human1 human1 = new Human1();
-        Human2 human2 = new Human2();
-        Human3 human3 = new Human3();
+public class Main extends JavaPlugin {
 
-        geneologiTree.addHuman(human1);
-        geneologiTree.addHuman(human3);
-        geneologiTree.addHuman(human2);*/
-        new Writer();
-        new Reader();
+    @Override
+    public void onEnable() {
+        getCommand("setwarp").setExecutor(new SetWarpCommand(this));
+        getCommand("warp").setExecutor(new WarpCommand(this));
 
+        saveDefaultConfig();
 
+        getLogger().info("il plugin è stato abilitato");
     }
 
+    @Override
+    public void onDisable() {
+        getLogger().info("il plugin è stato disabilitato");
+    }
 }
