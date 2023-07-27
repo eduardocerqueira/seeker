@@ -1,12 +1,27 @@
-#date: 2023-07-26T16:54:40Z
-#url: https://api.github.com/gists/1470332ec09e5b0d65671e7af25f1623
+#date: 2023-07-27T16:42:32Z
+#url: https://api.github.com/gists/98b9ba3edd02db5023edccb9f0099208
 #owner: https://api.github.com/users/mypy-play
 
-from typing import Dict, Any
+from typing import SupportsFloat
+from fractions import Fraction
+from decimal import Decimal
 
-fields: Dict[Any, Any] = {}
-fields['ella'] = 1
-fields['guru'] = 'hi'
 
-i: str = fields['ella']
-j: str = fields['guru']
+NumberType = type[SupportsFloat]
+
+
+def foo(bar: NumberType = 1) -> None:
+    pass
+
+
+foo(float)
+foo(int)
+foo(Fraction)
+foo(Decimal)
+
+foo(complex)
+
+foo(str)
+foo(bytes)
+foo(list)
+foo(dict)
