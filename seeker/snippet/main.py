@@ -1,34 +1,26 @@
-#date: 2023-08-02T16:49:01Z
-#url: https://api.github.com/gists/6ead32a47aa5a6fb4d6f8548669b8359
+#date: 2023-08-03T17:02:57Z
+#url: https://api.github.com/gists/be50026196853334f8380c5762656f0d
 #owner: https://api.github.com/users/mypy-play
 
-from typing import Protocol, TypeVar, Self, Generic
-from dataclasses import dataclass
+from typing import TypeGuard, Any
 
-class SupportsSub(Protocol):
-    def __sub__(self, other: Self) -> Self: pass
+class ClassA:
+    pass
 
-T = TypeVar('T', bound=SupportsSub)
+class ClassB:
+    def classB_method(self):
+        print("class B!")
 
-@dataclass
-class Consumption(Generic[T]):
-    first: T
-    second: T
-    def difference(self) -> T:
-        return self.second - self.first
+class ClassC(ClassA, ClassB):
+    pass
+
+def guard(item: Any) -> TypeGuard[ClassA]:
+    return isinstance(item, ClassA)
 
 
-def shouldnt_type(a: T, b: int) -> T:
-    return a - b # doesn't type
+dog = ClassC()
 
-def should_type1(a: int, b: int) -> int:
-    return a - b
+assert guard(dog)
 
-def should_type2(a: T, b: T) -> T:
-    return a - b
+dog.classB_method()
 
-data = Consumption(6, 3)
-data.difference()
-
-bad_data = Consumption("a", "b")
-bad_data.difference()
