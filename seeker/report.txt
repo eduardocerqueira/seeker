@@ -1,4 +1,33 @@
 --------------------------------------------------------------------------------
+ 2023-08-09 17:10:22.862047
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/Ansi.java
+	deleted:    snippet/BaldursSave.py
+	deleted:    snippet/generate.sh
+	deleted:    snippet/install_python_packages.sh
+	deleted:    snippet/llamas-talking.py
+	deleted:    snippet/reset-stg-author-commit-dates.sh
+	deleted:    snippet/simple-echo-in-color.sh
+	deleted:    snippet/speechmarks.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/SubprocessDebugLog.py
+	snippet/ci.py
+	snippet/intercom.py
+	snippet/main.py
+	snippet/mouse_speed.sh
+	snippet/uninstall-nix-osx.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2023-08-08 17:10:51.471025
 --------------------------------------------------------------------------------
   On branch main
