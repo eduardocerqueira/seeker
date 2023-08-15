@@ -1,25 +1,29 @@
-#date: 2023-08-14T17:04:35Z
-#url: https://api.github.com/gists/3ace70ead7cf7bfa93469167e009d88b
+#date: 2023-08-15T17:04:51Z
+#url: https://api.github.com/gists/567685e44818c7fb1ef123a77d8ef27d
 #owner: https://api.github.com/users/mypy-play
 
-from typing import Any, Awaitable, Callable, TypeVar, cast
+from dataclasses import dataclass
+from datetime import datetime
+import enum
+from typing import assert_never
 
 
-Func = TypeVar('Func', bound=Callable[[int], Awaitable[int]])
+class MyEnum(enum.Enum):
+    a = "a"
+    b = "b"
+    c = "c"
+    
 
-
-def my_dec(func: Func) -> Func:
-    async def wrapper(value: Any) -> int:
-        reply = await func(value)
-        return reply
-    return cast(Func, wrapper)
-
-
-Func2 = TypeVar('Func2', Callable[[int], Awaitable[int]], Callable[[str], Awaitable[int]])
-
-
-def my_dec2(func: Func2) -> Func2:
-    async def wrapper(value: Any) -> int:
-        reply = await func(value)
-        return reply  # error: Incompatible return value type (got "int", expected "Coroutine[Any, Any, int]")  [return-value]
-    return cast(Func2, wrapper)
+@dataclass
+class MyClass:
+    expires_at: datetime | None
+    
+    @property
+    def status(self):
+        match self.expires_at:
+            case None:
+                return MyEnum.a
+            case time if time <= datetime.now():
+                return MyEnum.b
+            case _:
+                return MyEnum.c
