@@ -1,0 +1,160 @@
+#date: 2023-08-16T16:45:34Z
+#url: https://api.github.com/gists/3e6bb5617636fb24175b6e8b3050cc3c
+#owner: https://api.github.com/users/mccutchen
+
+#!/usr/bin/env python3
+
+import subprocess
+import sys
+
+
+def run_cmd(cmd):
+    return subprocess.check_output(cmd).decode("utf8").strip()
+
+
+def get_current_branch():
+    return run_cmd(["git", "branch", "--show-current"])
+
+
+def delete_local_branch(name, force=False):
+    delete_flag = "-D" if force else "-d"
+    return run_cmd(["git", "branch", delete_flag, name])
+
+
+def force_delete_local_branch(name):
+    return delete_local_branch(name, force=True)
+
+
+def delete_remote_branch(name):
+    remote, name = name.split("/", 1)
+    return run_cmd(["git", "push", remote, ":{}".format(name)])
+
+
+def list_branches_to_delete(remote=False):
+    """
+    Return a list of branch names that should be safe to delete. The given opts
+    will be passed into `git branch` and should determine whether to list local
+    or remote branches.
+
+    Local branch output:
+
+        $ git branch --merged
+          INFRA-658-user-cleanup
+        * master
+          master-new
+          new-master
+
+    Remote branch output:
+
+        $ git branch -r --merged
+          origin/DISTR-609-scaffold-components-and-fetch-artifacts
+          origin/HEAD -> origin/master
+          origin/INFRA-658-user-cleanup
+          origin/FOO-136-API-GET-project-by-ID-precommit
+          origin/feeder-worker
+          origin/master
+    """
+    cmd = ["git", "branch"]
+    if remote:
+        cmd.append("-r")
+    cmd.extend(["--merged"])
+
+    lines = run_cmd(cmd).splitlines()
+    names = [parse_branch_name(line) for line in lines]
+    return [name for name in names if safe_to_delete(name, remote)]
+
+
+def list_local_branches_with_deleted_remotes():
+    """
+    With a "squash-and-merge" GitHub development style, you'll end up with
+    local branches that have been merged, but `git branch --merged` can't tell
+    because the local commits were squashed on GitHub's end before merging.
+
+    To handle that case, we fall back to finding local branches whose remote
+    tracking branches have been deleted, which boils down to simulating this
+    shell pipeline:
+
+        $ git branch -vv | grep ': gone]' | awk '{print $1}'
+
+    The important part is here:
+
+        $ git branch -vv | grep ': gone]'
+        cdk-deploy-test      65572dd [origin/cdk-deploy-test: gone] look up existing task execution role
+        cdk-eks              a42a911 [origin/cdk-eks: gone] infra: add proof-of-concept rodeo EKS cluster
+    """  # noqa
+
+    cmd = ["git", "branch", "-vv"]
+    lines = run_cmd(cmd).splitlines()
+    return [line.split()[0] for line in lines if ": gone]" in line]
+
+
+def parse_branch_name(line):
+    return line.lstrip(" *").split()[0]
+
+
+def safe_to_delete(name, is_remote):
+    remote_name = None
+    if is_remote:
+        remote_name, branch = name.split("/", 1)
+    else:
+        branch = name
+    is_protected = branch in ("main", "master", "develop", "HEAD")
+    is_mine = remote_name == "origin" or not is_remote
+    return is_mine and not is_protected
+
+
+def pluralize(xs, suffix="s"):
+    return suffix if len(xs) > 0 else ""
+
+
+def get_answer(base_prompt):
+    answer_map = {"y": True, "yes": True, "n": False, "no": False, "q": False}
+    prompt = f"{base_prompt} [Y/n]: "
+    while True:
+        answer = input(prompt).strip().lower() or "y"
+        if answer in answer_map:
+            return answer_map[answer]
+
+
+def main():
+    current_branch = get_current_branch()
+    if current_branch not in ("master", "main"):
+        print(
+            f"Error: git-cleanup must be run from the `main` or `master` "
+            f"branch (currently: `{current_branch}`)"
+        )
+        return 1
+
+    local_branches = set(list_branches_to_delete(remote=False))
+    local_branches_with_deleted_remotes = (
+        set(list_local_branches_with_deleted_remotes()) - local_branches
+    )
+    remote_branches = list_branches_to_delete(remote=True)
+
+    work = [
+        ("fully merged local branches", local_branches, delete_local_branch),
+        (
+            "local branches w/ deleted remotes",
+            local_branches_with_deleted_remotes,
+            force_delete_local_branch,
+        ),
+        ("fully merged remote branches", remote_branches, delete_remote_branch),
+    ]
+
+    for kind, branches, delete in work:
+        if not branches:
+            continue
+
+        count = len(branches)
+        print(f"Found {count} {kind}:")
+        for branch in sorted(branches):
+            print(f" - {branch}")
+        do_delete = get_answer(f"Delete {count} {kind}?")
+        if do_delete:
+            for branch in branches:
+                delete(branch)
+        print()
+
+
+if __name__ == "__main__":
+    sys.exit(main())

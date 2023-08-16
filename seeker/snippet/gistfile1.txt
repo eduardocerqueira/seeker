@@ -1,0 +1,15 @@
+#date: 2023-08-16T16:53:38Z
+#url: https://api.github.com/gists/77d2595361028cd4d56690559465d50d
+#owner: https://api.github.com/users/jjdavis
+
+#!/bin/bash
+
+# get the access keys and repo name
+. wasabi.env
+
+# just in case
+restic -r "$RESTIC_REPOSITORY" unlock
+
+# run restic under ionice to tone down the disk impact
+ionice --class 2 --classdata 7 restic -r "$RESTIC_REPOSITORY" backup /home/jim --exclude-file=restic-excludes.txt --verbose
+#restic -r "$RESTIC_REPOSITORY" backup /home/jim --exclude-file=restic-excludes.txt --verbose
