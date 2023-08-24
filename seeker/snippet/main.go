@@ -1,39 +1,33 @@
-//date: 2023-08-23T17:05:24Z
-//url: https://api.github.com/gists/4c94db8053aa8f6e8cdc5e6b5b3f4c8c
-//owner: https://api.github.com/users/AcousticTypewriter
+//date: 2023-08-24T16:56:30Z
+//url: https://api.github.com/gists/391978953624cb3ecfbeb8904ce74394
+//owner: https://api.github.com/users/shareusefulcode
 
 package main
 
 import (
-        "machine"
-        "time" 
- )
+	"fmt"
+	"sync"
+	"time"
+)
 
-func door () {
-  //run door motor
+var (
+	counter int
+	mutex   sync.Mutex
+)
+
+func incrementCounter() {
+	mutex.Lock()
+	counter++
+	mutex.Unlock()
 }
-
-func elevatorYO () {
-  //run elevator motor
-}
-
 
 func main() {
-  cond := true
-  for {
-    result, err := machine.GetRNG()
-    if err != nil {
-      println("uh oh")
-    } else if result == 10 {
-      cond = false
-    }
+	for i := 0; i < 1000000; i++ {
+		go incrementCounter()
+	}
 
-    switch cond {
-      case true:
-        go door()
-      case false:
-        go elevatorYO()
-    }
-    time.Sleep(time.Millisecond*1)
-  }  
+  // What would happen if we commented out the following line ? and why ?
+	time.Sleep(time.Second)
+
+	fmt.Println("Final counter value:", counter)
 }
