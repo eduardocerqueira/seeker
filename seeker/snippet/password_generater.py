@@ -47,4 +47,4 @@ if s=='y':
 else:
     s=False
 """printing the generated password"""
-print("Your generated password is:",paswd(length,s,n,a))
+print("Your generated password is: "**********"h,s,n,a))
