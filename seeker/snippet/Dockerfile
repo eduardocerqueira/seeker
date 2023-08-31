@@ -1,92 +1,74 @@
-#date: 2023-08-29T16:51:36Z
-#url: https://api.github.com/gists/401abd85acd2ec2a02fcc529f23b5f03
-#owner: https://api.github.com/users/matiasmasca
+#date: 2023-08-31T17:09:50Z
+#url: https://api.github.com/gists/085c2873671b3e30bd59c58bb1d636a9
+#owner: https://api.github.com/users/atefhaloui
 
-FROM dev as test
+#
+# This image is based on the work Simon Belmas:
+#  https://github.com/simbelmas/dockerfiles/blob/latest/fedora-minimal/Dockerfile
+#  https://github.com/simbelmas/dockerfiles/blob/latest/buildah-image-builder/Dockerfile
+#  https://github.com/simbelmas/dockerfiles/blob/latest/kube-cmdline/Dockerfile
+#
 
-ARG DEBIAN_FRONTEND=noninteractive
+FROM registry.fedoraproject.org/fedora-minimal:40
 
-RUN apt-get update && apt-get install --no-install-recommends --no-install-suggests -y \
-  wget \
-  unzip \
-  apt-utils \
-  libasound2 \
-  libatk1.0-0 \
-  libc6 \
-  libcairo2 \
-  libcups2 \
-  libdbus-1-3 \
-  libexpat1 \
-  libfontconfig1 \
-  libgcc1 \
-  libgconf-2-4 \
-  libgdk-pixbuf2.0-0 \
-  libglib2.0-0 \
-  libgtk-3-0 \
-  libnspr4 \
-  libpango-1.0-0 \
-  libpangocairo-1.0-0 \
-  libstdc++6 \
-  libx11-6 \
-  libx11-xcb1 \
-  libxcb1 \
-  libxcursor1 \
-  libxdamage1 \
-  libxext6 \
-  libxfixes3 \
-  libxi6 \
-  libxrandr2 \
-  libxrender1 \
-  libxss1 \
-  libxtst6 \
-  libnss3 \
-  iproute2 \
-  net-tools \
-  unzip xvfb libxi6 libgconf-2-4 jq libjq1 libonig5 libxkbcommon0 libxss1 libglib2.0-0 libnss3 \
-  libfontconfig1 libatk-bridge2.0-0 libatspi2.0-0 libgtk-3-0 libpango-1.0-0 libgdk-pixbuf2.0-0 libxcomposite1 \
-  libxcursor1 libxdamage1 libxtst6 libappindicator3-1 libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libxfixes3 \
-  libdbus-1-3 libexpat1 libgcc1 libnspr4 libgbm1 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxext6 \
-  libxrandr2 libxrender1 gconf-service ca-certificates fonts-liberation libappindicator1 lsb-release xdg-utils \
-  # The following are used to trim down the size of the image by removing unneeded data
-  && apt-get clean autoclean \
-  && apt-get autoremove -y \
-  && rm -rf \
-    /var/lib/apt \
-    /var/lib/dpkg \
-    /var/lib/cache \
-    /var/lib/log
+ARG KUBECTL_VERSION=v1.28.1
+ARG HELM_VERSION=v3.12.3
+ARG ARGOCD_VERSION=v2.8.2
+ARG VAULT_VERSION=1.14.2
 
-RUN bundle install --jobs 20 --retry 5
+# Install buildah + skopeo + jq + git
+RUN dnf5 --no-docs -y install shadow-utils buildah skopeo fuse-overlayfs cpp jq git unzip curl --exclude container-selinux,qemu-user-static \
+    && rpm --setcaps shadow-utils 2>/dev/null \
+    && dnf5 clean all
 
-# #Chrome & Chrome Driver
-# 114 
-# https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/114.0.5735.90/linux64/chrome-linux64.zip
-# https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip
-# 115 
-# https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/115.0.5790.170/linux64/chrome-linux64.zip
-# https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/115.0.5790.170/linux64/chromedriver-linux64.zip 
+ENV BUILDAH_ISOLATION=chroot
 
-# Install Chrome
-RUN wget -O /tmp/google-chrome.zip https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/115.0.5790.170/linux64/chrome-linux64.zip && \
-    unzip /tmp/google-chrome.zip -d /opt/ && \
-    rm /tmp/google-chrome.zip
-RUN chmod +x /opt/chrome-linux64/chrome
-RUN ln -s /opt/chrome-linux64/chrome /usr/bin/google-chrome
+RUN sed -e 's|^#mount_program|mount_program|g' -e '/additionalimage.*/a "/var/lib/shared",' -e 's|^mountopt[[:space:]]*=.*$|mountopt = "nodev,fsync=0"|g' /usr/share/containers/storage.conf > /etc/containers/storage.conf \
+    && chmod 644 /etc/containers/storage.conf \
+    && mkdir -p /var/lib/shared/overlay-images /var/lib/shared/overlay-layers /var/lib/shared/vfs-images /var/lib/shared/vfs-layers \
+    && touch /var/lib/shared/overlay-images/images.lock \
+    && touch /var/lib/shared/overlay-layers/layers.lock \
+    && touch /var/lib/shared/vfs-images/images.lock \
+    && touch /var/lib/shared/vfs-layers/layers.lock \
+    && useradd -u 1001 build \
+    && echo -e "build:1:1000\nbuild:1002:64535" > /etc/subuid  \
+    && cp /etc/subuid /etc/subgid \
+    && mkdir -p /home/build/.local/share/containers \
+    && chown -R build:build /home/build
 
-# Put Chrome into the PATH
-ENV PATH="/opt/chrome-linux64:${PATH}"
+# Install yq
+RUN cd /usr/local/bin \
+    && curl -o yq -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 \
+    && chmod a+x yq
 
-# Install Chromedriver
-RUN wget -O /tmp/chromedriver-linux64.zip https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/115.0.5790.170/linux64/chromedriver-linux64.zip && \
-   unzip /tmp/chromedriver-linux64.zip -d /tmp/chromedriver-linux64/ && \
-   mv /tmp/chromedriver-linux64/chromedriver-linux64/chromedriver /usr/bin/ && \
-   chmod +x /usr/bin/chromedriver
-   
-# Put Chromedriver into the PATH
-ENV PATH /usr/bin/:$PATH
+# Install kubectl
+RUN cd /usr/local/bin \
+    && curl -o kubectl -L "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" \
+    && chmod a+x kubectl
 
-COPY ./script/wrap-chrome-binary /opt/bin/wrap-chrome-binary
-RUN chmod +x /opt/bin/wrap-chrome-binary
-RUN /opt/bin/wrap-chrome-binary
+# Install helm
+RUN cd /usr/local/bin \
+    && curl -o helm-${HELM_VERSION}-linux-amd64.tar.gz -L https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz \
+    && tar xf helm-${HELM_VERSION}-linux-amd64.tar.gz \
+    && mv linux-amd64/helm . \
+    && chmod a+x helm \
+    && rm -rf helm-${HELM_VERSION}-linux-amd64.tar.gz linux-amd64
 
-COPY . ./
+# Install argocd
+RUN cd /usr/local/bin \
+    && curl -o argocd -L https://github.com/argoproj/argo-cd/releases/download/${ARGOCD_VERSION}/argocd-linux-amd64 \
+    && chmod a+x argocd
+
+# Install hashicop vault
+RUN cd /usr/local/bin \
+	&& curl -o vault_${VAULT_VERSION}_linux_amd64.zip -L https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip \
+	&& unzip vault_${VAULT_VERSION}_linux_amd64.zip \
+	&& rm vault_${VAULT_VERSION}_linux_amd64.zip \
+	&& chmod a+x vault
+
+USER 1001
+
+WORKDIR /home/build
+
+ENTRYPOINT ["/bin/sh"]
+
