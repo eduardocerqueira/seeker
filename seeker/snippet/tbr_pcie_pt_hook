@@ -1,0 +1,26 @@
+#date: 2023-09-05T17:04:15Z
+#url: https://api.github.com/gists/eba46f0a219b9f1e1c388fcd23efe442
+#owner: https://api.github.com/users/tbr
+
+#!/bin/sh
+# Place in /etc/initramfs-tools/hooks/ (+x)
+#
+PREREQ=""
+prereqs()
+{
+  echo "$PREREQ"
+}
+case $1 in
+prereqs)
+  prereqs
+  exit 0
+  ;;
+esac
+. /usr/share/initramfs-tools/hook-functions
+# Begin real processing below this line
+
+# Add the required vfio* modules.
+manual_add_modules vfio
+manual_add_modules vfio_iommu_type1
+manual_add_modules vfio_pci
+manual_add_modules vfio_virqfd
