@@ -1,44 +1,60 @@
-#date: 2023-09-06T16:56:33Z
-#url: https://api.github.com/gists/d0956f53649322c51e5b2a3b00013dbf
-#owner: https://api.github.com/users/mypy-play
+//date: 2023-09-07T16:52:34Z
+//url: https://api.github.com/gists/2d9ca5773a1958cc7a4f5cc7b3faa8d4
+//owner: https://api.github.com/users/vdparikh
 
-from typing import Callable, ParamSpec, TypeVar, cast, Any, Type, Literal, Concatenate
+from flask import Flask, request, jsonify
 
-# Define some specification, see documentation
-P = ParamSpec("P")
-T = TypeVar("T")
+app = Flask(__name__)
+key_value_store = {}
 
-# For a help about decorator with parameters see 
-# https://stackoverflow.com/questions/5929107/decorators-with-parameters
-def copy_kwargs_int(kwargs_call: Callable[P, Any]) -> Callable[[Callable[..., T]], Callable[P, T]]:
-    """Decorator does nothing but returning the casted original function"""
-    def return_func(func: Callable[..., T]) -> Callable[P, T]:
-        return cast(Callable[P, T], func)
 
-    return return_func
+@app.route('/get', methods=['GET'])
+def get():
+    key = request.args.get('key')
+    if key in key_value_store:
+        return jsonify({key: key_value_store[key]}), 200
+    else:
+        return "Key not found", 404
 
-# Our test function
-def source_func(foo: str, bar: int, default: bool = True) -> str:
-    if not default:
-        return "Not Default!"
-    return f"{foo}_{bar}"
 
-def copy_kwargs_with_int(
-    kwargs_call: Callable[P, Any]
-) -> Callable[[Callable[..., T]], Callable[Concatenate[int, P], T]]:
-    """Decorator does nothing but returning the casted original function"""
+@app.route('/set', methods=['POST'])
+def set_key():
+    data = request.get_json()
+    if 'key' not in data or 'value' not in data:
+        return "Invalid request, please provide 'key' and 'value'", 400
+    key = data['key']
+    value = data['value']
+    key_value_store[key] = value
+    return "Key-Value pair set successfully", 200
 
-    def return_func(func: Callable[..., T]) -> Callable[Concatenate[int, P], T]:
-        return cast(Callable[Concatenate[int, P], T], func)
 
-    return return_func
+@app.route('/update', methods=['PUT'])
+def update_key():
+    data = request.get_json()
+    if 'key' not in data or 'value' not in data:
+        return "Invalid request, please provide 'key' and 'value'", 400
+    key = data['key']
+    if key in key_value_store:
+        key_value_store[key] = data['value']
+        return "Key-Value pair updated successfully", 200
+    else:
+        return "Key not found", 404
 
-@copy_kwargs_with_int(source_func)
-def something(first: int, *args, **kwargs) -> str:
-    print(f"Yeah {first}")
-    return str(source_func(*args, **kwargs))
 
-something("a", "string", 3) # error: Argument 1 to "something" has incompatible type "str"; expected "int"  [arg-type]
-okay_call: str
-okay_call = something(3, "string", 3) # okay
+@app.route('/delete', methods=['DELETE'])
+def delete_key():
+    key = request.args.get('key')
+    if key in key_value_store:
+        del key_value_store[key]
+        return "Key deleted successfully", 200
+    else:
+        return "Key not found", 404
 
+
+@app.route('/list', methods=['GET'])
+def list_keys():
+    return jsonify(list(key_value_store.keys())), 200
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
