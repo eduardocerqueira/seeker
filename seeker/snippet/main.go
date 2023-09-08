@@ -1,122 +1,91 @@
-//date: 2023-09-07T16:52:34Z
-//url: https://api.github.com/gists/2d9ca5773a1958cc7a4f5cc7b3faa8d4
-//owner: https://api.github.com/users/vdparikh
+//date: 2023-09-08T17:02:37Z
+//url: https://api.github.com/gists/21e1785b56961bbcbd32b1b7401b53cc
+//owner: https://api.github.com/users/jaredwarren-cb
 
 package main
 
+/*
+Below is a Go reference implementation that you can input your Coinbase Cloud API key name and private key into. 
+*/
+
 import (
-    "encoding/json"
-    "fmt"
-    "net/http"
-    "sync"
+	"crypto/rand"
+	"crypto/x509"
+	"encoding/pem"
+	"fmt"
+      log "github.com/sirupsen/logrus"	
+      "gopkg.in/square/go-jose.v2"
+	"gopkg.in/square/go-jose.v2/jwt"
+	"math"
+	"math/big"
+	"time"
 )
 
-// KeyValueStore is a simple in-memory key-value store.
-type KeyValueStore struct {
-    data map[string]string
-    mu   sync.Mutex
+const (
+	nameEnvVar       = "<Replace this with your api key name>"
+	privateKeyEnvVar =  "<Replace this with your private key>"
+)
+
+type APIKeyClaims struct {
+	*jwt.Claims
+	URI string `json:"uri"`
 }
 
-// NewKeyValueStore creates a new instance of KeyValueStore.
-func NewKeyValueStore() *KeyValueStore {
-    return &KeyValueStore{
-        data: make(map[string]string),
-    }
+func  buildJWT(service, uri string) (string, error) {
+	block, _ := pem.Decode([]byte(privateKeyEnvVar))
+	if block == nil {
+		return "", fmt.Errorf("jwt: Could not decode private key")
+	}
+
+	key, err := x509.ParseECPrivateKey(block.Bytes)
+	if err != nil {
+		return "", fmt.Errorf("jwt: %w", err)
+	}
+
+	sig, err := jose.NewSigner(
+		jose.SigningKey{Algorithm: jose.ES256, Key: key},
+		(&jose.SignerOptions{NonceSource: nonceSource{}}).WithType("JWT").WithHeader("kid", nameEnvVar),
+	)
+	if err != nil {
+		return "", fmt.Errorf("jwt: %w", err)
+	}
+
+	cl := &APIKeyClaims{
+		Claims: &jwt.Claims{
+			Subject:   nameEnvVar,
+			Issuer:    "coinbase-cloud",
+			NotBefore: jwt.NewNumericDate(time.Now()),
+			Expiry:    jwt.NewNumericDate(time.Now().Add(1 * time.Minute)),
+			Audience:  jwt.Audience{service},
+		},
+		URI: uri,
+	}
+	jwtString, err := jwt.Signed(sig).Claims(cl).CompactSerialize()
+	if err != nil {
+		return "", fmt.Errorf("jwt: %w", err)
+	}
+	return jwtString, nil
 }
 
-// Get retrieves the value associated with a key.
-func (kv *KeyValueStore) Get(key string) (string, bool) {
-    kv.mu.Lock()
-    defer kv.mu.Unlock()
-    value, exists := kv.data[key]
-    return value, exists
-}
+var max = big.NewInt(math.MaxInt64)
 
-// Set stores a key-value pair.
-func (kv *KeyValueStore) Set(key, value string) {
-    kv.mu.Lock()
-    defer kv.mu.Unlock()
-    kv.data[key] = value
-}
+type nonceSource struct{}
 
-// Update updates the value associated with a key.
-func (kv *KeyValueStore) Update(key, value string) bool {
-    kv.mu.Lock()
-    defer kv.mu.Unlock()
-    _, exists := kv.data[key]
-    if exists {
-        kv.data[key] = value
-    }
-    return exists
-}
-
-// Delete removes a key-value pair from the store.
-func (kv *KeyValueStore) Delete(key string) bool {
-    kv.mu.Lock()
-    defer kv.mu.Unlock()
-    _, exists := kv.data[key]
-    if exists {
-        delete(kv.data, key)
-    }
-    return exists
+func (n nonceSource) Nonce() (string, error) {
+	r, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		return "", err
+	}
+	return r.String(), nil
 }
 
 func main() {
-    kvStore := NewKeyValueStore()
+	uri := fmt.Sprintf("%s %s%s", "POST", "api.developer.coinbase.com", "/api/v3/coinbase.user_activity_report_service.UserActivitiesReportPublicService/ReportUserActivities")
 
-    http.HandleFunc("/get", func(w http.ResponseWriter, r *http.Request) {
-        key := r.URL.Query().Get("key")
-        value, exists := kvStore.Get(key)
-        if !exists {
-            http.NotFound(w, r)
-            return
-        }
-        fmt.Fprintf(w, "Key: %s, Value: %s\n", key, value)
-    })
+	jwt,err := buildJWT("user_activity_report_service", uri)
+      if err != nil {
+		log.Errorf("error building jwt: %v", err)
+	}
+	log.Infof("jwt result: %s", jwt)
 
-    http.HandleFunc("/set", func(w http.ResponseWriter, r *http.Request) {
-        key := r.URL.Query().Get("key")
-        value := r.URL.Query().Get("value")
-        kvStore.Set(key, value)
-        fmt.Fprintf(w, "Key: %s, Value: %s is set\n", key, value)
-    })
-
-    http.HandleFunc("/update", func(w http.ResponseWriter, r *http.Request) {
-        key := r.URL.Query().Get("key")
-        value := r.URL.Query().Get("value")
-        exists := kvStore.Update(key, value)
-        if !exists {
-            http.NotFound(w, r)
-            return
-        }
-        fmt.Fprintf(w, "Key: %s, Value: %s is updated\n", key, value)
-    })
-
-    http.HandleFunc("/delete", func(w http.ResponseWriter, r *http.Request) {
-        key := r.URL.Query().Get("key")
-        exists := kvStore.Delete(key)
-        if !exists {
-            http.NotFound(w, r)
-            return
-        }
-        fmt.Fprintf(w, "Key: %s is deleted\n", key)
-    })
-
-    http.HandleFunc("/list", func(w http.ResponseWriter, r *http.Request) {
-        kvStore.mu.Lock()
-        defer kvStore.mu.Unlock()
-        keys := make([]string, 0, len(kvStore.data))
-        for key := range kvStore.data {
-            keys = append(keys, key)
-        }
-        keysJSON, err := json.Marshal(keys)
-        if err != nil {
-            http.Error(w, err.Error(), http.StatusInternalServerError)
-            return
-        }
-        w.Header().Set("Content-Type", "application/json")
-        w.Write(keysJSON)
-    })
-
-    http.ListenAndServe(":8080", nil)
 }
