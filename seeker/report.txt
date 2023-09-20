@@ -1,4 +1,32 @@
 --------------------------------------------------------------------------------
+ 2023-09-20 17:09:48.480656
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/Hello.java
+	deleted:    snippet/bashrc.sh
+	deleted:    snippet/double_jump.sh
+	deleted:    snippet/hello_world.sh
+	deleted:    snippet/install_conda.sh
+	deleted:    snippet/lambda_function.py
+	deleted:    snippet/notebook.sh
+	deleted:    snippet/simple_connection.sh
+	deleted:    snippet/strip.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/Dockerfile
+	snippet/clientserverbehaviour.py
+	snippet/homework.py
+	snippet/make_input.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2023-09-19 17:09:36.400615
 --------------------------------------------------------------------------------
   On branch main
