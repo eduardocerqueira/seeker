@@ -1,23 +1,19 @@
-#date: 2023-09-25T16:48:04Z
-#url: https://api.github.com/gists/61af435c15e57ce5221abada2221008a
-#owner: https://api.github.com/users/mypy-play
+#date: 2023-09-27T17:01:11Z
+#url: https://api.github.com/gists/f45cd57f77c5e2fd181cc847a2cb496c
+#owner: https://api.github.com/users/Phil-Miles
 
-import enum
+from question_model import Question
+from data import question_data
+from quiz_brain import QuizBrain
+from ui import QuizInterface
+
+question_bank = []
+for question in question_data:
+    question_text = question["question"]
+    question_answer = question["correct_answer"]
+    new_question = Question(question_text, question_answer)
+    question_bank.append(new_question)
 
 
-class ListType(enum.IntFlag):
-    ABC = enum.auto()
-    DEF = enum.auto()
-    GHI = enum.auto()
-    
-    @staticmethod
-    def get_names() -> list[str]:
-        to_return = []
-
-        for e in ListType:
-            reveal_type(e)
-            reveal_type(e.name)
-            to_return.append(e.name)
-        
-
-        return to_return
+quiz = QuizBrain(question_bank)
+quiz_ui = QuizInterface(quiz)
