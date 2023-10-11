@@ -1,4 +1,33 @@
 --------------------------------------------------------------------------------
+ 2023-10-11 17:10:21.566207
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/How to Electronically Sign Word Document using Python.py
+	deleted:    snippet/get_edge_status.sh
+	deleted:    snippet/program.py
+	deleted:    snippet/stage_1_install_driver_cuda_cudnn.sh
+	deleted:    snippet/stage_2_install_tf_torch.sh
+	deleted:    snippet/stage_3_gpu_check.sh
+	deleted:    snippet/teste04.py
+	deleted:    "snippet/\320\224\320\227 - 7.py"
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/EtherscanLabelScraping.py
+	snippet/JavaQuiz05.java
+	snippet/get_r_volatility_per_regime.py
+	snippet/get_rets_volatility_per_regime.py
+	snippet/setup.sh
+	snippet/upload_ssh.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2023-10-10 17:09:42.753536
 --------------------------------------------------------------------------------
   On branch main
