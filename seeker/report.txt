@@ -1,4 +1,29 @@
 --------------------------------------------------------------------------------
+ 2023-10-13 17:10:03.468916
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/EtherscanLabelScraping.py
+	deleted:    snippet/JavaQuiz05.java
+	deleted:    snippet/get_r_volatility_per_regime.py
+	deleted:    snippet/get_rets_volatility_per_regime.py
+	deleted:    snippet/setup.sh
+	deleted:    snippet/upload_ssh.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/art-a015_1_main.go
+	snippet/ipylocalstorage.py
+	snippet/plotly.py
+	snippet/setup-vscode.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2023-10-12 17:10:31.931253
 --------------------------------------------------------------------------------
   On branch main
