@@ -1,0 +1,33 @@
+#date: 2023-10-20T17:01:25Z
+#url: https://api.github.com/gists/5051c3fd57c726394c11b5c34f39d660
+#owner: https://api.github.com/users/letsbreelhere
+
+#!/usr/bin/env python
+
+import subprocess
+import sys
+
+def getch():
+    import sys, tty, termios
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    try:
+        tty.setraw(sys.stdin.fileno())
+        ch = sys.stdin.read(1)
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+    return ch
+
+args = sys.argv[1:]
+if 'master' in args:
+    print("You probably meant main. Replace master with main in this command? [Y/n]", end=' ', flush=True)
+    c = getch()
+    print(c)
+    if c != 'n':
+        for i in range(len(args)):
+            if args[i] == 'master':
+                args[i] = 'main'
+    else:
+        print("Continuing with master branch")
+
+subprocess.run(['git'] + args)
