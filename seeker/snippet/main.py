@@ -1,25 +1,23 @@
-#date: 2023-10-25T17:02:45Z
-#url: https://api.github.com/gists/8dc441cef674100f78ed663afd465029
+#date: 2023-10-26T16:39:14Z
+#url: https://api.github.com/gists/811a3d24f7832ace1e63efd86bf8a793
 #owner: https://api.github.com/users/mypy-play
 
-from __future__ import annotations
-from typing import Optional
+from typing import Mapping, MutableMapping, Sequence, MutableSequence, Union
+
+JsonValue = Union["JsonObject", "JsonArray", str, int, float, bool, None]
+JsonObject = Mapping[str, JsonValue]
+JsonArray = Sequence[JsonValue]
+
+# MutableJsonValue = Union["JsonObject", "JsonArray", str, int, float, bool, None]
+MutableJsonObject = MutableMapping[str, JsonValue]
+# MutableJsonArray = MutableSequence[MutableJsonValue]
 
 
-def func1(value: Optional[object]) -> None:
-    if callable(value):
-        _ = True  # got: Statement is unreachable [unreachable]
-                  # expected: no error
+j: MutableJsonObject
 
+j["foo"] = "bar"
 
-# ADDITIONAL MATERIAL - NOT NECESSARY TO REPRODUCE:
-
-def func2(value: object) -> None:
-    if callable(value):
-        _ = True  # no error (as expected)
-        
-obj1: object
-reveal_type(callable(obj1))  # Revealed type is 'bool' (as expected)
-
-obj2: Optional[object]
-reveal_type(callable(obj2))  # Revealed type is 'bool' (as expected)
+reveal_type(j["foo2"])
+assert isinstance(j["foo2"], dict)
+reveal_type(j["foo2"])
+j["foo2"]["bar"] = "baz"
