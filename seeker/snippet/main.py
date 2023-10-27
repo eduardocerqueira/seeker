@@ -1,23 +1,12 @@
-#date: 2023-10-26T16:39:14Z
-#url: https://api.github.com/gists/811a3d24f7832ace1e63efd86bf8a793
-#owner: https://api.github.com/users/mypy-play
+#date: 2023-10-27T17:03:45Z
+#url: https://api.github.com/gists/956b7d341f0a769fba16b4799ff6e7cc
+#owner: https://api.github.com/users/harshjaiswal848
 
-from typing import Mapping, MutableMapping, Sequence, MutableSequence, Union
+# Secret word game
+secret_word = "**********"
+guess = ""
 
-JsonValue = Union["JsonObject", "JsonArray", str, int, float, bool, None]
-JsonObject = Mapping[str, JsonValue]
-JsonArray = Sequence[JsonValue]
+ "**********"w "**********"h "**********"i "**********"l "**********"e "**********"  "**********"s "**********"e "**********"c "**********"r "**********"e "**********"t "**********"_ "**********"w "**********"o "**********"r "**********"d "**********"  "**********"! "**********"= "**********"  "**********"g "**********"u "**********"e "**********"s "**********"s "**********": "**********"
+    guess = input("Enter the secret word: "**********"
 
-# MutableJsonValue = Union["JsonObject", "JsonArray", str, int, float, bool, None]
-MutableJsonObject = MutableMapping[str, JsonValue]
-# MutableJsonArray = MutableSequence[MutableJsonValue]
-
-
-j: MutableJsonObject
-
-j["foo"] = "bar"
-
-reveal_type(j["foo2"])
-assert isinstance(j["foo2"], dict)
-reveal_type(j["foo2"])
-j["foo2"]["bar"] = "baz"
+print("You Win !!")
