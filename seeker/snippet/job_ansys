@@ -1,0 +1,25 @@
+#date: 2023-10-31T16:52:25Z
+#url: https://api.github.com/gists/68e239e6cdb9cf311a85976d5ea8357f
+#owner: https://api.github.com/users/MoisesGresve
+
+#!/bin/bash
+#SBATCH --job-name=Example
+#SBATCH -e Example.err.%j
+#SBATCH -o Example.out.%j
+#SBATCH -t 1-10:10:00
+#SBATCH -n 16
+####SBATCH -w compute-0-1
+####SBATCH -w compute-0-2
+
+
+#############################
+export Project=Example
+#############################
+module load ansys/v212
+###export PARAMS="--mca btl vader,self"
+export WORKDIR=${SLURM_SUBMIT_DIR}
+
+cd $WORKDIR
+$AWP_ROOT212/ansys/bin/ansys212  -np 16 -mpi=intelmpi -b -dir $WORKDIR -i main.mac -o  Example.txt
+
+exit
