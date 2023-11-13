@@ -1,4 +1,72 @@
 --------------------------------------------------------------------------------
+ 2023-11-13 17:10:19.982275
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/-01-setting-up-localstack.sh
+	deleted:    snippet/-02-setting-start-web-interface.sh
+	deleted:    snippet/-11-s3-create-bucket.sh
+	deleted:    snippet/-12-s3-copy-file.sh
+	deleted:    snippet/-13-s3-delete-file.sh
+	deleted:    snippet/-21-sns-create-topic.sh
+	deleted:    snippet/-22-sns-subscribe-topic.sh
+	deleted:    snippet/-23-sns-publish-topic.sh
+	deleted:    snippet/8Nov_PrintMatrixSnakePattern.java
+	deleted:    snippet/9Nov_PredictcolMaxZeros.java
+	deleted:    snippet/ConnectionPool.java
+	deleted:    snippet/GuessNumberGame.py
+	deleted:    snippet/JavaStudy01.java
+	deleted:    snippet/__main__.py
+	deleted:    snippet/ambiente-dev-ubuntu-curso-python.sh
+	deleted:    snippet/autoencoder.py
+	deleted:    snippet/countHomogenous.go
+	deleted:    snippet/create-queue-sqs.sh
+	deleted:    snippet/docker build snippets - stages - netcore and nodejs.sh
+	deleted:    snippet/fastapi_celery_redis_postgres_app.py
+	deleted:    snippet/get-terminal-cwd.bash
+	modified:   snippet/gistfile1.txt
+	deleted:    snippet/good_docstrings.py
+	deleted:    snippet/install.sh
+	deleted:    snippet/interfaces.go
+	deleted:    snippet/myenum.py
+	deleted:    snippet/project_gutenberg_api.py
+	deleted:    snippet/pull_secrets.sh
+	deleted:    snippet/rename.py
+	deleted:    snippet/review.sh
+	deleted:    snippet/setup-env.sh
+	deleted:    snippet/solution.py
+	deleted:    snippet/subpackage_submodule1.py
+	deleted:    snippet/subpackage_submodule2.py
+	deleted:    snippet/summarizer.py
+	deleted:    snippet/sway-get-workspace-cwd.bash
+	deleted:    snippet/sway-use-workspace-cwd.bash
+	deleted:    snippet/sysmon.py
+	deleted:    snippet/vcf-passwords-to-keepass.py
+	deleted:    snippet/webui-user.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/LoginPage.java
+	snippet/PDFsizescan.sh
+	snippet/PayeeHostingService.java
+	snippet/ROP.java
+	snippet/ayuda.py
+	snippet/diff_loss.py
+	snippet/install-mysql.bash
+	snippet/kv_scratch.go
+	snippet/kv_scratch_test.go
+	snippet/main.py
+	snippet/mock_kv_store.go
+	snippet/run_github_checks
+	snippet/spot_from_entsoe_without_entsoe_py.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2023-11-10 17:10:12.379089
 --------------------------------------------------------------------------------
   On branch main

