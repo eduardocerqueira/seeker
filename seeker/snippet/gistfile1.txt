@@ -1,82 +1,16 @@
-#date: 2023-11-13T16:52:11Z
-#url: https://api.github.com/gists/81313568dea0fa76923d22d64f63aa1f
-#owner: https://api.github.com/users/monyslim
+#date: 2023-11-15T17:10:08Z
+#url: https://api.github.com/gists/288971e8f0d25da41c847cc403f2e441
+#owner: https://api.github.com/users/mslepko
 
 #!/bin/bash
-UsersAllowedInv="allowed_users_inventory.txt"
-UsersNotAllowedInv="not_allowd_users_inventory.txt"
 
-ConfigFile="web.config"
+##
+# Imports all .sql files in your current direcotry
+##
 
-TempConfigFile="temp_web.config"
-
-if [[ -f $TempConfigFile ]]
-then
-    rm -f $TempConfigFile
-fi
-
-touch $TempConfigFile
-
-Allowed_Users_String=""
-
-allowed_users_line=$( cat $ConfigFile | grep "UsersAllowed" )
- if [[ $allowed_users_line ]]
-    then
-        Allowed_users_String="$allowed_users_line,"
-    fi
-
-while read -r line
-do 
-    Allowed_users_String+="$line,"
-    
-done < $UsersAllowedInv
-
-echo $Allowed_users_String
-
-
-
-
-Not_Allowed_Users_String=""
-
-not_allowed_users_line=$( cat $ConfigFile | grep "UsersNotAllowed" )
- if [[ $not_allowed_users_line ]]
-    then
-        Not_Allowed_Users_String="$not_allowed_users_line"
-    fi
-
-
-
-while read -r not_allowed_line
-do 
-    Not_Allowed_Users_String+="$not_allowed_line,"
-    
-done < $UsersNotAllowedInv
-
-echo $Not_Allowed_Users_String
-
-
-
-Not_allowed_String=""
-
-# users_allowed_current_config_line=$(cat $ConfigFile | grep "UsersAllowed")
-# users_not_allowed_current_config_line=$(cat $ConfigFile | grep "UsersNotAllowed")
-
-## loop through the config file again
-while read -r config_line
+for i in *.sql
 do
-    users_allowed_current_config_line=$(echo $config_line | grep "UsersAllowed")
-    users_not_allowed_current_config_line=$(echo $config_line | grep "UsersNotAllowed")
-
-    if [[ ! $users_allowed_current_config_line && ! $users_not_allowed_current_config_line ]]
-    then
-        echo $config_line >> $TempConfigFile
-    fi
-    
-
-done < $ConfigFile
-
-
-## write the remaining to temp file
-echo $Not_Allowed_Users_String >> $TempConfigFile
-echo $Allowed_users_String >> $TempConfigFile
-
+    echo "Importing: $i"
+    mysql your_db_name < $i
+    wait
+done
