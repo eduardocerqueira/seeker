@@ -1,0 +1,7 @@
+#date: 2023-11-20T16:52:37Z
+#url: https://api.github.com/gists/a1904850e5a1f109966a7694d9cbbbf9
+#owner: https://api.github.com/users/echohtp
+
+#!/bin/bash
+
+echo "done"
