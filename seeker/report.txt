@@ -1,4 +1,51 @@
 --------------------------------------------------------------------------------
+ 2023-11-30 17:10:59.409637
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/17. Letter Combinations of a Phone Number.java
+	deleted:    snippet/ImageToMindustry.py
+	deleted:    snippet/boto3_listinstances_example.py
+	deleted:    snippet/classification_report2latex.py
+	deleted:    snippet/dipole4.py
+	deleted:    snippet/ecs_startup_deltas.sh
+	deleted:    snippet/install-metricas.sh
+	deleted:    snippet/metricas.sh
+	deleted:    snippet/numberOfWays.go
+	deleted:    snippet/xfer_from_bedrock_to_d1.sh
+	deleted:    snippet/zone-create-file.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/BST.java
+	snippet/Comment.java
+	snippet/CommentRepository.java
+	snippet/CommentRepositoryCustom.java
+	snippet/CommentRepositoryImpl.java
+	snippet/CommentRequestDto.java
+	snippet/MemorialService.java
+	snippet/MyPageController.java
+	snippet/MyPageService.java
+	snippet/MyPageV2Controller.java
+	snippet/MyPageV2Service.java
+	snippet/OOPZarthelyi.py
+	snippet/Post.java
+	snippet/QuerydslConfig.java
+	snippet/UserService.java
+	snippet/build_bareos_packages.sh
+	snippet/environment.py
+	snippet/llamafile_llava_local.sh
+	snippet/render-theme-block.py
+	snippet/tz_converter.py
+	snippet/vanilla_VAE_CelebA.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2023-11-29 17:10:22.493900
 --------------------------------------------------------------------------------
   On branch main
