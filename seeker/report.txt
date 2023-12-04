@@ -1,4 +1,69 @@
 --------------------------------------------------------------------------------
+ 2023-12-04 17:10:47.866171
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/BST.java
+	deleted:    snippet/Comment.java
+	deleted:    snippet/CommentRepository.java
+	deleted:    snippet/CommentRepositoryCustom.java
+	deleted:    snippet/CommentRepositoryImpl.java
+	deleted:    snippet/CommentRequestDto.java
+	deleted:    snippet/MemorialService.java
+	deleted:    snippet/MyPageController.java
+	deleted:    snippet/MyPageService.java
+	deleted:    snippet/MyPageV2Controller.java
+	deleted:    snippet/MyPageV2Service.java
+	deleted:    snippet/OOPZarthelyi.py
+	deleted:    snippet/Post.java
+	deleted:    snippet/QuerydslConfig.java
+	deleted:    snippet/UserService.java
+	deleted:    snippet/ZBMini01.java
+	deleted:    snippet/account.java
+	deleted:    snippet/anonymize_transcripts_with_presidio.py
+	deleted:    snippet/aocd1.sh
+	deleted:    snippet/build_bareos_packages.sh
+	deleted:    snippet/coss.py
+	deleted:    snippet/environment.py
+	deleted:    snippet/http_once.py
+	deleted:    snippet/invest.java
+	deleted:    snippet/llamafile_llava_local.sh
+	deleted:    snippet/merge_pptx_presentation.py
+	deleted:    snippet/multiplicationTable.java
+	deleted:    snippet/nsd-configure.sh
+	deleted:    snippet/qround_progress_bar.py
+	deleted:    snippet/rectangle.java
+	deleted:    snippet/render-theme-block.py
+	deleted:    snippet/rerun_taskrun.py
+	deleted:    snippet/ssm_autocompletion.sh
+	deleted:    snippet/test_pluto_v1.py
+	deleted:    snippet/tz_converter.py
+	deleted:    snippet/vanilla_VAE_CelebA.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/.bashrc
+	snippet/Deep_q_nn.py
+	snippet/Entity.py
+	snippet/Game_frame.py
+	snippet/Main.py
+	snippet/export_exif.py
+	snippet/gistfile1.txt
+	snippet/homework.py
+	snippet/join_neutron.sh
+	snippet/main.py
+	snippet/pdf_boarding_pass.go
+	snippet/pdf_compressor_ghostscript.py
+	snippet/while6.py
+	snippet/workflow_stress.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2023-12-01 17:10:35.606083
 --------------------------------------------------------------------------------
   On branch main

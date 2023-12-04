@@ -1,0 +1,27 @@
+#date: 2023-12-04T17:07:18Z
+#url: https://api.github.com/gists/300dcadbffccbeb5b8d792f78a0c351f
+#owner: https://api.github.com/users/hhhaaarrryyyxxx888
+
+#!/bin/bash
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root"
+  exit 1
+fi
+
+if [[ "${1}" =~ [^a-zA-Z0-9.-] ]]; then
+   echo "${1} Isn't a domain name/ip address";
+fi
+
+if ! [[ $2 =~ '^[0-9]+$' ]]; then 
+  echo "${2} Isn't a port number";
+  exit 2
+fi
+
+openssl s_client -showcerts -connect $1:$2 </dev/null 2>/dev/null|openssl x509 -outform PEM > ca.pem
+if [ -f ca.pem ]; then
+  cp ca.pem /etc/pki/ca-trust/source/anchors/ca.pem
+  cp ca.pem /usr/share/pki/ca-trust-source/anchors/ca.pem
+  update-ca-trust
+else
+    echo 'ca.pem does not exist.'
+fi
