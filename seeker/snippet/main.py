@@ -1,7 +1,24 @@
-#date: 2023-12-04T17:09:51Z
-#url: https://api.github.com/gists/294b3a573ab591aa3026f7c05645c809
-#owner: https://api.github.com/users/mypy-play
+#date: 2023-12-05T17:08:31Z
+#url: https://api.github.com/gists/8703b1a351108984a224e6db7880c80f
+#owner: https://api.github.com/users/AspirantDrago
 
-from typing_extensions import TypeAliasType
-TestType = TypeAliasType("TestType", int)
-x: TestType = 42
+import pygame
+
+SIZE = WIDTH, HEIGHT = 600, 400
+BACKGROUND = pygame.Color('blue')
+COLOR = pygame.Color('yellow')
+FPS = 60
+
+if __name__ == '__main__':
+    pygame.init()
+    screen = pygame.display.set_mode(SIZE)
+    clock = pygame.time.Clock()
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+        screen.fill(BACKGROUND)
+        pygame.display.flip()
+        clock.tick(FPS)
+    pygame.quit()
