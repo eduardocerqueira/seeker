@@ -1,24 +1,21 @@
-#date: 2023-12-05T16:53:11Z
-#url: https://api.github.com/gists/3e82e6573fa03301e8b0032fee9a8717
-#owner: https://api.github.com/users/aarron-lee
+#date: 2023-12-06T16:58:06Z
+#url: https://api.github.com/gists/6b65bfd81c59ff5ad0807bc747de0f59
+#owner: https://api.github.com/users/meerzulee
 
-#!/usr/bin/bash
+#!/bin/bash
 
-# Remove the performance overlay, it meddles with some tasks
-unset LD_PRELOAD
+# Add deadsnakes PPA
+add-apt-repository ppa:deadsnakes/ppa -y
 
-## Shadow kwin_wayland_wrapper so that we can pass args to kwin wrapper
-## whilst being launched by plasma-session
-mkdir $XDG_RUNTIME_DIR/nested_plasma -p
-cat <<EOF > $XDG_RUNTIME_DIR/nested_plasma/kwin_wayland_wrapper
-#!/usr/bin/env bash
-source /etc/default/steamos-nested-desktop
+# Install Python 3.10 and required packages
+apt-get install -y --no-install-recommends python3.10 \
+    python3.10-dev \
+    python3.10-venv \
+    python3-distutils-extra
 
-/usr/bin/kwin_wayland_wrapper --width ${STEAMOS_NESTED_DESKTOP_WIDTH:-1280} --height ${STEAMOS_NESTED_DESKTOP_HEIGHT:-800} --no-lockscreen \$@
-EOF
-chmod a+x $XDG_RUNTIME_DIR/nested_plasma/kwin_wayland_wrapper
-export PATH=$XDG_RUNTIME_DIR/nested_plasma:$PATH
+# Create symbolic links for python3 and python
+ln -s /usr/bin/python3.10 /usr/local/bin/python3
+ln -s /usr/bin/python3.10 /usr/local/bin/python
 
-dbus-run-session startplasma-wayland
-
-rm $XDG_RUNTIME_DIR/nested_plasma/kwin_wayland_wrapper
+# Install pip using the get-pip.py script
+curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10

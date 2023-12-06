@@ -1,191 +1,208 @@
-#date: 2023-12-04T16:54:30Z
-#url: https://api.github.com/gists/bf9f33782dadc15d4bb69e6655d55c6a
-#owner: https://api.github.com/users/dlagrenade
+#date: 2023-12-06T17:00:50Z
+#url: https://api.github.com/gists/99a5db1d6f15610f9df760122bcc0f89
+#owner: https://api.github.com/users/mmorrison25
 
-# Homework Lesson 2 - Numbers - Homework
+# Homework: Loops
 
-# READ CAREFULLY THE EXERCISE DESCRIPTION AND SOLVE IT RIGHT AFTER IT
+# 🔥Read carefully until the end before you start solving the exercises🔥
 
-# ---------------------------------------------------------------------
-# Exercise 0 - This exercise is solved so you can have an ----------
-# example of how we are expecting your answers to be.
-#
-# You are shopping online and found two items with prices $5.99
-# and $3. Calculate and print the total cost.
-item1_price = 5.99
-item2_price = 3
-total_cost = item1_price + item2_price
-print(total_cost) = 8.99
+# Practice the Basics 💪🏻
+
+# You can uncomment or type the necessary code on each task
 
 # ---------------------------------------------------------------------
-# Exercise 1 - Travel Distance
-# Alex is planning a road trip and wants to know the total distance
-# he will be driving. He will travel at an average speed of 60 miles
-# per hour and has 4 hours available for driving. Calculate the
-# total distance he can cover and print the result.
+# Task 1. Create a basic for loop
 
-average_speed = 60
-hours_available = 4
-total_distance = average_speed + hours_available # calculate here
-print(total_distance) = 64  # print the result
+# Complete the following code in such a way that this loop prints the characters 
+# of `name` one at a time.
 
-# ---------------------------------------------------------------------
-# Exercise 2 - Pizza Slices
-# A pizza is cut into 8 equal slices. Calculate and print how many
-# slices each person will get if there are 4 people sharing the pizza.
+name = 'Madison'
 
-pizza_slices = 8
-people = 4
-slices_per_person = pizza_slices - people
-print(slices_per_person) = 4
+for character in name:
+    print(character)
 
 # ---------------------------------------------------------------------
-# Exercise 3 - Shopping Discount
-# Lisa wants to buy a pair of shoes that cost $80. The store is
-# offering a 20% discount on the shoes.
-# Create two variables: original_price and discount_percentage and
-# assign the given values.
-# Create final_price to calculate the price Lisa has to pay and
-# print the result.
-# The formula to count the discounted price:
-# multiply the original price by the discount percentage and divide by 100.
+# Task 2. Create a basic `for` loop with a counter
 
-original_price = 80
-discount_percentage = 20
-final_price = ((original_price * discount_percentage) / 100)
-print(final_price) = 16.0
+# Complete the following code in such a way that the loop increments the counter
+# and prints the number of characters in `name`name at the end.
+
+name = 'Benjamin'
+counter = 0
+
+for character in name:
+    counter = counter + 1
+
+print(counter)
 
 # ---------------------------------------------------------------------
-# Exercise 4 - Temperature Conversion
-# You are designing a weather app and need to convert temperature
-# from Celsius to Fahrenheit for display. Convert a given
-# temperature and print the result.
-# To convert Celsius to Fahrenheit you need to multiply
-# the temperature in Celsius by 9/5 and add 32 to the result
+# Task 3. Create a basic 'while' loop
 
-celsius = 9 * 5
-temp_convert = 32
-fahrenheit = celsius + temp_convert
-print(fahrenheit) = 77
+# Complete the following code in such a way that the loop exits after five iterations, without using break.
 
-# ---------------------------------------------------------------------
-# Exercise 5 - Gardening
-# You're planning a garden and need to calculate the area of
-# a circular flowerbed with a radius of 3.5 meters. Calculate
-# and print the area of the flowerbed.
-# To calculate the area of a circle, multiply π (~3.141) with the square of
-# the circle's radius.
+# 🔥 Hint: Think of it as: while counter is under 5, increment the counter and print its value🔥
 
-circular_flowerbed_radius = 3.5
-circle_area = 3.141
-flowerbed = circular_flowerbed_radius * circle_area
-print(flowerbed) = 10.993500000000001
+"""
+This should print:
+1
+2
+3
+4
+5
+"""
+counter = 0
+
+while counter < 5:
+    counter += 1
+    print(counter)
 
 # ---------------------------------------------------------------------
-# Exercise 6 - Convert Temperature
-# You're building a weather app, and you want to display the current
-# temperature rounded to the nearest whole number. The
-# temperature data you received from the weather service is a float.
-# Your task is to convert the float temperature to an integer
-# temperature for display.
-# As an example, if the temperature is 24.8ºC, you need to print 24.
+# Task 4. Exit a loop using break 🛑
 
-temperature = 24.8
-print(int(temperature)) = 24
+# Take the previous example, and modify it so you exit the loop after five iterations, 
+# but this time do it using break.
 
-# ---------------------------------------------------------------------
-# Exercise 7 - Baking Cookies
-# You are baking cookies and have 17 chocolate chips. You
-# want to distribute them evenly into 5 cookies. Calculate and
-# print the number of chocolate chips in each cookie and the
-# remaining chips.
+counter = 0
 
-chocolate_chips_cookies = 17
-distribute = 5
-remaining_chips = chocolate_chips_cookies // distribute
-print(remaining_chips) = 3
+while True:
+    counter += 1
+
+    if counter > 5:
+        break
+        
+    print(counter)
 
 # ---------------------------------------------------------------------
-# Exercise 8 - Fix the Code - Event total earnings
-# FOR THIS EXERCISE YOU WILL HAVE AN EXISTING CODE THAT IS
-# NOT WORKING CORRECTLY. YOUR TASK IS TO LOOK AT THE CODE
-# AND FIX THE PROBLEM SO IT WORKS AS EXPECTED.
-#
-# Tip: Copy the code and try to run it alone. See the results
-# and try to figure out why it is not working.
-#
-# You organized two events. The first event had 250 participants
-# and the second event had 500 participants. With a ticket price
-# of $1000, calculate and print the total earning of the two events
-# together.
-#
-# For the values provided we are expecting a total earning of 750000,
-# however the code is not working correctly. Can you fix it?
+# Task 5. Range
 
-frist_event_participants = 250
-second_event_participants = 500
-ticket = 1000
+# Remember that range(start, end, step) behaves somewhat like list slicing, so start is inclusive,
+# end is exclusive, and step is optional.
 
-total_earnings = (frist_event_participants + second_event_participants) * ticket
-print(total_earnings) = 750000
+# Figure out the values required for range() to generate the expected output.
 
+# 0, 1, 2, 3, 4, 5 (use only one argument)
+range(6)
+
+# 0, 1, 2, 3, 4, 5 (use two arguments: start and end)
+range(0, 6)
+
+# Odd numbers between 0 and 10: 1, 3, 5, 7, 9
+range(1, 10, 2)
 
 # ---------------------------------------------------------------------
-# Exercise 9 - Fix the Code - Student age mean
-# FOR THIS EXERCISE YOU WILL HAVE AN EXISTING CODE THAT IS
-# NOT WORKING CORRECTLY. YOUR TASK IS TO LOOK AT THE CODE
-# AND FIX THE PROBLEM SO IT WORKS AS EXPECTED
-#
-# Tip: Copy the code and try to run it alone. See the results
-# and try to figure out why it is not working.
-#
-# You're a teacher organizing a school event and need to
-# calculate the mean age of three students participating in
-# the event. The ages of the students are as follows:
-#   Student 1: 15 years old
-#   Student 2: 17 years old
-#   Student 3: 13 years old
-#
-# For these ages, we expect an age mean of 15.0, but your code
-# is returning 36.3. Fix the code to print the correct value.
-student_1_age = 15
-student_2_age = 17
-student_3_age = 13
+# Task 6. Using range() in a loop
 
-students_age_mean = student_1_age + student_2_age + student_3_age // 3
-print(students_age_mean)
+# Remember that range() returns an iterable, so you will usually find it used in a for loop.
+
+# Complete the following code so it prints the even numbers between 0 and 10;
+
+for number in range(0, 11, 2):
+    print(number)
+
+
+# Exercises 🏋🏻
 
 # ---------------------------------------------------------------------
-# Challenge (OPTIONAL!): Separating Digits of a Number
-# Given the number 1597, your task is to write a Python code
-# that separates this number into four variables, each containing
-# a digit of the number: 1, 5, 9, and 7. You'll use the
-# knowledge of Python operators % and /, variable assignment,
-# and working with integers to accomplish this task.
+# Exercise 1. Digits Only!
 
-# Tip: To separate the digits of a number, think about how you
-# can extract each digit using the remainder (%) and division (/)
-# operators. Start by extracting the last digit and then move on
-# to the next digits by dividing the number progressively.
-# Remember that the remainder when dividing by 10 gives you
-# the last digit, and integer division by 10 removes the last digit.
-#
-# The following code should help you to get an understanding on
-# how to get the digits of the number
-number = 1597
+# Part one: Given a string of letters and digits, complete the program to print only the digits. 
+# For example, for the string '3catsand5tacos', output should be: 3 5
 
-digit_1 = number % 10
-number = number // 10
+# Strategy:
+# - Create variable to hold the string: my_string = '3catsand5tacos'
+# - Create a string to represent the numbers: numbers = '1234567890'
+# - Create a loop to iterate through characters of my_string. 
+# - If the character is a digit (`if character in numbers`) print it.
 
-# print(digit_1) # will print 7
-# print(number)  # will print 159
+my_string = 's0m3 str1ng w1th numb3r5'
+numbers = '1234567890'
 
-# If you repeat this operation with the second, the third and
-# the fourth digits, you will be able to get all the digits.
-# Your code here
+for character in my_string:
+    if character in numbers:
+        print(character)
 
-# Print the result for all four digits
-print(digit_1)
-print(digit_2)
-print(digit_3)
-print(digit_4)
+
+# Part two: Modify the code to print the first digit only
+
+my_string = 's0m3 str1ng w1th numb3r5'
+numbers = '1234567890'
+counter = 0
+
+for character in my_string:
+    if character in numbers:
+        counter += 1
+        print(character)
+    if counter == 1:
+        break
+
+# ---------------------------------------------------------------------
+# Exercise 2. Vowel Counter
+
+# Imagine you're working on a text analysis tool that needs to count the number of vowels in a given string. 
+# As a simple practice, you have been provided with a famous quote. 
+# Your task is to count and display the total number of vowels in this quote.
+
+quote = "Life is like riding a bicycle. To keep your balance, you MUST keep moving."
+vowel_count = 0
+
+for character in quote:
+    # 'A' and 'a' are different in python, so we include both upper and lowercase
+    # vowels in our comparison string to account for this difference.
+    if character in 'aeiouAEIOU':
+        vowel_count += 1
+
+print(f"The number of vowels in the quote is: {vowel_count}")
+
+# ---------------------------------------------------------------------
+# Exercise 3. Sum of all Digits 🔢
+
+# You have a mixed string that contains both letters and numbers, like an alphanumeric password or 
+# a serial key. Your task is to find all the numbers in this string and sum them up.
+
+# Hint: You can put the numbers you find into a list (cast as `int`) and use `sum()` on the list at the end.
+
+mixed_string = "abc123xyz456"
+digits = "0123456789"
+found_digits = []
+
+for char in mixed_string:
+    if char in digits:
+        found_digits.append(int(char))
+
+print(f"The total sum of numbers in the string is: {sum(found_digits)}")
+
+# ---------------------------------------------------------------------
+# Exercise 4. Password Strength Checker
+
+# You are helping to develop a user registration page for a website. As part of the registration process, 
+# you need to ensure that submitted passwords are strong. A strong password should have at least 8 characters.
+
+# Create a Python program to check the strength of a list of passwords and count how many are strong.
+
+passwords = "**********"
+strong_password_count = "**********"
+
+ "**********"f "**********"o "**********"r "**********"  "**********"p "**********"a "**********"s "**********"s "**********"w "**********"o "**********"r "**********"d "**********"  "**********"i "**********"n "**********"  "**********"p "**********"a "**********"s "**********"s "**********"w "**********"o "**********"r "**********"d "**********"s "**********": "**********"
+ "**********"  "**********"  "**********"  "**********"  "**********"i "**********"f "**********"  "**********"l "**********"e "**********"n "**********"( "**********"p "**********"a "**********"s "**********"s "**********"w "**********"o "**********"r "**********"d "**********") "**********"  "**********"> "**********"= "**********"  "**********"8 "**********": "**********"
+        strong_password_count += "**********"
+
+print(f"Number of strong passwords: "**********"
+
+# ---------------------------------------------------------------------
+# Exercise 5. The Red Crayon 🖍️
+
+# Imagine you have a box of crayons, and you're looking for a "Red" crayon. 
+# You pull out one crayon at a time from the box. 
+
+# Use a while loop to simulate this scenario.  As soon as you find the "Red" crayon, stop the loop.
+
+colors = ["Blue", "Yellow", "Green", "Red", "Purple", "Orange"]
+index = 0
+
+# This should basically say: while the current color being evaluated is 
+# different than "Red", increment to the next color and try again.
+while colors[index] != "Red":
+    print(f"Found {colors[index]} crayon. Still looking for Red.")
+    index += 1
+
+print("Found the Red crayon!")
