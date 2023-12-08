@@ -1,4 +1,46 @@
 --------------------------------------------------------------------------------
+ 2023-12-08 17:10:35.179660
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/SA_public_thread_scrape.py
+	deleted:    snippet/async_scraper.py
+	deleted:    snippet/bluesky_sandbox.py
+	deleted:    snippet/cv.py
+	deleted:    snippet/gistfile1.txt
+	deleted:    snippet/homework.py
+	modified:   snippet/main.py
+	deleted:    snippet/min max date.py
+	deleted:    snippet/monkeytype.py
+	deleted:    snippet/run_finetune_tdnn_1a_daanzu.sh
+	deleted:    snippet/tf_transpose.py
+	deleted:    snippet/totalMoney.go
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/AoC_2023_D8.py
+	snippet/countyaml.sh
+	snippet/eduroam.py
+	snippet/encoder.py
+	snippet/fp8_memory_mpt_test.py
+	snippet/harden-kali.sh
+	snippet/install.sh
+	snippet/modularize-state.py
+	snippet/ovpn_owrt.sh
+	snippet/pi.sh
+	snippet/seskey.py
+	snippet/shell.sh
+	snippet/srt-idx-updater.sh
+	snippet/sweep.sh
+	snippet/volume_rendering.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2023-12-07 17:10:42.265201
 --------------------------------------------------------------------------------
   On branch main
