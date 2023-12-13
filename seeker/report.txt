@@ -1,4 +1,51 @@
 --------------------------------------------------------------------------------
+ 2023-12-13 17:11:03.408145
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/1.py
+	deleted:    snippet/2.py
+	deleted:    snippet/4.py
+	deleted:    snippet/6_find_common_patterns_simpler.py
+	deleted:    snippet/a.py
+	deleted:    snippet/aoc_2023_day_11.py
+	deleted:    snippet/auto.py
+	deleted:    snippet/candles-eth-usdt.py
+	deleted:    snippet/commit_file_to_github.py
+	deleted:    snippet/cpu_config.py
+	deleted:    snippet/customer.py
+	deleted:    snippet/findSpecialInteger.go
+	deleted:    snippet/gistfile1.txt
+	deleted:    snippet/java-lambda-usecase.java
+	deleted:    snippet/kafka-jobs-jobscout24.py
+	modified:   snippet/main.py
+	deleted:    snippet/meld
+	deleted:    snippet/menu.sh
+	deleted:    snippet/saving.py
+	deleted:    snippet/scroggs_grid.py
+	deleted:    snippet/sms
+	deleted:    snippet/update-word-document-properties.java
+	deleted:    snippet/wgtoggle.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/Unit15_Generations.java
+	snippet/halp.py
+	snippet/k8s.sh
+	snippet/polygon_recovery.sh
+	snippet/post_nb_cleaner.py
+	snippet/pre_nb_cleaner.py
+	snippet/processUsage.py
+	snippet/roast-machine.py
+	snippet/simpleapp.go
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2023-12-12 17:10:44.338437
 --------------------------------------------------------------------------------
   On branch main

@@ -1,75 +1,100 @@
-#date: 2023-12-11T16:51:55Z
-#url: https://api.github.com/gists/c451dedbb5ec867b98fcfec6aa24d698
-#owner: https://api.github.com/users/mypy-play
+#date: 2023-12-13T17:00:42Z
+#url: https://api.github.com/gists/723dca2091fbafd2f9b48fe67c5b5c1e
+#owner: https://api.github.com/users/MORIMOTO520212
 
-from __future__ import annotations
-from typing import overload, Callable, TypeVar, Coroutine, cast
+import serial
+import sys
+import subprocess
+import asyncio
+from time import sleep
 
-from typing_extensions import ParamSpec, reveal_type
-
-P = ParamSpec("P")
-T = TypeVar("T")
-
-
-@overload
-def decorator(
-    to_be_decorated: Callable[P, Coroutine[None, None, T]],
-    *,
-    some_boolean: bool = False,
-) -> Callable[P, T]:
-    ...
+# 72個の信号を送る必要がある
+# すなわち1byte(8bit)で表す必要がある
 
 
-@overload
-def decorator(
-    to_be_decorated: Callable[P, T],
-    *,
-    some_boolean: bool = False,
-) -> Callable[P, T]:
-    ...
+def get_lines(cmd):
+    proc = subprocess.Popen(
+        cmd, shell=False, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+    while True:
+        line = proc.stdout.readline()  # byte type
+        sys.stdout.flush()
+        if line:
+            yield line
+
+        if not line and proc.poll() is not None:
+            break
+
+# ノーツ情報の取得
 
 
-@overload
-def decorator(
-    to_be_decorated: None = None,
-    *,
-    some_boolean: bool = False,
-) -> Callable[[Callable[P, Coroutine[None, None, T]] | Callable[P, T]], Callable[P, T]]:
-    ...
+def get_notes(output) -> dict:
+    out_splite = str(output).split()
+    return {
+        'key': int(out_splite[2]),
+        'voice': int(out_splite[4])}
 
 
-def decorator(
-    to_be_decorated: Callable[P, Coroutine[None, None, T]]
-    | Callable[P, T]
-    | None = None,
-    *,
-    some_boolean: bool = False,
-) -> (
-    Callable[P, T]
-    | Callable[[Callable[P, Coroutine[None, None, T]] | Callable[P, T]], Callable[P, T]]
-):
-    def inner_decorator(
-        to_be_decorated: Callable[P, Coroutine[None, None, T]] | Callable[P, T]
-    ) -> Callable[P, T]:
-        def wrapped(*args: P.args, **kwargs: P.kwargs) -> T:
-            if some_boolean:
-                print(f"Calling {to_be_decorated.__name__}")
-            return cast("Callable[P, T]", to_be_decorated)(*args, **kwargs)
+# フレット情報の取得
+def get_flet(notes) -> int:
+    key_list = [None, 64, 59, 55, 50, 45, 40]  # 1弦から6弦までの先頭のkey情報
+    return notes['key'] - key_list[notes['voice']]
 
-        return wrapped
-
-    if to_be_decorated:
-        return inner_decorator(to_be_decorated)
-    else:
-        return inner_decorator
+# ビット変換
 
 
-@decorator(some_boolean=False)
-async def f() -> bool:
-    return False
+def get_bit(onoff, notes):
+    send_data_bit = (onoff << 7) + \
+        (notes['voice']-1 << 4) + get_flet(notes)
+    return send_data_bit
+
+# ピッキング
 
 
-reveal_type(f)
-# Pylance reveals () -> bool
-# MyPy reveals (*Never, **Never) -> Never
-# MyPy also complains on decorator application in line 63.
+def picking(send_data_bit):
+    sleep(0.3)
+    send_data_bit |= 0b00001111
+    ser.write(bytes([send_data_bit]))
+    print(f"picking: bit: {bin(send_data_bit)}")
+
+
+def main(path_tuxguitar, ser):
+
+    buff = ""
+    for line in get_lines(path_tuxguitar):
+        if buff != str(line):
+            # ノーツ送信
+            if "sendNote" in str(line):
+                notes = get_notes(line)
+                if notes['voice'] < 0:
+                    continue
+
+            if "sendNoteOn" in str(line):
+                send_data_bit = get_bit(1, notes)
+                ser.write(bytes([send_data_bit]))
+                print(
+                    f"sendNoteOn:  bit: {bin(send_data_bit)} string: {notes['voice']} flet: {get_flet(notes)}")
+
+                # ピッキング送信
+                loop = asyncio.get_event_loop()
+                loop.run_in_executor(None, picking, send_data_bit)
+
+            elif "sendNoteOff" in str(line):
+                send_data_bit = get_bit(0, notes)
+                ser.write(bytes([send_data_bit]))
+                print(
+                    f"sendNoteOff: bit: {bin(send_data_bit)} string: {notes['voice']} flet: {get_flet(notes)}")
+
+            else:
+                pass
+
+            buff = str(line)
+
+
+if __name__ == '__main__':
+    path_tuxguitar = "C:\\Program Files (x86)\\tuxguitar-1.5.6\\tuxguitar.exe"
+    try:
+        ser = serial.Serial('COM6', 9600, timeout=None)  # pySerial初期化
+    except:
+        print("ポート番号にアクセスできません。")
+    asyncio.run(main(path_tuxguitar, ser))
