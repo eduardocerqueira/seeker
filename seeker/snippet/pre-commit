@@ -1,0 +1,31 @@
+#date: 2023-12-28T16:46:44Z
+#url: https://api.github.com/gists/a78ddcd494759a6d462375370cc3f84e
+#owner: https://api.github.com/users/alrza-l
+
+#!/bin/bash
+
+if ! command -v isort &> /dev/null
+then
+    echo "isort is not installed, installing it..."
+    pip install isort
+else
+    echo "isort is already installed"
+fi
+
+if ! command -v black &> /dev/null
+then
+    echo "black is not installed, installing it..."
+    pip install black
+else
+    echo "black is already installed"
+fi
+
+echo "Running isort and black on all Python files..."
+
+changed_files=$(git diff --name-only --cached --diff-filter=d -- "*.py")
+
+if ! [ -z "$name" ]; then
+    isort $changed_files
+    black $changed_files
+    git add $changed_files
+fi
