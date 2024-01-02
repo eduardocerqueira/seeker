@@ -1,0 +1,58 @@
+#date: 2024-01-02T17:07:48Z
+#url: https://api.github.com/gists/7494e32dbf515db7dd21e0c2c121b2eb
+#owner: https://api.github.com/users/goodguyry
+
+#!/bin/bash
+
+##
+# `git prune-merged`
+#
+# Prune merged branches.
+#
+# Optional setup: Include additional branches to skip in your gitconfig.
+#
+# Example:
+# git config --global prune-merged.skip "master staging vip-develop vip-master";
+#
+##
+
+# Use git-sh-setup.
+# https://git-scm.com/docs/git-sh-setup
+SUBDIRECTORY_OK=Yes;
+OPTIONS_STUCKLONG=t;
+OPTIONS_KEEPDASHDASH=;
+OPTIONS_SPEC="\
+git prune-merged
+--
+  Prune merged branches.
+";
+
+. "$(git --exec-path)/git-sh-setup";
+
+# We must be within the working tree of the repository.
+require_work_tree;
+
+# Prune remote branches.
+git remotes prune origin;
+
+declare -a branches_to_skip=(
+  develop
+  main
+  preprod
+  production
+  qa
+);
+
+# Merge any additional branches from the config.
+config_no_prune=$(git config prune-merged.skip);
+branches_to_skip+=(${config_no_prune[@]});
+
+branches=$(git branch --merged | grep -v "\\*");
+for branch in $branches; do
+  branch_no_ws="$(echo -e "${branch}" | tr -d '[:space:]')"; # Trim whitespace.
+  branch_excluded=$(printf "%s\n" "${branches_to_skip[@]}" | grep -c "^$branch_no_ws$");
+
+  if ! [[ $branch_excluded -eq 1 ]]; then
+    git branch -d "${branch_no_ws}";
+  fi
+done;
