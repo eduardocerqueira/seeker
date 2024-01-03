@@ -1,0 +1,33 @@
+#date: 2024-01-03T16:49:47Z
+#url: https://api.github.com/gists/2de2aaa0e773dc99c6230af43784f7a8
+#owner: https://api.github.com/users/chalizards
+
+#!/usr/bin/env bash
+
+echo $1
+
+extension=$(basename "$1" | sed 's/.*\.//')
+echo "$extension"
+
+if [ "$extension" == "rb" ]; then
+  echo "Running rubocop on $1"
+  rubocop -A $1
+  echo "----------------------------------------"
+
+  echo "Running rspec on $1"
+  RAILS_ENV=test rspec $1
+  echo "----------------------------------------"
+
+  echo "Running reek on $1"
+  reek $1
+  echo "----------------------------------------"
+
+elif [ "$extension" == "js" ] || [ "$extension" == "jsx" ]; then
+  echo "Running yarn lint on $1"
+  yarn standard --fix $1
+  echo "----------------------------------------"
+
+  echo "Running yarn tests"
+  yarn jest
+  echo "----------------------------------------"
+fi
