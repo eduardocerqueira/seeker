@@ -68,7 +68,7 @@ max_tokens = "**********"
 
 
 max_tokens -= "**********"
-print(f" max_tokens -= "**********",  max_tokens: {max_tokens} ")
+print(f" max_tokens -= "**********",  max_tokens: "**********"
 
 conversation_history = []
 conversation_history.insert(0, system_role)
@@ -134,3 +134,4 @@ try:
         conversation_history.append({"role": "assistant", "content": assistant_response})
 except KeyboardInterrupt:
     print("by")
+")
