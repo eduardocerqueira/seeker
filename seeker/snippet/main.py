@@ -1,14 +1,11 @@
-#date: 2024-01-08T16:53:06Z
-#url: https://api.github.com/gists/1bb8a85936486c0c182376ebf36f62b5
+#date: 2024-01-09T16:51:35Z
+#url: https://api.github.com/gists/3166a2e3049ca2655ebca146a6eb4173
 #owner: https://api.github.com/users/mypy-play
 
-from typing import TypeVar
-
-Self = TypeVar("Self", bound="A")
-
-class A:
-    def __init__(self: Self, other: type[Self]):
-        return
+a = [('a', 1), ('b', 2), ('c', 3)]
+reveal_type(tuple(zip(*a)))
 
 
-reveal_type(A(A))
+b: list[tuple[float, str, bytes]] = []
+
+reveal_type(zip(*b))

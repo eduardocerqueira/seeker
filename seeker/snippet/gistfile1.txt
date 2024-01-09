@@ -1,0 +1,26 @@
+#date: 2024-01-09T16:58:28Z
+#url: https://api.github.com/gists/6d1c87b511ee459d4d9031d16bc55e8b
+#owner: https://api.github.com/users/jirib
+
+#!/bin/bash
+#set -x
+
+DUSER=badbrowser
+
+# X11 display
+xhost +SI:localuser:${DUSER} >/dev/null
+
+# pulseaudo
+setfacl -m u:${DUSER}:x ${XDG_RUNTIME_DIR}/pulse
+
+# pulseaudio cookie
+[[ ! -d ${XDG_RUNTIME_DIR}/${DUSER} ]] && mkdir ${XDG_RUNTIME_DIR}/${DUSER}
+
+if ! cmp ${HOME}/.config/pulse/cookie \
+       ${XDG_RUNTIME_DIR}/${DUSER}/pulse-cookie 2>/dev/null ; then
+    install -m 0600 $HOME/.config/pulse/cookie ${XDG_RUNTIME_DIR}/${DUSER}/pulse-cookie
+    setfacl -m u:${DUSER}:r ${XDG_RUNTIME_DIR}/${DUSER}/pulse-cookie
+fi
+
+sudo -Hiu ${DUSER} bash -c "DISPLAY=${DISPLAY} PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native \
+     PULSE_COOKIE=${XDG_RUNTIME_DIR}/${DUSER}/pulse-cookie brave-browser $@ </dev/null >/dev/null 2>&1 &"
