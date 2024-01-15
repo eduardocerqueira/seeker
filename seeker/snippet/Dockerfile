@@ -1,64 +1,98 @@
-#date: 2024-01-11T16:53:45Z
-#url: https://api.github.com/gists/ffa590b451686d3d922caccd1eeddb36
-#owner: https://api.github.com/users/ochaloup
+#date: 2024-01-15T16:55:41Z
+#url: https://api.github.com/gists/e3d9a0e3e3f6dc20a7c9cf392c6b9e04
+#owner: https://api.github.com/users/jakelogemann
 
-#
-# Docker image to generate deterministic, verifiable builds of Anchor programs.
-# This must be run *after* a given ANCHOR_CLI version is published and a git tag
-# is released on GitHub.
-#
+#!/usr/bin/env -S bash -c "docker run -p 8080:8080 -it --rm \$(docker build --progress plain -f \$0 . 2>&1 | tee /dev/stderr | grep -oP 'sha256:[0-9a-f]*')"
 
-FROM ubuntu:22.04
+# syntax = docker/dockerfile:1.4.0
 
-ARG DEBIAN_FRONTEND=noninteractive
+FROM node:20
 
-ARG SOLANA_CLI
-ARG ANCHOR_CLI
-ARG NODE_VERSION="v18.16.0"
+WORKDIR /root
 
-ENV HOME="/root"
-ENV PATH="${HOME}/.cargo/bin:${PATH}"
-ENV PATH="${HOME}/.local/share/solana/install/active_release/bin:${PATH}"
-ENV PATH="${HOME}/.nvm/versions/node/${NODE_VERSION}/bin:${PATH}"
+RUN npm install sqlite3
 
-# Install base utilities.
-RUN mkdir -p /workdir && mkdir -p /tmp && \
-    apt-get update -qq && apt-get upgrade -qq && apt-get install -qq \
-    build-essential git curl wget jq pkg-config python3-pip \
-    libssl-dev libudev-dev
+RUN <<EOF cat >/root/schema.sql
+  CREATE TABLE IF NOT EXISTS clicks (
+    id   INTEGER PRIMARY KEY AUTOINCREMENT,
+    time INTEGER NOT NULL
+  );
+EOF
 
-RUN wget http://nz2.archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.19_amd64.deb
-RUN dpkg -i libssl1.1_1.1.1f-1ubuntu2.19_amd64.deb
+RUN <<EOF cat >/root/server.js
+  const fs = require("fs");
+  const http = require("http");
+  const sqlite3 = require("sqlite3");
 
-# Install rust.
-RUN curl "https://sh.rustup.rs" -sfo rustup.sh && \
-    sh rustup.sh -y && \
-    rustup component add rustfmt clippy
+  const db = new sqlite3.Database(":memory:");
+  db.run(fs.readFileSync("/root/schema.sql", "utf8"));
 
-# Install node / npm / yarn.
-RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
-ENV NVM_DIR="${HOME}/.nvm"
-RUN . $NVM_DIR/nvm.sh && \
-    nvm install ${NODE_VERSION} && \
-    nvm use ${NODE_VERSION} && \
-    nvm alias default node && \
-    npm install -g yarn
+  const html = fs.readFileSync("/root/index.html", "utf8");
+  const server = http.createServer((req, res) => {
+    db.run("INSERT INTO clicks(time) VALUES(unixepoch())");
 
-# Install Solana tools.
-RUN sh -c "$(curl -sSfL https://release.solana.com/${SOLANA_CLI}/install)"
+    const data = [];
+    db.each(
+      "SELECT time as t, COUNT(*) as n FROM clicks WHERE t > unixepoch()-4*60*60 GROUP BY t-t%60",
+      (_, { t, n }) => data.push([Math.floor(t/60), n]),
+      () => {
+        res.writeHead(200, { "content-type": "text/html" });
+        res.end(html.replace("__DATA__", JSON.stringify(data)));
+      },
+    );
+  });
 
-# Install anchor.
-RUN cargo install --git https://github.com/coral-xyz/anchor --tag ${ANCHOR_CLI} anchor-cli --locked
+  server.listen(8080, "", () => console.log("serving :8080..."));
+EOF
 
-# Build a dummy program to bootstrap the BPF SDK (doing this speeds up builds).
-RUN mkdir -p /tmp && cd tmp && anchor init dummy && cd dummy && \
-    echo 'anchor-spl = "0.28.0"' >> ./programs/dummy/Cargo.toml && \
-    echo 'winnow = "=0.4.1"' >> ./programs/dummy/Cargo.toml && \
-    echo 'toml_datetime = "=0.6.1"' >> ./programs/dummy/Cargo.toml && \
-    cargo build
+RUN <<EOF cat >/root/index.html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>#!/usr/bin/env docker run</title>
+  </head>
+  <body style="font-family: monospace; font-size; 12px; ">
+    <div style="position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background-size: 5vh 5vh; background-image: linear-gradient(to right, #f0f0f0 1px, transparent 1px), linear-gradient(to bottom, #f0f0f0 1px, transparent 1px); "></div>
+    <span style="position: absolute; top: 1vh; left: 5vh;">Page loads over time (last 4 hours)</span>
+    <span id="max" style="position: absolute; top: 5vh; left: 1vh;"></span>
+    <span id="min" style="position: absolute; top: 95vh; left: 1vh;">0</span>
+    <canvas id="canvas" style="position: absolute; top: 5vh; left: 5vw; "></canvas>
+    <script>
+      (() => {
+        const el = document.getElementById("canvas"), ctx = el.getContext("2d");
+        el.width = 0.9 * window.innerWidth * window.devicePixelRatio;
+        el.height = 0.9 * window.innerHeight * window.devicePixelRatio;
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
-RUN cd /tmp/dummy && \
-    cargo update -p solana-zk-token-sdk --precise 1.14.18 && \
-    anchor build
+        const data = __DATA__;
+        const max = data.reduce((prev, [_, n]) => (n > prev ? n : prev), 0);
+        document.getElementById("max").innerText = max;
 
-WORKDIR /workdir
+        ctx.beginPath();
+        ctx.moveTo(0, el.height);
+
+        const draw = (t, n) => {
+          const [x, y] = [el.width * (t-data[0][0])/240, el.height * (1 - n/max)];
+          ctx.lineTo(x, y);
+          ctx.moveTo(x, y);
+        }
+
+        let last = -1;
+        for (const [t, n] of data) {
+          if (last != -1 && t > last + 1) {
+            draw(last + 0.1, 0);
+            draw(t - 0.1, 0);
+          }
+          draw(t, n);
+          last = t;
+        }
+        ctx.stroke();
+      })();
+    </script>
+  </body>
+</html>
+EOF
+
+CMD node /root/server.js
