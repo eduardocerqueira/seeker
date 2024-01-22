@@ -1,0 +1,53 @@
+//date: 2024-01-22T16:55:42Z
+//url: https://api.github.com/gists/b5fe08bf59998d0b5194c0b6ba4995a3
+//owner: https://api.github.com/users/codermehraj
+
+package org.danvk.hadoop;
+ 
+import java.io.IOException;
+ 
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Mapper;
+ 
+public class WordCountMapper extends
+        Mapper<Object, Text, Text, IntWritable> {
+ 
+    private final IntWritable ONE = new IntWritable(1);
+    private Text word = new Text();
+
+    public static boolean isValidIPAddress(String ipAddress) {
+        // Split the IP address into its components
+        String[] components = ipAddress.split("\\.");
+
+        // Check if there are exactly 4 components
+        if (components.length != 4) {
+            return false;
+        }
+
+        // Check each component for a valid integer value in the range [0, 255]
+        for (String component : components) {
+            try {
+                int value = Integer.parseInt(component);
+                if (value < 0 || value > 255) {
+                    return false;
+                }
+            } catch (NumberFormatException e) {
+                return false; // Component is not a valid integer
+            }
+        }
+
+        return true;
+    }
+ 
+    public void map(Object key, Text value, Context context)
+            throws IOException, InterruptedException {
+ 
+        String[] csv = value.toString().split(" ");
+        for (String str : csv) {
+            if(!isValidIPAddress(str)) continue;
+            word.set(str);
+            context.write(word, ONE);
+        }
+    }
+}
