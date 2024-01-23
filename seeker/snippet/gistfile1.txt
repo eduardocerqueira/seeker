@@ -1,0 +1,35 @@
+#date: 2024-01-23T16:55:01Z
+#url: https://api.github.com/gists/9d664f44a748d08952b20d1c3ab28387
+#owner: https://api.github.com/users/mmowry-accuity
+
+#!/bin/bash
+
+token= "**********"
+
+# Install docker
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+sudo apt-get update
+sudo apt-get install -y docker-ce
+
+# Install github runner agent
+
+# Create a folder
+mkdir actions-runner && cd actions-runner
+# Download the latest runner package
+curl -o actions-runner-linux-x64-2.311.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.311.0/actions-runner-linux-x64-2.311.0.tar.gz
+# Validate the hash
+echo "29fc8cf2dab4c195bb147384e7e2c94cfd4d4022c793b346a6175435265aa278  actions-runner-linux-x64-2.311.0.tar.gz" | shasum -a 256 -c
+# Extract the installer
+tar xzf ./actions-runner-linux-x64-2.311.0.tar.gz
+
+# Create the runner and start the configuration experience
+./config.sh --url https: "**********"
+# Install the runner as a service
+sudo ./svc.sh install
+# Start the service
+sudo ./svc.sh start/svc.sh install
+# Start the service
+sudo ./svc.sh start
