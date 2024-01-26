@@ -1,0 +1,9 @@
+#date: 2024-01-26T17:06:16Z
+#url: https://api.github.com/gists/5d8d99a70fa839e2798a4980449a86f7
+#owner: https://api.github.com/users/jednano
+
+#!/bin/bash
+
+pip3 install -r requirements.txt
+sudo chmod +x compile_proto
+./compile_proto
