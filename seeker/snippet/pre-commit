@@ -1,0 +1,38 @@
+#date: 2024-01-30T17:02:23Z
+#url: https://api.github.com/gists/d50615cb3358dc1c55ae37bf8c566f10
+#owner: https://api.github.com/users/wastrachan
+
+#!/bin/sh
+
+# Git hook to prevent a commit if secret files have been changed
+# Requires git-secret (https: "**********"
+
+if [[ -z "$(command -v git-secret)" ]]; then
+    cat <<\EOF
+
+Error: "**********"
+
+It is not possible to lock up or reveal secret files. Ensure that git-secret
+(https: "**********"
+
+EOF
+    exit 1
+fi
+
+if git-secret changes | grep -q "@@"; then
+    cat <<\EOF
+
+Error: "**********"
+If you do not hide your secrets, they will not be available to other users.
+
+ "**********"H "**********"i "**********"d "**********"e "**********"  "**********"s "**********"e "**********"c "**********"r "**********"e "**********"t "**********"s "**********"  "**********"a "**********"n "**********"d "**********"  "**********"t "**********"r "**********"y "**********"  "**********"a "**********"g "**********"a "**********"i "**********"n "**********": "**********"
+
+    make secrets-hide
+
+If you would like to view the pending changes:
+
+    git-secret changes
+
+EOF
+    exit 1
+fi
