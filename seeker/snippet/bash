@@ -1,0 +1,37 @@
+#date: 2024-01-31T17:03:20Z
+#url: https://api.github.com/gists/944e21c6196d8930e271c6fc24f05cfc
+#owner: https://api.github.com/users/triHims
+
+#!/bin/bash
+echo "*********************************************************"se.sample*          prepare-commit-msg.sample*  
+echo "Running git pre-commit hook. Running gradle build and tests"
+echo "*********************************************************"
+
+# Gather the staged files - to make sure changes are saved only for these files.
+
+
+stagedFiles=$(git diff --staged --name-only)
+
+./gradlew build
+
+status=$?
+
+if [ "$status" = 0 ] ; then
+    echo "Static analysis found no problems."
+    # Add staged file changes to git
+    for file in $stagedFiles; do
+      if test -f "$file"; then
+        git add $file
+      fi
+    done
+    #Exit
+    exit 0
+else
+    echo "*********************************************************"
+    echo "       ********************************************      "
+    echo 1>&2 "Build Failed"
+    echo "       ********************************************      "
+    echo "*********************************************************"
+    #Exit
+    exit 1
+fi
