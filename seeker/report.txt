@@ -1,4 +1,61 @@
 --------------------------------------------------------------------------------
+ 2024-02-05 17:10:27.919096
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/CalendarPrint.java
+	deleted:    snippet/Error.requests.session.example.py
+	deleted:    snippet/JavaStudy01.java
+	deleted:    snippet/OK.requests.session.example.py
+	deleted:    snippet/calpl.py
+	deleted:    snippet/deploy.sh
+	deleted:    snippet/fileCopy.py
+	deleted:    snippet/filezilla2hashcat.py
+	deleted:    snippet/filter.py
+	deleted:    snippet/forLoop.py
+	deleted:    snippet/funcMin.py
+	deleted:    snippet/funcSquared.py
+	deleted:    snippet/funcSwap.py
+	deleted:    snippet/gps-speed.sh
+	deleted:    snippet/hello.py
+	deleted:    snippet/history.sh
+	deleted:    snippet/install.sh
+	deleted:    snippet/longestWord.py
+	deleted:    snippet/qcmd.sh
+	deleted:    snippet/scanlan.sh
+	deleted:    snippet/sender.go
+	deleted:    snippet/sequence_finder.py
+	deleted:    snippet/setup.sh
+	deleted:    snippet/test.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/PacalsTriangle.java
+	snippet/apache_download_tree.py
+	snippet/br-int.sh
+	snippet/cleanupgrade
+	snippet/cratedb_heap_exchaust_weird_error.py
+	snippet/dia1.py
+	snippet/elevator.system.go
+	snippet/import-ca-into-osx-keychain.sh
+	snippet/latest-chrome-ua.sh
+	snippet/main.py
+	snippet/managers.py
+	snippet/primerReto.py
+	snippet/reto1py.py
+	snippet/retoLunes.py
+	snippet/reto_1.py
+	snippet/reto_lunes.py
+	snippet/script1.py
+	snippet/sugh.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2024-02-02 17:11:08.586645
 --------------------------------------------------------------------------------
   On branch main
