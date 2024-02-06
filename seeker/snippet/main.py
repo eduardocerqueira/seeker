@@ -1,13 +1,5 @@
-#date: 2024-02-05T16:50:20Z
-#url: https://api.github.com/gists/114520998a5003a303c81392e6d76c92
-#owner: https://api.github.com/users/jaroflies
+#date: 2024-02-06T16:57:23Z
+#url: https://api.github.com/gists/d11951e5bcb36b9e91f4dd343c9377b1
+#owner: https://api.github.com/users/alv9706
 
-nombre = input("Ingrese su nombre: ")
-
-apellido = input("Ingrese su apellido: ")
-
-telefono = input("Ingrese su número de teléfono: ")
-
-correo = input("Ingrese su correo electrónico: ")
-
-print("Hola " + nombre, apellido + ", en breve recibirás un correo a: " + correo)
+print("hello world")
