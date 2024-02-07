@@ -1,6 +1,0 @@
-#date: 2024-02-05T17:00:13Z
-#url: https://api.github.com/gists/746045240f9a522b009ec6bc3e86e836
-#owner: https://api.github.com/users/serhatcelik
-
-#!/bin/sh
-sudo apt update && sudo apt full-upgrade -y && sudo apt autoremove -y && sudo apt autoclean -y
