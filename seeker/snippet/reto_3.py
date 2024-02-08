@@ -1,44 +1,54 @@
-#date: 2024-02-07T16:51:29Z
-#url: https://api.github.com/gists/ebe8869548acebb707cb459d1c5e2254
-#owner: https://api.github.com/users/AngelP1105
+#date: 2024-02-08T16:47:37Z
+#url: https://api.github.com/gists/69a5bd8d0c6b24f4b0575c1a5ceb4e3f
+#owner: https://api.github.com/users/btocarmona2021
 
-cantidad_usuarios_ingresar = int(input("Cuantos usuarios se van a ingresar? "))
-listas_id = []
+nuevos_registros = int(input('ingrese la cantidad de usuarios a registrar: '))
+registrados = 1
+user_registrados = []
+minimo = 5
+maximo = 50
+cant_caracteres = 0
+telefono_valido = 0
+while registrados <= nuevos_registros:
+    telefono_valido = 0
+    while cant_caracteres < minimo or cant_caracteres > maximo:
+        print('debe ingresar un nombre con 5 o más carácteres y menor a 50 carácteres ')
+        nombre = input('Ingrese su nombre por favor ')
+        for caracteres in nombre:
+            cant_caracteres += 1
 
-for i in range(cantidad_usuarios_ingresar):
-    error = True
-    print("Bienvenido nuevo usuario")
-    while error:
-        fallo = ""
-        nombres_usuario = input("Inserte sus nombres: ")
-        longitud_nombre = len(nombres_usuario)
-        if longitud_nombre < 5 or longitud_nombre > 50:
-            fallo = "Nombre"
-        apellidos_usuario = input("Inserte sus apellidos: ")
-        longitud_apellido = len(apellidos_usuario)
-        if longitud_apellido < 5 or longitud_apellido > 50:
-            fallo = "Apellido"
-        numero_usuario = input("Inserte su numero de telefono: ")
-        longitud_telefono = len(numero_usuario)
-        if longitud_telefono != 10:
-            fallo = "Numero"
-        correo_usuario = input("inserte su correo electronico: ")
-        longitud_correo = len(correo_usuario)
-        if longitud_correo < 5 or longitud_correo > 50:
-            fallo = "Correo"
+    cant_caracteres = 0
 
-        match fallo:
-            case "Nombre":
-                print("El nombre debe tener una longitud minima de 5 y maxima de 50")
-            case "Apellido":
-                print("El apellido debe tener una longitud minima de 5 y maxima de 50")
-            case "Correo":
-                print("El correo debe tener una longitud minima de 5 y maxima de 50")
-            case "Numero":
-                print("El numero debe tener 10 digitos")
-            case _:
-                error = False
-                listas_id.append(i)
+    while cant_caracteres < minimo or cant_caracteres > maximo:
+        print('debe ingresar un apellido con 5 o más carácteres y menor a 50 carácteres ')
+        apellido = input('Ingrese su apellido por favor ')
+        for caracteres in apellido:
+            cant_caracteres += 1
 
-print("Los usuarios se han registrado con exito")
-print(listas_id)
+    cant_caracteres = 0
+
+    while cant_caracteres < minimo or cant_caracteres > maximo:
+        print('debe ingresar un correo electrónico con 5 o más carácteres y menor a 50 carácteres ')
+        correo_electronico = input('Ingrese su correo electrónico por favor ')
+        for caracteres in correo_electronico:
+            cant_caracteres += 1
+
+    cant_caracteres = 0
+
+    while telefono_valido != 10:
+
+        print('debe ingresar un teléfono con 10 dígitos ')
+        telefono = input('facilitenos su número telefónico ')
+        for caracteres in telefono:
+            telefono_valido += 1
+
+    user_registrados.append('User-' + str(registrados))
+
+
+    print(
+        'Hola ' + nombre + ' ' + apellido + ', en breve nos comunicaremos contigo al teléfono ' + telefono + ' ,o bien recibirás un correo a ' + correo_electronico)
+    registrados += 1
+    print('---------------------------------------------------')
+
+for registros in user_registrados:
+    print('Los registros nuevos tienen la id siguiente: ' + registros)

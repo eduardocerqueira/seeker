@@ -1,4 +1,41 @@
 --------------------------------------------------------------------------------
+ 2024-02-08 17:11:32.501802
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/JavaMini6.java
+	deleted:    snippet/MainActivity.java
+	deleted:    snippet/Reto.py
+	deleted:    snippet/ejercicio_02.py
+	deleted:    snippet/installTerminus.sh
+	modified:   snippet/main.py
+	deleted:    snippet/render.zsh
+	deleted:    snippet/reto1.py
+	modified:   snippet/reto_3.py
+	deleted:    snippet/table_meta.py
+	deleted:    snippet/template.go
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/Reto2.py
+	snippet/SkyBurger.py
+	snippet/consumo_internet_modem_enet.py
+	snippet/field_remover.py
+	snippet/kdecsec.sh
+	snippet/move-mailbox.sh
+	snippet/notify.sh
+	snippet/reto03.py
+	snippet/reto4.py
+	snippet/retoPythonDia2.py
+	snippet/solve_overloads.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2024-02-07 17:10:23.549671
 --------------------------------------------------------------------------------
   On branch main
