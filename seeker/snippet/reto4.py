@@ -1,89 +1,162 @@
-#date: 2024-02-08T16:57:18Z
-#url: https://api.github.com/gists/a7b4510422e5347aa029db835a4dbf9a
-#owner: https://api.github.com/users/rudolfwolf
+#date: 2024-02-09T16:45:08Z
+#url: https://api.github.com/gists/207474e00c58bd5d969891e3df843dce
+#owner: https://api.github.com/users/AdryEsc
 
-# Inicialización de variables
-next_id = 0
-usuarios = {}  # Diccionario para almacenar los usuarios
+identificadores = []
+total_usuarios = []
+continuar = 's'
+opcion = 0
 
-# Función para validar la entrada del usuario
-def validacion(mensaje, maximo, minimo):
-    while True:
-        entrada = input(mensaje)
-        if minimo <= len(entrada) <= maximo:
-            return entrada
-        else:
-            print(f"Error: La entrada debe tener entre {minimo} y {maximo} caracteres. Intenta nuevamente.")
+while opcion != 5:
+    print('***MENU DEL PROGRAMA***')
+    print('1 - INGRESAR NUEVO USUARIO')
+    print('2 - LISTAR ID DE TODOS LOS USUARIOS')
+    print('3 - BUSCAR UN USUARIO A TRAVES DE SU ID (Identificador)')
+    print('4 - EDITAR INFORMACION DE UN USUARIO')
+    print('5 - FINALIZAR Y SALIR DEL PROGRAMA')
+    print(' ')
+    opcion = int(input('Ingrese la opcion de la tarea a realizar: '))
 
-# Función para agregar un nuevo usuario
-def agregar_usuario():
-    global next_id
-    next_id += 1
-    # Se solicita al usuario que ingrese sus datos
-    name = validacion('Ingrese su(s) nombre(s) por favor: ', 50, 5)
-    lastname = validacion('Ingrese su(s) apellido(s) por favor: ', 50, 5)
-    email = validacion('Ingrese su e-mail por favor: ', 50, 5)
-    tel = validacion('Ingrese su teléfono a 10 dígitos por favor: ', 10, 10)
-    # Se agrega el usuario al diccionario de usuarios
-    usuarios[next_id] = {'nombre': name, 'apellido': lastname, 'email': email, 'telefono': tel}
-    print(f'Hola {name} {lastname}, en breve recibirás un correo a {email}\n')
-    print(f'Se ha registrado el usuario con ID: {next_id}')
 
-# Función para listar todos los IDs de usuarios registrados
-def listar_usuarios():
-    print("Lista de IDs de usuarios registrados:")
-    for user_id in usuarios:
-        print(f"ID: {user_id}")
+    if opcion == 1:     # Ingreso de nuevo usuario
+        print('***REGISTRO DE USUARIOS***')
+        print('')
 
-# Función para consultar la información de un usuario por su ID
-def consultar_usuario():
-    user_id = int(input("Ingrese el ID del usuario que desea consultar: "))
-    if user_id in usuarios:
-        usuario = usuarios[user_id]
-        print(f"Información del usuario con ID {user_id}:")
-        print(f"Nombre: {usuario['nombre']}")
-        print(f"Apellido: {usuario['apellido']}")
-        print(f"Email: {usuario['email']}")
-        print(f"Teléfono: {usuario['telefono']}")
-    else:
-        print("No se encontró ningún usuario con ese ID.")
+        cantidad_usuarios = int(input('Ingrese la cantidad de usuarios a registrar: '))
+        print(' ')
+        cantidad_iteraciones = 0
+        LONGITUD_MINIMA = 5
+        LONGITUD_MAXIMA = 50
+        NUMERO_TELEFONO = 10
+        id_usuario = 0
+        # identificadores = []
 
-# Función para editar la información de un usuario por su ID
-def editar_usuario():
-    user_id = int(input("Ingrese el ID del usuario que desea editar: "))
-    if user_id in usuarios:
-        print(f"Editando información del usuario con ID {user_id}:")
-        # Se solicita al usuario que ingrese los nuevos datos
-        name = validacion('Ingrese su(s) nombre(s) por favor: ', 50, 5)
-        lastname = validacion('Ingrese su(s) apellido(s) por favor: ', 50, 5)
-        email = validacion('Ingrese su e-mail por favor: ', 50, 5)
-        tel = validacion('Ingrese su teléfono a 10 dígitos por favor: ', 10, 10)
-        # Se actualiza la información del usuario en el diccionario
-        usuarios[user_id] = {'nombre': name, 'apellido': lastname, 'email': email, 'telefono': tel}
-        print(f"Se ha actualizado la información del usuario con ID {user_id}")
-    else:
-        print("No se encontró ningún usuario con ese ID.")
+        while cantidad_usuarios > 0 and cantidad_iteraciones < cantidad_usuarios:
+            print('---Registro de nuevo usuario---')
+            nombre = str(input('Ingrese el nombre: '))
+            contador1 = 0
+            for caracter in nombre:
+            	contador1 = contador1 + 1
+            while contador1 < LONGITUD_MINIMA or contador1 > LONGITUD_MAXIMA:
+            		print('El nombre debe tener una longitud minima de 5 caracteres y una longitud maxima de 50 caracteres.')
+            		nombre = str(input('Por favor, vuelva a ingresar un nombre valido:'))
+            		contador1 = 0
+            		for caracter in nombre:
+            			contador1 = contador1 + 1
 
-# Menú principal
-while True:
-    print("\n--- [Menú] ---\n")
-    print("[1] Agregar usuario")
-    print("[2] Listar usuarios")
-    print("[3] Consultar usuario por ID")
-    print("[4] Editar usuario por ID")
-    print("[5] Salir")
+            		
+            apellido = str(input('Ingrese el apellido: '))
+            contador2 = 0
+            for caracter in apellido:
+            	contador2 = contador2 + 1
+            while contador2 < LONGITUD_MINIMA or contador2 > LONGITUD_MAXIMA:
+            		print('El apellido debe tener una longitud minima de 5 caracteres y una longitud maxima de 50 caracteres.')
+            		apellido = str(input('Por favor, vuelva a ingresar un apellido valido:'))
+            		contador2 = 0
+            		for caracter in apellido:
+            			contador2 = contador2 + 1
 
-    opcion = input("\nSeleccione una opción: ")
-    if opcion == '1':
-        agregar_usuario()
-    elif opcion == '2':
-        listar_usuarios()
-    elif opcion == '3':
-        consultar_usuario()
-    elif opcion == '4':
-        editar_usuario()
-    elif opcion == '5':
-        print("Saliendo...")
-        break
-    else:
-        print("Opción inválida. Por favor, seleccione una opción válida.")
+
+            telefono = input('Ingrese el telefono: ')
+            contador3 = 0
+            for numero in telefono:
+            	contador3 = contador3 + 1
+            while contador3 != 10:
+            		print('El telefono debe tener 10 numeros.')
+            		telefono = input('Por favor, vuelva a ingresar un telefono valido:')
+            		contador3 = 0
+            		for numero in telefono:
+            			contador3 = contador3 + 1
+
+
+            correo = str(input('Ingrese el correo: '))
+            contador4 = 0
+            for caracter in correo:
+            	contador4 = contador4 + 1
+            while contador4 < LONGITUD_MINIMA or contador4 > LONGITUD_MAXIMA:
+            		print('El correo debe tener una longitud minima de 5 caracteres y una longitud maxima de 50 caracteres.')
+            		correo = str(input('Por favor, vuelva a ingresar un correo valido:'))
+            		contador4 = 0
+            		for caracter in nombre:
+            			contador4 = contador4 + 1
+
+            cantidad_iteraciones = cantidad_iteraciones + 1
+
+            print('Hola ' + nombre + ' ' + apellido + ',' + ' en breve recibiras un correo a ' + correo)
+            print(' ')
+
+            id_usuario = id_usuario + 1
+
+            #usuarios = [id_usuario, nombre, apellido, telefono, correo]
+
+            identificadores.append(id_usuario)
+
+            usuario = {
+                'id': id_usuario,
+                'nombre': nombre,
+                'apellido': apellido,
+                'telefono': telefono,
+                'correo': correo
+            }
+
+            total_usuarios.append(usuario)
+        	
+
+        print('Cantidad de usuarios registrados: ' + str(cantidad_usuarios))
+        print(' ')
+
+        #print('Identificadores: ' + str(identificadores))
+
+        #print(usuario)
+
+    if opcion == 2:     # Lista los identificadores de usuarios registrados
+        print('Identificadores: ' + str(identificadores))
+        print(' ')
+
+    if opcion == 3:     #Lista de datos del usuario segun su ID
+        identificador = int(input('Ingrese el ID del usuario a buscar: '))
+        for _usuario in total_usuarios:
+            if _usuario['id'] == identificador:
+                print('Nombre completo: '+ _usuario['nombre'] + ' ' + _usuario['apellido'])
+                print('Telefono: '+ _usuario['telefono'])
+                print('Correo: '+ _usuario['correo'])
+    
+    if opcion == 4:     #Editar datos del usuario segun su ID
+        identificador = int(input('Ingrese el ID del usuario a modificar: '))
+        print('Datos actuales del usuario:')
+        for _usuario in total_usuarios:
+            if _usuario['id'] == identificador:
+                print('Nombre completo: '+ _usuario['nombre'] + ' ' + _usuario['apellido'])
+                print('Telefono: '+ _usuario['telefono'])
+                print('Correo: '+ _usuario['correo'])
+        
+        print(' ')
+
+        nombre = str(input('Ingrese el nuevo nombre: '))
+        apellido = str(input('Ingrese el nuevo apellido: '))
+        telefono = input('Ingrese el nuevo telefono: ')
+        correo = str(input('Ingrese el nuevo correo: '))
+
+        for _usuario in total_usuarios:
+            if _usuario['id'] == identificador:
+                _usuario['nombre'] = nombre
+                _usuario['apellido'] = apellido
+                _usuario['telefono'] = telefono
+                _usuario['correo'] = correo
+        
+        print(' ')
+
+        print('Datos actualizados:')
+        print(' ')
+
+        for _usuario in total_usuarios:
+            if _usuario['id'] == identificador:
+                print('Nombre completo: '+ _usuario['nombre'] + ' ' + _usuario['apellido'])
+                print('Telefono: '+ _usuario['telefono'])
+                print('Correo: '+ _usuario['correo'])  
+
+        print(' ')
+
+    print(' ')  
+else:
+    print('Finalizado')
