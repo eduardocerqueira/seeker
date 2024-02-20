@@ -66,7 +66,7 @@ while true; do
    fi
 done
 
-echo "done":$CLOUD_SECRET" "https://api.clickhouse.cloud/v1/organizations/${ORG_ID}/services/${SERVICE_ID}" | jq -r '.result.state')
+echo "done": "**********"://api.clickhouse.cloud/v1/organizations/${ORG_ID}/services/${SERVICE_ID}" | jq -r '.result.state')
    if [[ $state == "stopped" ]]; then
        echo "Service is stopped"
        break
@@ -76,4 +76,4 @@ echo "done":$CLOUD_SECRET" "https://api.clickhouse.cloud/v1/organizations/${ORG_
    fi
 done
 
-echo "done"
+echo "done"o "done"

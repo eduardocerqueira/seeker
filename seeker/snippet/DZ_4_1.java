@@ -1,17 +1,19 @@
-//date: 2024-02-20T16:54:20Z
-//url: https://api.github.com/gists/1634a88be9d297432c452d51523b389f
-//owner: https://api.github.com/users/alexkravets00
+//date: 2024-02-20T16:51:49Z
+//url: https://api.github.com/gists/bc7b5bde8189adecb117138aeaf4aefa
+//owner: https://api.github.com/users/AndrewPotareyko
 
 package org.example;
 
 import net.thauvin.erik.crypto.CryptoPrice;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 public class MyBot extends TelegramLongPollingBot {
     public MyBot() {
-        super("6867742594:AAFWF0rnpRjk9Y5TWd9PNx8O5PQXB7ViZSA");
+        super("7094809060:AAHZnSZeXIi61yArhXbt_zOggUAYM-DagqM");
     }
 
     @Override
@@ -19,25 +21,25 @@ public class MyBot extends TelegramLongPollingBot {
         var chatId = update.getMessage().getChatId();
         var text = update.getMessage().getText();
 
-
         try {
             if (text.equals("/start")) {
-                sendMessage(chatId,"Hello!");
+                sendMessage(chatId, "Hello!");
             } else if (text.equals("btc")) {
+                sendPicture(chatId, "bitcoin-btc-logo.png");
                 sendPrice(chatId, "BTC");
             } else if (text.equals("eth")) {
+                sendPicture(chatId, "ethereum-eth-logo.png");
                 sendPrice(chatId, "ETH");
-            } else if (text.equals("eos")) {
-                sendPrice(chatId, "EOS");
-            } else if   (text.equals("btc,eth")) {
-                var price = CryptoPrice.spotPrice("BTC");
-                var price1 = CryptoPrice.spotPrice("ETH");
-                sendMessage(chatId, "BTC price: " + price.getAmount().doubleValue() + ", ETH price: " + price1.getAmount().doubleValue());
-            }else if   (text.equals("btc,eth,eos")) {
-                var price = CryptoPrice.spotPrice("BTC");
-                var price1 = CryptoPrice.spotPrice("ETH");
-                var price2 = CryptoPrice.spotPrice("EOS");
-                sendMessage(chatId,"BTC price: " + price.getAmount().doubleValue() + ", ETH price: " + price1.getAmount().doubleValue() + ", EOS price: " + price2.getAmount().doubleValue());
+            } else if (text.equals("bnb")) {
+                sendPicture(chatId, "bnb-bnb-logo.png");
+                sendPrice(chatId, "BNB");
+            } else if (text.equals("all")) {
+                sendPicture(chatId, "bitcoin-btc-logo.png");
+                sendPrice(chatId, "BTC");
+                sendPicture(chatId, "ethereum-eth-logo.png");
+                sendPrice(chatId, "ETH");
+                sendPicture(chatId, "bnb-bnb-logo.png");
+                sendPrice(chatId, "BNB");
             } else {
                 sendMessage(chatId, "Unknown command!");
             }
@@ -51,6 +53,15 @@ public class MyBot extends TelegramLongPollingBot {
         sendMessage(chatId, name + " price: " + price.getAmount().doubleValue());
     }
 
+    void sendPicture(long chatId, String name) throws Exception {
+        var photo = getClass().getClassLoader().getResourceAsStream(name);
+
+        var message = new SendPhoto();
+        message.setChatId(chatId);
+        message.setPhoto(new InputFile(photo, name));
+        execute(message);
+    }
+
     void sendMessage(long chatId, String text) throws Exception {
         var message = new SendMessage();
         message.setChatId(chatId);
@@ -60,6 +71,6 @@ public class MyBot extends TelegramLongPollingBot {
 
     @Override
     public String getBotUsername() {
-        return "aleks1207bot";
+        return "AndrewDeepCrypto_bot";
     }
 }
