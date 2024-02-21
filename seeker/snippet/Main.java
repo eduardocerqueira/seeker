@@ -1,17 +1,15 @@
-//date: 2024-02-20T17:01:56Z
-//url: https://api.github.com/gists/d268f6d5de604f6a2be61923d02007a5
-//owner: https://api.github.com/users/MariannaHon
+//date: 2024-02-21T16:57:51Z
+//url: https://api.github.com/gists/c78369dca9761fd58fcd3c8b2b8d6674
+//owner: https://api.github.com/users/delta-dev-software
 
-package org.example;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 
-import org.telegram.telegrambots.meta.TelegramBotsApi;
-import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
+@Controller
+public class MyController {
 
-import javax.validation.groups.Default;
-
-public class Main {
-    public static void main(String[] args) throws Exception {
-        var api = new TelegramBotsApi(DefaultBotSession.class);
-        api.registerBot(new MyBot());
+    @GetMapping("/hello")
+    public String hello() {
+        return "hello"; // Returns the view name "hello"
     }
 }

@@ -1,36 +1,42 @@
-//date: 2024-02-19T16:54:22Z
-//url: https://api.github.com/gists/25c8b00e3dea0dd2b04da9916d8cd33e
+//date: 2024-02-21T17:00:48Z
+//url: https://api.github.com/gists/5b84bdae136ad8e4dafff0cd056a9627
 //owner: https://api.github.com/users/jaimemin
 
-public class TreeNode<T> {
+class Oops {
 
-	private T data;
+	static Favorites2 f = new Favorites2();
 
-	private TreeNode<T> left;
+	static <T> List<T> favoriteList() {
+		TypeRef<List<T>> ref = new TypeRef<>() {
+		};
+		/**
+		 * List<String>, List<Integer>로 구분될 것이라고 생각하지만
+		 * List<T>가 출력됨
+		 */
+		System.out.println(ref.getType());
 
-	private TreeNode<T> right;
+		List<T> result = f.get(ref);
 
-	public TreeNode(T data) {
-		this.data = data;
-	}
-
-	public static <T> void inOrderTraversal(TreeNode<T> node) {
-		if (node != null) {
-			inOrderTraversal(node.left);
-			System.out.print(node.data + " ");
-			inOrderTraversal(node.right);
+		if (result == null) {
+			result = new ArrayList<T>();
+			f.put(ref, result);
 		}
+
+		return result;
 	}
 
+	/**
+	 * ref.getType을 통해 얻은 타입이 둘 다 List<T>이기 때문에
+	 * ClassCastException 발생 가능
+	 * Super Type Token도 모든 상황에서 안전하지는 앟음
+	 */
 	public static void main(String[] args) {
-		// 이진 트리 생성
-		TreeNode<Integer> root = new TreeNode<>(1);
-		root.left = new TreeNode<>(2);
-		root.right = new TreeNode<>(3);
-		root.left.left = new TreeNode<>(4);
-		root.left.right = new TreeNode<>(5);
+		List<String> ls = favoriteList();
+		List<Integer> li = favoriteList();
+		li.add(1);
 
-		// 중위 순회
-		inOrderTraversal(root);
+		for (String s : ls) {
+			System.out.println(s);
+		}
 	}
 }
