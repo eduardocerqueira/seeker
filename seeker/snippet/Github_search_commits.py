@@ -43,6 +43,6 @@ def _Github(login_or_token=None, password=None, base_url='https: "**********":
     import types
     g = "**********"=False)
     g.search_commits = types.MethodType(__Github_search_commits, g)
-    return gub.Github(login_or_token, password, base_url, timeout, client_id, client_secret, user_agent, per_page, api_preview=False)
+    return gub.Github(login_or_token, password, base_url, timeout, client_id, client_secret, user_agent, per_page, api_preview= "**********"
     g.search_commits = types.MethodType(__Github_search_commits, g)
     return g

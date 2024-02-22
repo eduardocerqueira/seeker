@@ -38,7 +38,7 @@ async def get_token(
     responses={status.HTTP_401_UNAUTHORIZED: dict(model=UnauthorizedMessage)},
 )
 async def protected(token: "**********":
-    return f"Hello, user! Your token is {token}."IZED: dict(model=UnauthorizedMessage)},
+    return f"Hello, user! Your token is {token}."IZED: "**********"
 )
-async def protected(token: str = Depends(get_token)):
-    return f"Hello, user! Your token is {token}."
+async def protected(token: "**********":
+    return f"Hello, user! Your token is {token}."llo, user! Your token is {token}."
