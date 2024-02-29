@@ -1,18 +1,29 @@
-#date: 2024-02-27T17:03:16Z
-#url: https://api.github.com/gists/b474b99082d33f36dd4e769c36f37a1a
-#owner: https://api.github.com/users/mypy-play
+#date: 2024-02-29T17:10:06Z
+#url: https://api.github.com/gists/7b1bec6df111d83e561b51cfca36fe10
+#owner: https://api.github.com/users/SArSERO
 
-class Category:
-    """Your docstring.
-
-    Attributes:
-        text(str): a description.
-    """
-
-    text: str
+from PIL import Image
+from PIL import ImageDraw
 
 
-a = Category()
+def gradient(n):
+    g = 255 / 200
+    new_image = Image.new("RGB", (200, 100), (0, 0, 0))
+    draw = ImageDraw.Draw(new_image)
+    h = 0
+    if n == 'R':
+        for i in range(200):
+            draw.line((i, 0, i, 100), fill=(int(h), 0, 0), width=1)
+            h = h + g
+    elif n == 'G':
+        for i in range(200):
+            draw.line((i, 0, i, 100), fill=(0, int(h), 0), width=1)
+            h = h + g
+    else:
+        for i in range(200):
+            draw.line((i, 0, i, 100), fill=(0, 0, int(h)), width=1)
+            h = h + g
+    new_image.save("lines.png", "PNG")
 
-Category.text = 11  # where is the warning?
-a.text = 1.5454654  # where is the warning?
+
+gradient('R')

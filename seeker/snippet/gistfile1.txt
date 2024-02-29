@@ -1,0 +1,97 @@
+#date: 2024-02-29T17:01:55Z
+#url: https://api.github.com/gists/aba029d13fddaf479404f442680065cf
+#owner: https://api.github.com/users/layeddie
+
+#!/usr/bin/python3
+import notecard
+from notecard import hub
+from periphery import I2C
+import time
+#import serial
+
+# init both notecards
+productUID = "com.your.productuid:here"
+port = I2C("/dev/i2c-1")
+
+time.sleep(10)
+
+nCardLoRa = notecard.OpenI2C(port, 0, 0, True)
+nCardCellWiFi = notecard.OpenI2C(port, 0x18, 0, True) # notice the different I2C address!
+
+# connect both notecards to notehub
+rsp = hub.set(nCardLoRa, product=productUID, mode="periodic", sn="lora")
+rsp = hub.set(nCardCellWiFi, product=productUID, mode="periodic", sn="cell+wifi")
+
+# update the wifi credentials on the notecard cell+wifi
+req = {"req": "card.wifi"}
+req["ssid"] = "yourssid"
+req["password"] = "**********"
+rsp = nCardCellWiFi.Transaction(req)
+
+# create note template on each notecard
+req = {"req": "note.template"}
+req["file"] = "fallback.qo"
+req["port"] = 10
+req["body"] = {"voltage": 12.1}
+rsp = nCardLoRa.Transaction(req)
+rsp = nCardCellWiFi.Transaction(req)
+        
+# query one of the Notecards for power supply voltage
+# this just gives us some arbitrary data to send!
+req = {"req": "card.voltage"}
+req["mode"] = "?"
+rsp = nCardLoRa.Transaction(req)
+
+voltage = rsp["value"]
+
+# create the outbound note
+# arbitrary data based on the voltage reported on the Notecard LoRa
+reqNote = {"req": "note.add"}
+reqNote["file"] = "fallback.qo"
+reqNote["body"] = {"voltage": voltage}
+reqNote["sync"] = True
+
+# first, try the Notecard LoRa
+rsp = nCardLoRa.Transaction(reqNote)
+
+# monitor a series of requests to hub.sync.status for one minute
+t_end = time.time() + 60
+didLoRaComplete = False
+
+while time.time() < t_end and didLoRaComplete is False:
+    req = {"req": "hub.sync.status"}
+    rsp = nCardLoRa.Transaction(req)
+    
+    if "completed" in rsp and rsp["completed"] < 3:
+        # "completed" tells us how many seconds since the last sync completion
+        # by looking for 3, we are asking if the sync was completed in the last 3 secs
+        didLoRaComplete = True
+
+    time.sleep(1)
+    
+if didLoRaComplete is False:
+    # no luck? now try Notecard Cell+WiFi!
+    # this will default to Wi-Fi, but fallback on Cellular AUTOMATICALLY!
+    rsp = nCardCellWiFi.Transaction(reqNote)
+    
+    # while this is running, delete the original note on the Notecard LoRa
+    # just in case it comes back online
+    req = {"req": "file.delete"}
+    req["files"] = ["fallback.qo"]
+    rsp = nCardLoRa.Transaction(req)
+
+    # monitor hub.sync.status for a couple of minutes, just for kicks
+    t_end = time.time() + 120
+    didCellWiFiComplete = False
+
+    while time.time() < t_end and didCellWiFiComplete is False:
+        req = {"req": "hub.sync.status"}
+        rsp = nCardCellWiFi.Transaction(req)
+        
+        if "completed" in rsp and rsp["completed"] < 3:
+            # "completed" tells us how many seconds since the last sync completion
+            # by looking for "3", we are asking if the sync was completed in the last 3 secs
+            didCellWiFiComplete = True
+            
+        time.sleep(1)
+)
