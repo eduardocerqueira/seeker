@@ -1,97 +1,105 @@
-#date: 2024-02-29T17:01:55Z
-#url: https://api.github.com/gists/aba029d13fddaf479404f442680065cf
-#owner: https://api.github.com/users/layeddie
+#date: 2024-03-04T17:09:10Z
+#url: https://api.github.com/gists/4a9c3a54318005484906039ba15f7fea
+#owner: https://api.github.com/users/JoeCooper
 
-#!/usr/bin/python3
-import notecard
-from notecard import hub
-from periphery import I2C
-import time
-#import serial
+#!/usr/bin/env python3
 
-# init both notecards
-productUID = "com.your.productuid:here"
-port = I2C("/dev/i2c-1")
+# This "semantic grep" matches lines by ChatGPT
 
-time.sleep(10)
+# Provide an OpenAI key via environment variable
+# Provide a question in plain language as first parameter
+# Pipe from cat or whatever
+# Optional; provide examples and counter-examples
 
-nCardLoRa = notecard.OpenI2C(port, 0, 0, True)
-nCardCellWiFi = notecard.OpenI2C(port, 0x18, 0, True) # notice the different I2C address!
+# cat input.txt | sgrep.py "Is this an animal name?" --example "fox" --counter-example "Rasputin"
 
-# connect both notecards to notehub
-rsp = hub.set(nCardLoRa, product=productUID, mode="periodic", sn="lora")
-rsp = hub.set(nCardCellWiFi, product=productUID, mode="periodic", sn="cell+wifi")
+import os
+import sys
+import json
+import urllib.request
+from urllib.error import URLError, HTTPError
 
-# update the wifi credentials on the notecard cell+wifi
-req = {"req": "card.wifi"}
-req["ssid"] = "yourssid"
-req["password"] = "**********"
-rsp = nCardCellWiFi.Transaction(req)
+# Function to send requests to OpenAI Chat API
+def query_openai(prompt):
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        print("Error: OPENAI_API_KEY environment variable not set.", file=sys.stderr)
+        sys.exit(1)
 
-# create note template on each notecard
-req = {"req": "note.template"}
-req["file"] = "fallback.qo"
-req["port"] = 10
-req["body"] = {"voltage": 12.1}
-rsp = nCardLoRa.Transaction(req)
-rsp = nCardCellWiFi.Transaction(req)
-        
-# query one of the Notecards for power supply voltage
-# this just gives us some arbitrary data to send!
-req = {"req": "card.voltage"}
-req["mode"] = "?"
-rsp = nCardLoRa.Transaction(req)
+    data = json.dumps({
+        "model": "gpt-4-turbo-preview",  # You can adjust the model
+        "messages": prompt,
+        "temperature": 0.0,
+        "max_tokens": "**********"
+    }).encode("utf-8")
 
-voltage = rsp["value"]
+    req = urllib.request.Request("https://api.openai.com/v1/chat/completions",
+                                 data=data,
+                                 headers={"Content-Type": "application/json",
+                                          "Authorization": f"Bearer {api_key}"})
+    try:
+        with urllib.request.urlopen(req) as response:
+            response_body = response.read()
+            return json.loads(response_body)
+    except HTTPError as e:
+        print(f"HTTP Error: {e.code} {e.reason}", file=sys.stderr)
+    except URLError as e:
+        print(f"URL Error: {e.reason}", file=sys.stderr)
 
-# create the outbound note
-# arbitrary data based on the voltage reported on the Notecard LoRa
-reqNote = {"req": "note.add"}
-reqNote["file"] = "fallback.qo"
-reqNote["body"] = {"voltage": voltage}
-reqNote["sync"] = True
+    sys.exit(1)
 
-# first, try the Notecard LoRa
-rsp = nCardLoRa.Transaction(reqNote)
+# Parse command line arguments
+def parse_args():
+    args = {"examples": []}
+    argv = sys.argv[1:]
+    while argv:
+        arg = argv.pop(0)
+        if arg == "--example" or arg == "--counter-example":
+            if argv:
+                value = argv.pop(0)
+                args["examples"].append((arg, value))
+            else:
+                print(f"Argument {arg} requires a value", file=sys.stderr)
+                sys.exit(1)
+        else:
+            if "sentence" in args:
+                print(f"Unexpected argument {arg}", file=sys.stderr)
+                sys.exit(1)
+            args["sentence"] = arg
+    return args
 
-# monitor a series of requests to hub.sync.status for one minute
-t_end = time.time() + 60
-didLoRaComplete = False
+def main():
+    args = parse_args()
+    sentence = args.get("sentence")
+    if not sentence:
+        print("Usage: sgrep.py 'sentence' [--example 'positive example'] [--counter-example 'counter example']", file=sys.stderr)
+        sys.exit(1)
 
-while time.time() < t_end and didLoRaComplete is False:
-    req = {"req": "hub.sync.status"}
-    rsp = nCardLoRa.Transaction(req)
-    
-    if "completed" in rsp and rsp["completed"] < 3:
-        # "completed" tells us how many seconds since the last sync completion
-        # by looking for 3, we are asking if the sync was completed in the last 3 secs
-        didLoRaComplete = True
+    setup_messages = [
+        {"role": "system", "content": "Write a boolean, that is, either `true` or `false`, showing whether the given line meets this definition: " + sentence},
+    ]
 
-    time.sleep(1)
-    
-if didLoRaComplete is False:
-    # no luck? now try Notecard Cell+WiFi!
-    # this will default to Wi-Fi, but fallback on Cellular AUTOMATICALLY!
-    rsp = nCardCellWiFi.Transaction(reqNote)
-    
-    # while this is running, delete the original note on the Notecard LoRa
-    # just in case it comes back online
-    req = {"req": "file.delete"}
-    req["files"] = ["fallback.qo"]
-    rsp = nCardLoRa.Transaction(req)
+    for arg, value in args["examples"]:
+        setup_messages.append({"role": "user", "content": value})
+        response = "true" if arg == "--example" else "false"
+        setup_messages.append({"role": "assistant", "content": response})
 
-    # monitor hub.sync.status for a couple of minutes, just for kicks
-    t_end = time.time() + 120
-    didCellWiFiComplete = False
+    for line in sys.stdin:
+        line = line.strip()
+        messages = setup_messages.copy()
+        messages.append({"role": "user", "content": line})
+        result = query_openai(messages)
+        if result:
+            try:
+                normalized = result["choices"][0]["message"]["content"].strip().lower()
+                if normalized == "true":
+                    print(line)
+                elif normalized == "false":
+                    continue
+                else:
+                    print(f"Error: unexpected response for line: {line}", file=sys.stderr)
+            except KeyError:
+                continue
 
-    while time.time() < t_end and didCellWiFiComplete is False:
-        req = {"req": "hub.sync.status"}
-        rsp = nCardCellWiFi.Transaction(req)
-        
-        if "completed" in rsp and rsp["completed"] < 3:
-            # "completed" tells us how many seconds since the last sync completion
-            # by looking for "3", we are asking if the sync was completed in the last 3 secs
-            didCellWiFiComplete = True
-            
-        time.sleep(1)
-)
+if __name__ == "__main__":
+    main()
