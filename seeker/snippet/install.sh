@@ -39,10 +39,12 @@ sudo sed -i "s/\/\"/:\/app\/code-server\/bin\//g" /etc/environment
 sudo systemctl enable code-server
 sudo apt-get clean
 sudo rm -rf /var/lib/apt/lists/* /var/tmp/*
-sudo systemctl restart code-serverhomedir(), req.args.config)} for the password.`;/let passwordMsg = \"Visit <a href=\\"https:\/\/boanlab.com\\">here<\/a> for any kind of help.\";/g' /app/code-server/out/node/routes/login.js
+sudo systemctl restart code-serverhomedir(), req.args.config)} for the password.`;/let passwordMsg = \"Visit <a href=\\"https: "**********"
 sudo sed -i "s/\/\"/:\/app\/code-server\/bin\//g" /etc/environment
 
 sudo systemctl enable code-server
 sudo apt-get clean
+sudo rm -rf /var/lib/apt/lists/* /var/tmp/*
+sudo systemctl restart code-server clean
 sudo rm -rf /var/lib/apt/lists/* /var/tmp/*
 sudo systemctl restart code-server
