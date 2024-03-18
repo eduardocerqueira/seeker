@@ -1,0 +1,30 @@
+#date: 2024-03-18T17:06:43Z
+#url: https://api.github.com/gists/bb03a952fa81f7a33647e9e70f92dbbe
+#owner: https://api.github.com/users/plante3
+
+#!/bin/bash
+
+(( $# > 1 )) || { printf 'usage: %s inputs... output' >&2; exit 1; }
+
+pdfpages=()
+
+narg=1
+while (( narg < $# )); do
+	pdfpages+=("${!narg}")
+	(( narg++ ))
+
+	if ! [[ "${!narg}" =~ .pdf$ ]]; then
+		pdfpages+=("${!narg}")
+		(( narg++ ))
+	else
+		pdfpages+=("1-z")
+	fi
+done
+
+p=$(dirname  "${!#}")
+b=$(basename "${!#}")
+n1=$p/.tmp$$$b
+n2=$p/$b
+
+qpdf --empty --pages "${pdfpages[@]}" -- "$n1"
+mv "$n1" "$n2"
