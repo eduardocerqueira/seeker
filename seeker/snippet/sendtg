@@ -1,0 +1,73 @@
+#date: 2024-03-26T16:50:26Z
+#url: https://api.github.com/gists/1079c2f1e8b970935bec8545d1984fbb
+#owner: https://api.github.com/users/najahiiii
+
+#!/bin/bash
+
+# Env
+TOKEN= "**********"
+CHAT_ID=""
+API_V1="https://api.telegram.org"
+API_V2="https://api.zephyrus.id"
+
+# Color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+NC='\033[0m' # No Color
+
+# Function to send file using specified API
+send_file() {
+    local api_url="$1"
+    local file_path="$2"
+    local res=$(curl -s -w "%{http_code}" -o /dev/null \
+        -H "X-Api-Key: " \
+        -X POST "$api_url" \
+        -F document=@"$file_path" \
+        -F chat_id="$CHAT_ID")
+    if [ "$res" -eq 200 ]; then
+        echo -e "[${GREEN}Success${NC}] File sent successfully: $file_path"
+        return 0
+    else
+        echo -e "[${RED}Error${NC}] Failed to send file: $file_path (HTTP Status: $res)"
+        return 1
+    fi
+}
+
+# Function to display Braille dot spinner
+draw_spinner() {
+    local spin_chars=("⠋" "⠙" "⠹" "⠼" "⠴" "⠦" "⠧")
+    local count=0
+    local pid=$1
+    while kill -0 $pid 2>/dev/null; do
+        printf "[${YELLOW}${spin_chars[$count]}${NC}] Uploading $(realpath $file_path)...\r"
+        count=$(( (count + 1) % ${#spin_chars[@]} ))
+        sleep 0.1
+    done
+}
+
+# Main
+if [ $# -eq 0 ]; then
+    echo -e "${RED}Usage:${NC} tgbot {file_name or path to file}"
+    exit 1
+fi
+
+# Loop through each argument
+for file_path in "$@"; do
+    if [ ! -e "$file_path" ]; then
+        echo -e "[${RED}Error${NC}] File not found: $file_path"
+    else
+        file_size=$(stat -c%s "$file_path")
+        if [ "$file_size" -gt 52428800 ]; then
+            send_file "$API_V2/bot$TOKEN/sendDocument" "$file_path" &
+            spinner_pid=$!
+            draw_spinner $spinner_pid
+            wait $spinner_pid
+        else
+            send_file "$API_V1/bot$TOKEN/sendDocument" "$file_path" &
+            spinner_pid=$!
+            draw_spinner $spinner_pid
+            wait $spinner_pid
+        fi
+    fi
+done
