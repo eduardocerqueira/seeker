@@ -1,0 +1,47 @@
+#date: 2024-04-11T17:00:49Z
+#url: https://api.github.com/gists/7eacd16997c23128f3048d3cb20407b7
+#owner: https://api.github.com/users/johnmbw
+
+#!/usr/bin/env python3
+
+import argparse
+import subprocess
+
+def call(*args, ignore_errors=False):
+    try:
+        return subprocess.check_output(args).decode('utf8')
+    except subprocess.CalledProcessError as e:
+        if ignore_errors:
+            return e.output.decode('utf8')
+        raise e
+
+
+def verbose(*arg, **kw):
+    pass
+
+
+def main():
+    list_output = call('hub', 'pr','list', '-f', '%i|%H|%sH%n', '--limit', '20')
+
+    dependabot_refs = []
+
+    for line in list_output.splitlines():
+        pr, branch, commit = line.strip().split('|')
+        if branch.startswith('dependabot/maven/'):
+            status = call('hub', 'ci-status', commit, ignore_errors=True).strip()
+            verbose(pr, branch, status)
+            if status == 'success':
+                name = call('git', 'name-rev', '--name-only', commit).strip()
+                dependabot_refs.append(name)
+
+    if dependabot_refs:
+        print('git merge', ' '.join(dependabot_refs))
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='See which dependabot PRs have built and try to combine them into one commit')
+    parser.add_argument('--verbose', action='store_true')
+    args = parser.parse_args()
+    if args.verbose:
+        verbose = print
+    main()
