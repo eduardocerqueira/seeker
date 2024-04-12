@@ -21,5 +21,5 @@ if ! sts=( $(
   exit 1
 fi
 
-echo "export AWS_ACCESS_KEY_ID= "**********"=${sts[1]} AWS_SESSION_TOKEN=${sts[2]}"
-_TOKEN=${sts[2]}"
+echo "export AWS_ACCESS_KEY_ID= "**********"=${sts[1]} AWS_SESSION_TOKEN= "**********"
+_TOKEN= "**********"
