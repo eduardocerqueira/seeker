@@ -61,5 +61,5 @@ def run_server():
 # curl https://xyz-modal-is-awesome.modal.run/generate \
 #     -X POST \
 #     -d '{"inputs": "**********":{"max_new_tokens":20}}' \
-#     -H 'Content-Type: application/json'   -d '{"inputs":"What is Deep Learning?","parameters":{"max_new_tokens":20}}' \
-#     -H 'Content-Type: application/json'
+#     -H 'Content-Type: "**********":"What is Deep Learning?","parameters":{"max_new_tokens":20}}' \
+#     -H 'Content-Type: application/json'pe: application/json'
