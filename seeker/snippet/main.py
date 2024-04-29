@@ -1,13 +1,14 @@
-#date: 2024-04-26T16:50:39Z
-#url: https://api.github.com/gists/df0641e6b228044acd5f1d9c21c70d65
+#date: 2024-04-29T17:06:09Z
+#url: https://api.github.com/gists/2878749d8b984e34d5eb5527d7fe9198
 #owner: https://api.github.com/users/mypy-play
 
-from typing import TypeVar
+x: str | int = 42
 
-T = TypeVar("T")
-U = T
+if bool():
+    x = 'foo'
+elif bool():
+    x = 'bar'
+else:
+    x = 'baz'
 
-def f(x: T) -> U: ...
-
-x: int = 3
-reveal_type(f(x))
+reveal_type(x)
