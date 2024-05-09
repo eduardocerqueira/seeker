@@ -179,16 +179,20 @@ model.push_to_hub_gguf("hf/model", tokenizer, quantization_method = "**********"
 
 
 
-0b_alpaca_lora", tokenizer, save_method = "merged_16bit",)
+0b_alpaca_lora", tokenizer, save_method = "**********"
 
 # Save to 16bit GGUF
-if True: model.save_pretrained_gguf("llama3_70b_alpaca_lora_GGUF", tokenizer, quantization_method = "f16")
+if True: "**********"
 
-hf_token = ''
+hf_token = "**********"
 from huggingface_hub import login
-login(token = hf_token)
+login(token = "**********"
 
-model.push_to_hub_gguf("hf/model", tokenizer, quantization_method = "q4_k_m", token = hf_token)
+model.push_to_hub_gguf("hf/model", tokenizer, quantization_method = "**********"= hf_token)
+
+
+
+guf("hf/model", tokenizer, quantization_method = "q4_k_m", token = hf_token)
 
 
 
