@@ -1,82 +1,64 @@
-#date: 2024-05-09T16:51:06Z
-#url: https://api.github.com/gists/0334ccce0757786ebcf04119922b27e1
-#owner: https://api.github.com/users/joegoldin
+#date: 2024-05-10T16:49:00Z
+#url: https://api.github.com/gists/7576be664f74384cae850c5c1c264755
+#owner: https://api.github.com/users/hlord2000
 
-"""Main module."""
+# This demo shows how to connect to a device, get its services and characteristics,
+# and then subscribe to notifications from a characteristic. It also shows how to
+# write to a characteristic.
+#
+# To begin, create a virtual environment and install bleak
+#
+# python3 -m venv venv
+# source venv/bin/activate
+# pip install bleak
+#
+# Then run python3 main.py
 
-import logging
-import urllib.request
-import xml.etree.ElementTree as ET
-import datetime
+import asyncio
+from bleak import BleakClient
 
+# You can change the address to your device's address. Alternatively,
+# it is possible to scan for devices and filter by name. For this example,
+# I chose to just scan separately and get the device's address.
+address = "D5:5A:54:BE:64:F4"
 
-def get_url_xml(url: str) -> ET.Element:
-    "Send a GET request to the given URL and parse the response as an XML object"
-    response = urllib.request.urlopen(url).read()
-    # logging.info("Response: %s", response)
-    return ET.fromstring(response)
+async def notification_handler(sender, data):
+    print(f"Notification from {sender}: {data}")
 
+# This is the main function that will be run. It will connect to the device
+# it uses Python async/await syntax so looks a bit complicated
+async def main(address):
+    async with BleakClient(address) as client:
+        # If the client is not connected, connect to it
+        if not client.is_connected:
+            await client.connect()
+        
+        # Get the services of the device
+        services = client.services
+        # For each service, print the path, uuid, and characteristics
+        nordic_uart_tx = None
+        nordic_uart_rx = None
+        for service in services:
+            print(f"Service Description: {service.description}")
+            print(f"Service UUID: {service.uuid}")
+            # For each characteristic in the service, print the uuid and description
+            for characteristic in service.characteristics:
+                if ("Nordic UART TX" in characteristic.description):
+                    nordic_uart_tx = characteristic
 
-# def get_sitemaps_from_xml(sitemap: ET.Element) -> list[str]:
-#     sitemaps: list[str] = []
-#     for sitemap in sitemaps:
-#         if "Sitemap" in str(object=site.tag):
-#            logging.info(get_sitemaps_from_xml(sitemap))
-#     return sitemaps
+                if ("Nordic UART RX" in characteristic.description):
+                    nordic_uart_rx = characteristic
 
+                print(f"Characteristic UUID: {characteristic.uuid}")
+                print(f"Characteristic Description: {characteristic.description}")
+        # Now let's subscribe to notifications from the Nordic UART service's TX characteristic
+        # Note that we created a "notification_handler" function above that will be called 
+        # when a notification is received
+        await client.start_notify(nordic_uart_tx.uuid, notification_handler)
 
-def extract_sitemaps(sitemap: ET.Element, start_date: datetime.datetime = None) -> list[str]:
-    url: str = ""
-    date: datetime.datetime = None
-    for child in sitemap:
-        if "loc" in str(child.tag):
-            url = child.text
-        if "lastmod" in str(child.tag):
-            lastmod = child.text
-            date = datetime.datetime.fromisoformat(
-                lastmod).replace(tzinfo=datetime.timezone.utc)
+        # Now let's write a message to the Nordic UART service's RX characteristic
+        await client.write_gatt_char(nordic_uart_rx.uuid, b'Hello World!')
 
-    if url and (start_date is not None and date is not None and date > start_date):
-        return url
+        await asyncio.sleep(30)
 
-    return None
-
-
-
-def sitemap_urls(sitemap: ET.Element, start_date: datetime.datetime) -> list[str]:
-    urls: dict[str, int] = {}
-    for site in sitemap:
-        logging.info(site.tag)
-        if "sitemap" in str(site.tag):
-            sitemap_url = extract_sitemaps(site, start_date)
-            logging.info("Extracted: %s", sitemap_url)
-            # if sitemap not in sitemaps:
-            #     sitemaps.append(sitemap)
-            
-            actual_url: str = ""
-            sitemap_xml = get_url_xml(sitemap_url)
-            date: datetime.datetime = None
-            for child_node in sitemap_xml:
-                for child in child_node:
-                    logging.info("child: %s", str(child.tag))
-                    if "loc" in str(child.tag):
-                        actual_url = child.text
-                    if "lastmod" in str(child.tag):
-                        lastmod = child.text
-                        date = datetime.datetime.fromisoformat(
-                            lastmod).replace(tzinfo=datetime.timezone.utc)
-                if actual_url and (start_date is not None and date is not None and date > start_date):
-                    urls[actual_url] = 1
-                
-    logging.info("urls: %s", urls)
-    return urls
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO,
-                        format="[%(asctime)s] [%(levelname)s] - %(message)s")
-
-    final_urls = sitemap_urls(get_url_xml(
-        "https://gist.githubusercontent.com/nikitawootten/198e9b7a235abfc1165fb53d64397416/raw/e09a6a9a0719d619b879a785162430ff25fb9fbd/recursive_sitemap.xml"),
-    start_date = datetime.datetime.fromisoformat("2022-11-19T09:51:40.000-05:00").replace(tzinfo=datetime.timezone.utc)).keys()
-    logging.info(list(final_urls))
+asyncio.run(main(address))

@@ -1,0 +1,23 @@
+#date: 2024-05-10T16:56:48Z
+#url: https://api.github.com/gists/ecf9b752e155c06d142312bbcad5f49d
+#owner: https://api.github.com/users/mohd-akram
+
+#!/bin/sh
+
+# usage: lstcp [options] [port]
+lstcp() (
+	while getopts : o; do opts="$opts -$OPTARG"; done; shift $((OPTIND-1))
+	lsof -i tcp"${1+:}$1" -s tcp:listen $opts
+)
+
+# usage: lsudp [options] [port]
+lsudp() (
+	while getopts : o; do opts="$opts -$OPTARG"; done; shift $((OPTIND-1))
+	lsof -i udp"${1+:}$1" $opts | grep -vF -e '*:*' -e '->'
+)
+
+# usage: lsport [options] [port]
+lsport() (
+	while getopts : o; do opts="$opts -$OPTARG"; done; shift $((OPTIND-1))
+	lsof -i"${1+:}$1" -s tcp:listen $opts | grep -vF -e '*:*' -e '->'
+)
