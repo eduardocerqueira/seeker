@@ -1,4 +1,58 @@
 --------------------------------------------------------------------------------
+ 2024-05-20 17:13:19.807218
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/CanonTimeline.py
+	deleted:    snippet/E.go
+	deleted:    snippet/abiotic-factor-server-install-debian-12.sh
+	deleted:    snippet/bash_color_prompt.sh
+	deleted:    snippet/bashrc_eject_git_func.sh
+	deleted:    snippet/bypass.py
+	deleted:    snippet/dupefinder.py
+	deleted:    snippet/faceattendance.py
+	deleted:    snippet/install.sh
+	deleted:    snippet/main.py
+	deleted:    snippet/node-and-npm-in-30-seconds.sh
+	deleted:    snippet/only-git-all-the-way.sh
+	deleted:    snippet/run-docker-nominatim-europe.sh
+	deleted:    snippet/snapclient.sh
+	deleted:    snippet/take-ownership.sh
+	deleted:    snippet/use-nave-no-shell.sh
+	deleted:    snippet/use-nave.sh
+	deleted:    snippet/using-homebrew.sh
+	deleted:    snippet/xgd-freedesktop.org-style.sh
+	deleted:    snippet/xiaomi_setup.sh
+	deleted:    snippet/yet-another-option.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/TimerHelper.py
+	snippet/clone_and_go_to_python_app.sh
+	snippet/delete_ssm_params.py
+	snippet/dice_rolling_matching_odds.py
+	snippet/display_python_app_file.sh
+	snippet/dump_cloudformation_stack_params.py
+	snippet/initiate_tracer.py
+	snippet/launch_triton_server.py
+	snippet/lesson_2_homework.py
+	"snippet/lesson_3\\homework.py"
+	snippet/librairies.py
+	snippet/my-app.py
+	snippet/pack_python_app.sh
+	snippet/query_python_app.sh
+	snippet/run_python_app_container.sh
+	snippet/settings.py
+	snippet/simple-https-server.py
+	snippet/trace_something.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2024-05-17 17:11:57.888545
 --------------------------------------------------------------------------------
   On branch main
