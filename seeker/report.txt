@@ -1,4 +1,46 @@
 --------------------------------------------------------------------------------
+ 2024-05-22 17:10:45.890379
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/TimerHelper.py
+	deleted:    snippet/clone_and_go_to_python_app.sh
+	deleted:    snippet/delete_ssm_params.py
+	deleted:    snippet/dice_rolling_matching_odds.py
+	deleted:    snippet/display_python_app_file.sh
+	deleted:    snippet/dump_cloudformation_stack_params.py
+	deleted:    snippet/initiate_tracer.py
+	deleted:    snippet/launch_triton_server.py
+	deleted:    snippet/lesson_2_homework.py
+	deleted:    "snippet/lesson_3\\homework.py"
+	deleted:    snippet/librairies.py
+	deleted:    snippet/my-app.py
+	deleted:    snippet/pack_python_app.sh
+	deleted:    snippet/query_python_app.sh
+	deleted:    snippet/run_python_app_container.sh
+	deleted:    snippet/settings.py
+	deleted:    snippet/simple-https-server.py
+	deleted:    snippet/trace_something.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/download-themes.sh
+	snippet/fix-permissions.sh
+	snippet/homework.py
+	snippet/ipython.py
+	"snippet/lesson_6\\homework.py"
+	snippet/missing-values-countplot.py
+	snippet/missing-values-heatmap.py
+	snippet/pytest_cov_cba.py
+	snippet/shell.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2024-05-21 17:11:14.277622
 --------------------------------------------------------------------------------
   On branch main
