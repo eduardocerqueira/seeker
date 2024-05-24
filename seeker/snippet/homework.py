@@ -1,306 +1,198 @@
-#date: 2024-05-22T16:53:52Z
-#url: https://api.github.com/gists/5f4ec515e905be3d3129e2b3bd6165e0
+#date: 2024-05-24T17:01:16Z
+#url: https://api.github.com/gists/49c4307e55027ad2c4198a0d89de3fa8
 #owner: https://api.github.com/users/kimpanudda
 
-# Homework: Lists
+# Homework: Loops
 
 # 🔥Read carefully until the end before you start solving the exercises🔥
 
 # Practice the Basics 💪🏻
 
-# Empty, Pre-populated, and Lists within Lists
-
 # You can uncomment or type the necessary code on each task
 
 # ---------------------------------------------------------------------
-# Task 1. Create three lists:
+# Task 1. Create a basic for loop
 
-# List #1: Create an empty list and then use append() to populate it with the names of three of your friends.
-# List #2: Create the same list, but use the syntax to create it pre-populated.
-# List #3: Create the same list, but each element should be a list, 
-# where the first sub-element is the friend's name 
-# and the second sub-element is their age.
+# Complete the following code in such a way that this loop prints the characters 
+# of `name` one at a time.
 
-# List 1:
-list_1 = []
-list_1.append('Tim')
-list_1.append('Dan')
-list_1.append('Jane')
+name = "Joseph"
 
-# List 2:
-list_2 = ['Tim', 'Dan', 'Jane']
-
-# List 3:
-list_3 = [
-    ['Tim', 25],
-    ['Dan', 30],
-    ['Jane', 27],
-]
+for character in name:
+    print(character)
 
 # ---------------------------------------------------------------------
-# Task 2. Retrieve elements from a List
+# Task 2. Create a basic `for` loop with a counter
 
-# Create print statements to retrieve the following elements from the previous lists:
-# - From List 2: Retrieve the name of the second friend.
-# - From List 3: Retrieve the age of the last friend you put in the list.
+# Complete the following code in such a way that the loop increments the counter
+# and prints the number of characters in `name`name at the end.
 
-# Name of second friend
-second_friend_name = list_2[1]
+name = 'Tom'
+counter = 0
 
-# Age of the last friend of the list
-last_friend_age = list_3[-1][-1]
+for character in name:
+    counter = counter + 1
 
-# ---------------------------------------------------------------------
-# Task 3. Remove elements from a List
-
-# From the lists provided, remove the requested elements. Easy peazy.
-
-cities = ["Houston", "Dallas", "Austin"]
-fruits = ["apple", "banana", "orange"]
-
-# Remove Austin from cities without using its index
-cities.remove("Austin")
-
-# Remove the last element from fruits using negative indexes
-del fruits[-1]
+# This should print '3'
+print(counter)
 
 # ---------------------------------------------------------------------
-# Task 4. Verify if an element exists in a list
+# Task 3. Create a basic 'while' loop
 
-# Given the provided list, write code that prints `YES` if the list contains the word `cheese`
+# Complete the following code in such a way that the loop exits after five iterations, without using break.
 
-# The list
-pantry = ["ham", "bread", "cheese"]
+# 🔥 Hint: Think of it as: while counter is under 5, increment the counter and print its value🔥
 
-# Write code that prints YES if the list contains "cheese".
+"""
+This should print:
+1
+2
+3
+4
+5
+"""
+counter = 0
 
-if "cheese" in pantry:
-    print('YES')
-       
-# ---------------------------------------------------------------------
-# Task 5. Sorting and Reversing
-
-# Given the provided list, write code that sorts and reverses it, as required.
-
-numbers = [6, 34, 17, 9, 2, 11, 57, 9, 32]
-
-# Write code that sorts the list in ascending order without disturbing the original.
-sorted_numbers = sorted(numbers)
-print(sorted_numbers)
-
-# Write code that reverses (flips) the list without disturbing the original.
-# Remember that in this case, casting is required.
-reversed_numbers = list(reversed(numbers))
-print(reversed_numbers)
-
-# Write code that sorts the list in place, modifying the original.
-numbers.sort()
-
-# Write code that reverses (flips) the list in place, modifying the original.
-numbers.reverse()
+while counter < 5:
+    counter = counter + 1
+    print(counter)
 
 # ---------------------------------------------------------------------
-# Task 6. Stitching and Slicing
+# Task 4. Exit a loop using break 🛑
 
-# You are given two lists with names of days of the week:
+# Take the previous example, and modify it so you exit the loop after five iterations, 
+# but this time do it using break.
 
-# - `work_days` contains the work week days (Mon-Fri) 
-# - `rest_days` contains the weekend days (Sat-Sun)
+counter = 0
 
-# Create a third list that contains the _concatenation_ of the previous two. 
-# Call it 'full_week'
+while True:
+    counter = counter + 1
 
-# Now, write python code that prints a slice from 'full_week' with the work days.
-
-work_days = ['mon', 'tue',  'wed', 'thu', 'fri']
-rest_days = ['sat', 'sun']
-
-# Concatenate work_days and rest_rays
-full_week = work_days + rest_days
-
-# Slice with the work days
-print(full_week[:5])
-
-# ---------------------------------------------------------------------
-# Task 7. Aggregators and Helpers
-
-# Given a list of numbers, use helpers and aggregators to answer the questions:
-
-# - What's the lowest number?
-# - What's the highest number?
-# - What's the sum of all the numbers in the list?
-# - How many times is the number 9 in the list?
-# - How many total elements are in the list?
-
-numbers = [6, 34, 17, 9, 2, 11, 57, 9, 32]
-
-# Lowest number
-print(min(numbers))
-
-# Highest number
-print(max(numbers))
-
-# Sum of everything
-print(sum(numbers))
-
-# Count number 9s
-print(numbers.count(9))
-
-# Total number of elements
-print(len(numbers))
-
-## Exercises 🏋🏻
-
-# ---------------------------------------------------------------------
-# Exercise 1. The Biography Creator
-
-# Create a program that will ask you for the following items and stores them in a list for later usage:
-
-# - Your Name
-# - Your Age
-# - The name of the city where you were born
-
-# The program should use a variable with a string that will be used as a template. 
-# This template should be a sentence that can be used to build the person's biography.
-
-# Fox example:
-
-# biography = "My name is <NAME>, I'm <AGE> years old and I was born in <CITY>."
+    if counter > 5:
+        break
         
-# Tips: 
-# - Use f-strings with placeholders to build the actual template, with elements of the list as values.
-# - Use input() to gather the data.
-# - Use print() at the end, to show the user's biography.
-
-# Declare an empty list
-user_data = []
-
-# Gather user input
-name = input("Name: ")
-age = input("Age: ")
-city = input("City: ")
-
-# Add user input to the list
-user_data.append(name)
-user_data.append(age)
-user_data.append(city)
-
-# Declare your template. Use list elements as values.
-biography = f"My name is {name}, I'm {age} years old and I was born in {city}."
-
-# Show the user's biography
-print(biography)
+    print(counter)
 
 # ---------------------------------------------------------------------
-# Exercise 2. The Card Deck ♦️♥️♠️♣️
+# Task 5. Range
 
-# You will be provided with a couple lists that contain the cards for a card deck. 
-# One of the lists contains the numbers, and the other one contains the faces. 
+# Remember that range(start, end, step) behaves somewhat like list slicing, so start is inclusive,
+# end is exclusive, and step is optional.
 
-# You will be asked to fill in the blanks to print out certain cards for a card game you've been working on.
+# Figure out the values required for range() to generate the expected output.
 
-# 🔥 Tip: You might want to stitch them together first.
+# 0, 1, 2, 3, 4, 5 (use only one argument)
+range(6)
 
-# Here are the card decks.
-numbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
-faces = ['J', 'Q', 'K']
+# 0, 1, 2, 3, 4, 5 (use two arguments: start and end)
+range(0,6)
 
-# Concatenate them first.
-card_deck = numbers + faces
-
-# Print out the numbers 1 to 6.
-print(card_deck[:6])
-
-# Print out the last 3. Do it using POSITIVE indexes.
-print(card_deck[10:])
-
-# Print out the last 3 (same as before), but using NEGATIVE indexes.
-print(card_deck[-3:])
-
-# Print out everything EXCEPT the first and last.
-print(card_deck[1:-1])
-
-# What would you use so the printout includes the following:
-# Hint: It's every third card of the full deck.
-# ['1', '4', '7', '10', 'K']
-print(card_deck[::3])
-
-# Print out the EVEN numbers. No faces.
-print(numbers[1::2])
+# Odd numbers between 0 and 10: 1, 3, 5, 7, 9
+range(1,10,2)
 
 # ---------------------------------------------------------------------
-# Exercise 3. The Steps Tracker 👟
+# Task 6. Using range() in a loop
 
-# Walking is a great way to improve one's health, and it can be fun! 
-# Doctors recommend 10,000 steps per day! You would like to know how many steps are YOU taking per day and per week.
+# Remember that range() returns an iterable, so you will usually find it used in a for loop.
 
-# Write a program that will ask you the number of steps taken each day of the week, for one week. 
-# The program should put the step counts in a list, where index 0 is the number for Monday, 
-# index 1 is the number for Tuesday, and so on.
- 
-# Once you have all the steps counts, answer the following questions:
-# - How many steps you took on Wednesday?
-# - How many steps you took on the work days (Mon - Fri)?
-# - How many steps total did you take over the whole week?
-# - What was the least number of steps you took on a day?
-# - What was the most number of steps you took on a day? 
+# Complete the following code so it prints the even numbers between 0 and 10;
 
-monday = int(input('Steps for Monday: '))
-tuesday = int(input('Steps for Tuesday: '))
-wednesday = int(input('Steps for Wednesday: '))
-thursday = int(input('Steps for Thursday: '))
-friday = int(input('Steps for Friday: '))
-saturday = int(input('Steps for Saturday: '))
-sunday = int(input('Steps for Sunday: '))
+for numbers in range(0,11,2):
+    print(numbers)
 
-steps = [monday, tuesday, wednesday, thursday, friday, saturday, sunday]
 
-# Steps on Wednesday
-print(steps[2])
-
-# Steps on the work days
-work_days_steps = steps[:5]
-print(sum(work_days_steps))
-
-# Steps over the whole week
-print(sum(steps))
-
-# Least number of steps
-print(min(steps))
-
-# Highest number of steps
-print(max(steps))
+# Exercises 🏋🏻
 
 # ---------------------------------------------------------------------
-# Exercise 4. Bonus Round: The Speech Reverser and Counter 🎤
+# Exercise 1. Digits Only!
 
-# Python has a handy little method that allows you to split a string. 
-# In its most basic form it splits a string into a list using the spaces as separators:
+# Part one: Given a string of letters and digits, complete the program to print only the digits. 
+# For example, for the string '3catsand5tacos', output should be: 3 5
 
-# Example:
+# Strategy:
+# - Create variable to hold the string: my_string = '3catsand5tacos'
+# - Create a string to represent the numbers: numbers = '1234567890'
+# - Create a loop to iterate through characters of my_string. 
+# - If the character is a digit (`if character in numbers`) print it.
 
-# phrase = "My Name is Joseph"
-# words = phrase.split()
-# print(words) -> ['My', 'Name', 'is', 'Joseph']
+my_string = 's0m3 str1ng w1th numb3r5'
+numbers = '1234567890'
 
-# More information about split: https://www.w3schools.com/python/ref_string_split.asp
+for character in my_string:
+    if character in numbers:
+        print(character)
 
-# Now, armed with `split()` write a program that does the following:
 
-# - Takes a string input from the user.
-# - Splits it into words.
-# - Prints out the string with the words in reverse order.
-# - Prints out the word count. 
+# Part two: Modify the code to print the first digit only
 
-# Get input from the user
-user_input = input('Give me a phrase')
+# ---------------------------------------------------------------------
+# Exercise 2. Vowel Counter
 
-# Split user input into words
-words = user_input.split()
+# Imagine you're working on a text analysis tool that needs to count the number of vowels in a given string. 
+# As a simple practice, you have been provided with a famous quote. 
+# Your task is to count and display the total number of vowels in this quote.
 
-# Reverse the list and print it
-reversed_words = list(reversed(words))
-print(reversed_words)
+quote = "Life is like riding a bicycle. To keep your balance, you MUST keep moving."
+vowel_count = 0
 
-# Print the length of the words list
-print(len(words))
+for character in quote:
+    # 'A' and 'a' are different in python, so we include both upper and lowercase
+    # vowels in our comparison string to account for this difference.
+    if character in 'aeiouAEIOU':
+        vowel_count += 1
+
+print(f"The number of vowels in the quote is: {vowel_count}")
+
+# ---------------------------------------------------------------------
+# Exercise 3. Sum of all Digits 🔢
+
+# You have a mixed string that contains both letters and numbers, like an alphanumeric password or 
+# a serial key. Your task is to find all the numbers in this string and sum them up.
+
+# Hint: You can put the numbers you find into a list (cast as `int`) and use `sum()` on the list at the end.
+
+mixed_string = "abc123xyz456"
+digits = "0123456789"
+found_digits = []
+
+for char in mixed_string:
+    if char in digits:
+        found_digits.append(int(char))
+
+print(f"The total sum of numbers in the string is: {sum(found_digits)}")
+
+# ---------------------------------------------------------------------
+# Exercise 4. Password Strength Checker
+
+# You are helping to develop a user registration page for a website. As part of the registration process, 
+# you need to ensure that submitted passwords are strong. A strong password should have at least 8 characters.
+
+# Create a Python program to check the strength of a list of passwords and count how many are strong.
+
+passwords = "**********"
+strong_password_count = "**********"
+
+ "**********"f "**********"o "**********"r "**********"  "**********"p "**********"a "**********"s "**********"s "**********"w "**********"o "**********"r "**********"d "**********"  "**********"i "**********"n "**********"  "**********"p "**********"a "**********"s "**********"s "**********"w "**********"o "**********"r "**********"d "**********"s "**********": "**********"
+ "**********"  "**********"  "**********"  "**********"  "**********"i "**********"f "**********"  "**********"l "**********"e "**********"n "**********"( "**********"p "**********"a "**********"s "**********"s "**********"w "**********"o "**********"r "**********"d "**********") "**********"  "**********"> "**********"= "**********"  "**********"8 "**********": "**********"
+        strong_password_count += "**********"
+
+print(f"Number of strong passwords: "**********"
+
+# ---------------------------------------------------------------------
+# Exercise 5. The Red Crayon 🖍️
+
+# Imagine you have a box of crayons, and you're looking for a "Red" crayon. 
+# You pull out one crayon at a time from the box. 
+
+# Use a while loop to simulate this scenario.  As soon as you find the "Red" crayon, stop the loop.
+
+colors = ["Blue", "Yellow", "Green", "Red", "Purple", "Orange"]
+index = 0
+
+# This should basically say: while the current color being evaluated is
+# different than "Red", increment to the next color and try again.
+while colors[index] != "Red":
+    print(f"Found {colors[index]} crayon. Still looking for Red.")
+    index += 1
+
+print("Found the Red crayon!")
