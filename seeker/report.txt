@@ -1,4 +1,65 @@
 --------------------------------------------------------------------------------
+ 2024-05-30 17:10:49.603444
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/Azul.java
+	deleted:    snippet/MangaPacker.py
+	deleted:    snippet/P14.py
+	deleted:    snippet/Python_tutorial_pt3_1.py
+	deleted:    snippet/Python_tutorial_pt3_2.py
+	deleted:    snippet/Python_tutorial_pt3_3.py
+	deleted:    snippet/Python_tutorial_pt3_4.py
+	deleted:    snippet/Python_tutorial_pt3_5.py
+	deleted:    snippet/Python_tutorial_pt3_6.py
+	deleted:    snippet/Python_tutorial_pt3_7.py
+	deleted:    snippet/Python_tutorial_pt3_8.py
+	deleted:    snippet/Python_tutorial_pt3_9.py
+	deleted:    snippet/addAndTake.java
+	deleted:    snippet/aircastle.py
+	deleted:    snippet/beeelephant.py
+	deleted:    snippet/clone_all.sh
+	deleted:    snippet/comand.py
+	deleted:    snippet/ddd.sh
+	modified:   snippet/main.py
+	deleted:    snippet/publisher.py
+	deleted:    snippet/subscriber.py
+	deleted:    snippet/subscriber_viewer.py
+	deleted:    snippet/task_tk.py
+	deleted:    snippet/themes.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/3proxy
+	snippet/FInal Code.py
+	snippet/Looping Colors.py
+	snippet/P17.py
+	snippet/bookmark_adjust.py
+	snippet/commentremove.py
+	snippet/delete_and_prune_branches.zsh
+	snippet/demo.py
+	snippet/ex41.py
+	snippet/export_macOS_developper_key_to_pfx.sh
+	snippet/gatedsine.py
+	snippet/git-log-beautify.sh
+	snippet/global_fifo_queue.py
+	snippet/list_comprehension_demo.py
+	snippet/main.go
+	snippet/nice_shell_things.sh
+	snippet/photosynthesis.py
+	snippet/photosynthesis_and_respiration.py
+	snippet/respiration.py
+	snippet/script.sh
+	snippet/tbnb.py
+	snippet/xrandr-dual-monitor-setup.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2024-05-29 17:12:12.023138
 --------------------------------------------------------------------------------
   On branch main
