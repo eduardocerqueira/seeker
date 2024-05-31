@@ -1,0 +1,13 @@
+#date: 2024-05-31T16:56:16Z
+#url: https://api.github.com/gists/1d0a24b93cc6ea05f424049eb9eec261
+#owner: https://api.github.com/users/VTLJR
+
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if ! limactl list | grep --fixed-strings "docker" | grep --fixed-strings --quiet "Running"; then
+  limactl start docker
+fi
+
+exec limactl shell docker docker "$@"

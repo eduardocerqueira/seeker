@@ -1,4 +1,47 @@
 --------------------------------------------------------------------------------
+ 2024-05-31 17:11:08.872835
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/CONFIG.py
+	deleted:    snippet/compra.py
+	deleted:    snippet/custom-init.jsh
+	deleted:    snippet/diffusion_geometry.py
+	deleted:    snippet/logging-loki.sh
+	modified:   snippet/main.py
+	deleted:    snippet/media.py
+	deleted:    snippet/netobserv-loki.sh
+	deleted:    snippet/ntshengn-setup.sh
+	deleted:    snippet/old_not_async_bot.py
+	deleted:    snippet/qtile-config.py
+	deleted:    snippet/simulate_ERP_SVD.py
+	deleted:    snippet/sqs-messages-to-files.py
+	deleted:    snippet/stats.py
+	deleted:    snippet/tabuada.py
+	deleted:    snippet/webScraper.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/Convert XPS to PDF in Python.py
+	snippet/P8.py
+	snippet/check-job-status.sh
+	snippet/docker
+	snippet/example.py
+	snippet/hashDir.go
+	snippet/install.sh
+	snippet/quantile_contours.py
+	snippet/setup.sh
+	snippet/start.sh
+	snippet/tmux.sh
+	snippet/ubus.local.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2024-05-30 17:10:49.603444
 --------------------------------------------------------------------------------
   On branch main
