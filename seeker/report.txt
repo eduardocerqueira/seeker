@@ -1,4 +1,65 @@
 --------------------------------------------------------------------------------
+ 2024-06-03 17:11:48.146468
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/3proxy
+	deleted:    snippet/Convert XPS to PDF in Python.py
+	deleted:    snippet/FInal Code.py
+	deleted:    snippet/Looping Colors.py
+	deleted:    snippet/P17.py
+	deleted:    snippet/P8.py
+	deleted:    snippet/bookmark_adjust.py
+	deleted:    snippet/check-job-status.sh
+	deleted:    snippet/commentremove.py
+	deleted:    snippet/delete_and_prune_branches.zsh
+	deleted:    snippet/demo.py
+	deleted:    snippet/docker
+	deleted:    snippet/ex41.py
+	deleted:    snippet/example.py
+	deleted:    snippet/export_macOS_developper_key_to_pfx.sh
+	deleted:    snippet/gatedsine.py
+	deleted:    snippet/git-log-beautify.sh
+	deleted:    snippet/global_fifo_queue.py
+	deleted:    snippet/hashDir.go
+	deleted:    snippet/install.sh
+	deleted:    snippet/list_comprehension_demo.py
+	deleted:    snippet/main.go
+	deleted:    snippet/main.py
+	deleted:    snippet/nice_shell_things.sh
+	deleted:    snippet/photosynthesis.py
+	deleted:    snippet/photosynthesis_and_respiration.py
+	deleted:    snippet/quantile_contours.py
+	deleted:    snippet/respiration.py
+	deleted:    snippet/script.sh
+	deleted:    snippet/setup.sh
+	deleted:    snippet/start.sh
+	deleted:    snippet/tbnb.py
+	deleted:    snippet/tmux.sh
+	deleted:    snippet/ubus.local.py
+	deleted:    snippet/xrandr-dual-monitor-setup.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/CRT.py
+	snippet/Novetus_linux_setup_and_install.sh
+	snippet/all_years_all_equipment.py
+	snippet/foundryvtt-module-check.sh
+	snippet/halo.py
+	snippet/homework.py
+	snippet/logging_decorator.py
+	snippet/orca_flow_rate_calculator.py
+	snippet/stacked_layout_sample.py
+	snippet/tes.py
+	snippet/vcpkg_create_env.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2024-05-31 17:11:08.872835
 --------------------------------------------------------------------------------
   On branch main
