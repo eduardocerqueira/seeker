@@ -1,4 +1,38 @@
 --------------------------------------------------------------------------------
+ 2024-06-05 17:10:58.267293
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/CRT.py
+	deleted:    snippet/Novetus_linux_setup_and_install.sh
+	deleted:    snippet/all_years_all_equipment.py
+	deleted:    snippet/foundryvtt-module-check.sh
+	deleted:    snippet/halo.py
+	deleted:    snippet/homework.py
+	deleted:    snippet/logging_decorator.py
+	deleted:    snippet/orca_flow_rate_calculator.py
+	deleted:    snippet/stacked_layout_sample.py
+	deleted:    snippet/tes.py
+	deleted:    snippet/vcpkg_create_env.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/JwtService.java
+	snippet/P31.py
+	snippet/config_terminal.sh
+	snippet/create-pull-request.sh
+	snippet/list-imagebuilder-amazon-ami.py
+	snippet/makeauthority.sh
+	snippet/makecert.sh
+	snippet/parseTensor.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2024-06-04 17:11:13.441156
 --------------------------------------------------------------------------------
   On branch main
