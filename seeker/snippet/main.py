@@ -1,69 +1,79 @@
-#date: 2024-06-04T16:59:43Z
-#url: https://api.github.com/gists/4921b20351f92b40c44097bff3f9b8c0
-#owner: https://api.github.com/users/tails1405
+#date: 2024-06-06T16:44:54Z
+#url: https://api.github.com/gists/5135980d0ecaa82745a1e57813014f30
+#owner: https://api.github.com/users/Lxchengcheng
 
-import cpuinfo
-import os
-import requests
-person = []
-choix = "0"
-print("                  __                                      __                   .__           ")
-print("  ____  ___  ____/  |_ _______   ____    _____    ____  _/  |_   ____    ____  |  |    ______")
-print("_/ __ \ \  \/  /\   __\\_  __ \_/ __ \  /     \ _/ __ \ \   __\ /  _ \  /  _ \ |  |   /  ___/")
-print("\  ___/  >    <  |  |   |  | \/\  ___/ |  Y Y  \\  ___/  |  |  (  <_> )(  <_> )|  |__ \___ \ ")
-print(" \___  >/__/\_ \ |__|   |__|    \___  >|__|_|  / \___  > |__|   \____/  \____/ |____//____  >")
-print("     \/       \/                    \/       \/      \/                                   \/ ")
-while choix != "4" or choix ==1 or choix ==2 or choix ==3:
+from MRE2 import MREEnv
+from Agentag import Agent
+import numpy as np
+from Immune import immune
+import datetime
+import matplotlib.pyplot as plt
+from Verify2 import verify
+env = MREEnv()
+imm = immune()
+ver = verify()
+agent = Agent(state_size=1, action_size=1, f_size=1)
+episodes = 50 #训练回合数
+n_clones = 10  #克隆数量
+mutation_rate = 0.7  #变异率
+mutation_range = 0.5  #变异范围
+batch_size = 32  #小样本数目
+max_steps = 100  #最大回合数
+scores = []  #奖励数组
+states1 = []  #状态数组
+episode_times = []
+action_dim = env.action_space.shape[0]
+current_time = datetime.datetime.now()
+start_time = current_time.timestamp()
+for episode in range(episodes):
+    current_time = datetime.datetime.now()
+    episode_time = current_time.timestamp()
+    episode_time = episode_time - start_time
+    print("episode=", episode, "episode_time=", episode_time)
+    score = 0.0 #初始化奖励
+    states = 0.0 #初始化状态
+    f_MRE = 0.0 #初始化MRE频率h
+    f_ex = 0.0  #初始化外界激励频率
+    state, f_re = env.reset() #初始化状态、外界激励频率0
+    print('f_ex=', f_re)
+    f_four = env.fourie(f_re)
+    for step in range(max_steps): #开始训练神经网络
+        action = agent.act(state, episode ,f_four) ##初始化动作
+        next_state, reward, done, f_ex, f_MRE = env.stp(action,f_re) #获取下一状态值，当前奖励、外界激励频率和MRE的频率
+        agent.remember(state, action, reward, next_state, f_four, f_re, done) #将上述值存入经验池供神经网络训练
+        agent.replay(batch_size, step) #将经验供给神经网络进行学习
+        state = next_state #替换当前状态
+        score += reward #奖励累计
+        if done: #判断本次回合是否训练完毕
+            print(done)
+            print('action=',np.array(action))
+            print('step=',step)
+            break
+        if (step+1) % 10 == 0: #每10个step进行免疫训练
+            clone, reward_ave, memory, bad = imm.clone_selection(n_clones)
+            imm.mutation(clone, memory, bad, reward_ave=reward_ave, mutation_rate=mutation_rate, mutation_range=mutation_range)
+        if step % 20 == 0:
+            print('f_MRE=', f_MRE)
+    scores.append(score)
+    episode_times.append(episode_time)
+    print("Episode:", episode + 1, "Score:", score, "f_ex:", f_ex, "f_MRE:", f_MRE, )
+current_time = datetime.datetime.now()
+end_time = current_time.timestamp()
+training_time = end_time - start_time
+print("训练所花费的时间为:", training_time)
 
-    # Gestion d'une liste du personnel
-    print("**********************************")
-    print("1)info cpu")
-    print("2)ip position")
-    print("3)Effacer une personne de la liste")
-    print("4)Fin")
-    print("")
-    choix = (input("Entrez votre choix : "))
-    if choix == "1":
-        #recherche et variable
-        nom_coeur = cpuinfo.get_cpu_info()["count"]
-        marque_coeur = cpuinfo.get_cpu_info()["brand_raw"]
-        frequence_processure = cpuinfo.get_cpu_info()["hz_actual_friendly"]
-        #titre
-        print("_________  __________  ____ ___ ")
-        print("\_   ___ \ \______   \|    |   \ ")
-        print("/    \  \/  |     ___/|    |   /")
-        print("\     \____ |    |    |    |  / ")
-        print(" \______  / |____|    |______/  ")
-        print("        \/                      ")
-        #affichage resultat
-        print(f"processeur : {marque_coeur}")
-        print(f"le processeur possède {nom_coeur} coeur(s)")
-        print(f"frequence actuelle du processeur : {frequence_processure}")
-        os.system("pause")
-    elif choix == "2":
-        print("                    .__  __  .__               ")
-        print("______   ____  _____|__|/  |_|__| ____   ____  ")
-        print("\____ \ /  _ \/  ___/  \   __\  |/  _ \ /    \ ")
-        print("|  |_> >  <_> )___ \|  ||  | |  (  <_> )   |  \ ")
-        print("|   __/ \____/____  >__||__| |__|\____/|___|  /")
-        print("|__|              \/                        \/ ")
-        ip = input("votre ip: ")
+state, f_re = env.reset()
+ver.verify_conclude(state)
+print("验证数据存储已完成")
 
-        def get_location():
-                ip_address = ip
-                response = requests.get(f'https://ipapi.co/{ip_address}/json/').json()
-                location_data = {
-                "ip": ip_address,
-                'city': response.get('city'),
-                'region': response.get('region'),
-                'country': response.get('country_name')
-                }
-                return location_data
-    
-        get_location()
+plt.plot(scores)
+plt.xlabel('Episode')
+plt.ylabel('Score')
+plt.show()
 
-        print(get_location())
-        os.system("pause")
-    elif choix == "3":
-        person.remove(input("Entrer le nom prénom de la personne à effacer : "))
-        print("")
+with open(r'C:\Users\17702\Desktop\修稿仿真数据\奖励.txt', 'w') as f4:
+    pass
+np.savetxt(r'C:\Users\17702\Desktop\修稿仿真数据\奖励.txt', np.vstack([scores]).T, delimiter=',')
+with open(r'C:\Users\17702\Desktop\修稿仿真数据\时间.txt', 'w') as f2:
+    pass
+np.savetxt(r'C:\Users\17702\Desktop\修稿仿真数据\时间.txt', np.vstack([episode_times]).T, delimiter=',')
