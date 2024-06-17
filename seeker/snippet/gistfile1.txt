@@ -1,0 +1,11 @@
+#date: 2024-06-17T16:59:03Z
+#url: https://api.github.com/gists/c0ac820f747301db15be099253d95ef8
+#owner: https://api.github.com/users/anschu
+
+#!/bin/sh
+
+mkdir -p /etc/apt/keyrings/
+wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor > /etc/apt/keyrings/grafana.gpg
+echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" | tee /etc/apt/sources.list.d/grafana.list
+apt update
+apt install promtail -y
