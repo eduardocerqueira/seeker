@@ -1,11 +1,26 @@
-#date: 2024-06-17T16:59:03Z
-#url: https://api.github.com/gists/c0ac820f747301db15be099253d95ef8
-#owner: https://api.github.com/users/anschu
+#date: 2024-06-19T17:02:41Z
+#url: https://api.github.com/gists/224aae680a5807ba456ff1745aaaec09
+#owner: https://api.github.com/users/TheDingoGuy
 
-#!/bin/sh
+#!/usr/bin/python3
+import jetson_inference
+import jetson_utils
+import argparse
 
-mkdir -p /etc/apt/keyrings/
-wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor > /etc/apt/keyrings/grafana.gpg
-echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" | tee /etc/apt/sources.list.d/grafana.list
-apt update
-apt install promtail -y
+#seeing what type of dog is in the image
+parser = argparse.ArgumentParser()
+parser.add_argument("filename", type = str, help = "filename of the image to process")
+parser.add_argument("--network", type = str, default = "googlenet", help = "model to use, can be; googlenet, resnet-18, etcetera")
+opt = parser.parse_args()
+#load image and classify the dog
+img = jetson_utils.loadImage(opt.filename)
+net = jetson_inference.imageNet(opt.network)
+class_idx, confidence = net.Classify(img)
+class_description = net.GetClassDesc(class_idx)
+
+#output
+print (confidence)
+print(f"The breed of dog shown is {str(class_description)} (class #tar{str(class_idx)}) having {str(confidence*100)}percent of me being sure")
+if confidence < 0.5:
+    print ("maybe the dog is a mutt")
+#/usr/bin/python3 /home/nvidia/myrecognition/dogbreedrecognizer doggos/(dog name here).jpg
