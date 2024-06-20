@@ -1,26 +1,26 @@
-#date: 2024-06-19T17:02:41Z
-#url: https://api.github.com/gists/224aae680a5807ba456ff1745aaaec09
-#owner: https://api.github.com/users/TheDingoGuy
+#date: 2024-06-20T16:58:09Z
+#url: https://api.github.com/gists/d1148a5108370e136f4802ed0023ba40
+#owner: https://api.github.com/users/imbgar
 
-#!/usr/bin/python3
-import jetson_inference
-import jetson_utils
-import argparse
+#!/bin/bash
 
-#seeing what type of dog is in the image
-parser = argparse.ArgumentParser()
-parser.add_argument("filename", type = str, help = "filename of the image to process")
-parser.add_argument("--network", type = str, default = "googlenet", help = "model to use, can be; googlenet, resnet-18, etcetera")
-opt = parser.parse_args()
-#load image and classify the dog
-img = jetson_utils.loadImage(opt.filename)
-net = jetson_inference.imageNet(opt.network)
-class_idx, confidence = net.Classify(img)
-class_description = net.GetClassDesc(class_idx)
+# Check if both parameter group names are provided
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $0 <parameter-group-name-1> <parameter-group-name-2>"
+    exit 1
+fi
 
-#output
-print (confidence)
-print(f"The breed of dog shown is {str(class_description)} (class #tar{str(class_idx)}) having {str(confidence*100)}percent of me being sure")
-if confidence < 0.5:
-    print ("maybe the dog is a mutt")
-#/usr/bin/python3 /home/nvidia/myrecognition/dogbreedrecognizer doggos/(dog name here).jpg
+# Fetch parameters for both groups
+params1=$(aws rds describe-db-parameters --db-parameter-group-name "$1" --query "Parameters[].[ParameterName,ParameterValue]" --output json)
+params2=$(aws rds describe-db-parameters --db-parameter-group-name "$2" --query "Parameters[].[ParameterName,ParameterValue]" --output json)
+
+# Use jq to sort them by ParameterName
+echo "$params1" | jq -S '.' > temp1.json
+echo "$params2" | jq -S '.' > temp2.json
+
+# Use diff to compare the sorted parameters
+diff temp1.json temp2.json
+
+# Clean up temporary files
+rm temp1.json temp2.json
+
