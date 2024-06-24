@@ -1,118 +1,140 @@
-//date: 2024-06-21T16:51:53Z
-//url: https://api.github.com/gists/1c5797f3c166790cc0aa02d9dd6f78c3
-//owner: https://api.github.com/users/EnterCapchaCode
+//date: 2024-06-24T16:54:33Z
+//url: https://api.github.com/gists/dd97fda73250b9f9f8fa71a2f966dc05
+//owner: https://api.github.com/users/ilvi89
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+package com.test;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.vavr.control.Try;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.http.MediaType;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
+import lombok.Data;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-
-class CrptApi {
-    private static volatile CrptApi instance;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.List;
+import java.util.concurrent.*;
+public class CrptApi {
+    private final HttpClient httpClient;
     private final Semaphore semaphore;
-    private final ScheduledExecutorService scheduler;
-    private final WebClient webClient;
     private final ObjectMapper objectMapper;
 
-    private static final String BASE_URL = "https://ismp.crpt.ru/api/v3/lk";
-    private static final int SCHEDULER_DEFAULT_POOL_SIZE = 1;
-
-    private CrptApi(TimeUnit timeUnit, int requestLimit) {
-        this.semaphore = new Semaphore(requestLimit, true);
-        this.scheduler = Executors.newScheduledThreadPool(SCHEDULER_DEFAULT_POOL_SIZE);
+    public CrptApi(Duration duration, int requestLimit) {
+        this.httpClient = HttpClient.newHttpClient();
+        this.semaphore = new Semaphore(requestLimit);
         this.objectMapper = new ObjectMapper();
-        this.webClient = WebClient.builder()
-                .baseUrl(BASE_URL)
-                .build();
 
-        setUpSemaphoreScheduler(timeUnit, requestLimit - semaphore.availablePermits());
-    }
+        long interval = duration.toMillis();
 
-    public static CrptApi getInstance(TimeUnit timeUnit, int requestLimit) {
-        if (instance == null) {
-            synchronized (CrptApi.class) {
-                if (instance == null) {
-                    instance = new CrptApi(timeUnit, requestLimit);
+        Thread permitReleaser = new Thread(() -> {
+            while (true) {
+                try {
+                    TimeUnit.MILLISECONDS.sleep(interval);
+                    semaphore.release(requestLimit - semaphore.availablePermits());
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
                 }
             }
-        }
-        return instance;
+        });
+        permitReleaser.setDaemon(true);
+        permitReleaser.start();
     }
 
+    public String createDocument(DocumentDTO document) throws Exception {
+        semaphore.acquire();
 
-    public synchronized void createDocument(Document document, String signature) {
-        Try.run(semaphore::acquire)
-                .andThenTry(() -> {
-                    Mono<String> requestBody = Mono.just(objectMapper.writeValueAsString(document));
-                    String responseBody = webClient.post()
-                            .uri(uriBuilder -> uriBuilder.path("documents/create").build())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .header("Signature", signature)
-                            .body(requestBody, String.class)
-                            .retrieve()
-                            .bodyToMono(String.class)
-                            .block();
+        String jsonDocument = objectMapper.writeValueAsString(document);
 
-                    System.out.println(responseBody);
-                })
-                .onFailure(InterruptedException.class, e -> {
-                    Thread.currentThread().interrupt();
-                    System.err.println("Thread was interrupted: " + e.getMessage());
-                })
-                .onFailure(JsonProcessingException.class, e -> {
-                    System.err.println("Failed to process JSON: " + e.getMessage());
-                })
-                .andFinally(semaphore::release);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI("https://ismp.crpt.ru/api/v3/lk/documents/create"))
+                .header("Content-Type", "application/json")
+                .header("Signature", "signature")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonDocument))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        return response.body();
     }
 
-    public void shutdown() {
-        scheduler.shutdown();
-    }
+    @Data
+    public static class DocumentDTO {
 
-    private void setUpSemaphoreScheduler(TimeUnit timeUnit, int permits) {
-        long timeIntervalMillis = timeUnit.toMillis(1);
-        this.scheduler.scheduleAtFixedRate(() -> semaphore.release(permits),
-                timeIntervalMillis, timeIntervalMillis, TimeUnit.MILLISECONDS);
-    }
+        @JsonProperty("description")
+        private Description description;
 
-    @Getter
-    @Setter
-    static class Document {
-        private String description;
-        private String doc_id;
-        private String doc_status;
-        private String doc_type;
+        @JsonProperty("doc_id")
+        private String docId;
+
+        @JsonProperty("doc_status")
+        private String docStatus;
+
+        @JsonProperty("doc_type")
+        private String docType;
+
+        @JsonProperty("importRequest")
         private boolean importRequest;
-        private String owner_inn;
-        private String participant_inn;
-        private String producer_inn;
-        private String production_date;
-        private String production_type;
-        private Product[] products;
-        private String reg_date;
-        private String reg_number;
 
-        @Getter
-        @Setter
-        static class Product {
-            private String certificate_document;
-            private String certificate_document_date;
-            private String certificate_document_number;
-            private String owner_inn;
-            private String producer_inn;
-            private String production_date;
-            private String tnved_code;
-            private String uit_code;
-            private String uitu_code;
+        @JsonProperty("owner_inn")
+        private String ownerInn;
+
+        @JsonProperty("participant_inn")
+        private String participantInn;
+
+        @JsonProperty("producer_inn")
+        private String producerInn;
+
+        @JsonProperty("production_date")
+        private String productionDate;
+
+        @JsonProperty("production_type")
+        private String productionType;
+
+        @JsonProperty("products")
+        private List<Product> products;
+
+        @JsonProperty("reg_date")
+        private String regDate;
+
+        @JsonProperty("reg_number")
+        private String regNumber;
+
+        @Data
+        public static class Description {
+            @JsonProperty("participantInn")
+            private String participantInn;
+        }
+
+        @Data
+        public static class Product {
+            @JsonProperty("certificate_document")
+            private String certificateDocument;
+
+            @JsonProperty("certificate_document_date")
+            private String certificateDocumentDate;
+
+            @JsonProperty("certificate_document_number")
+            private String certificateDocumentNumber;
+
+            @JsonProperty("owner_inn")
+            private String ownerInn;
+
+            @JsonProperty("producer_inn")
+            private String producerInn;
+
+            @JsonProperty("production_date")
+            private String productionDate;
+
+            @JsonProperty("tnved_code")
+            private String tnvedCode;
+
+            @JsonProperty("uit_code")
+            private String uitCode;
+
+            @JsonProperty("uitu_code")
+            private String uituCode;
         }
     }
 }

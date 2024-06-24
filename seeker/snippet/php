@@ -1,0 +1,27 @@
+#date: 2024-06-24T17:03:28Z
+#url: https://api.github.com/gists/be4f62067d17b6c57cdbda2a38e6b368
+#owner: https://api.github.com/users/Flower7C3
+
+#!/usr/bin/env bash
+
+## save as /usr/local/bin/php and run `chmod +x /usr/local/bin/php`
+
+POSITIONAL_ARGS=()
+version="8.2"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -V=*)
+      version="${1#*=}"
+    ;;
+    *)
+      POSITIONAL_ARGS+=("$1") # save positional arg
+    ;;
+  esac
+  shift
+done
+
+set -- "${POSITIONAL_ARGS[@]}" # restore positional parameters
+
+docker run --platform=linux/amd64 --rm --interactive --tty \
+  -v "$PWD":/usr/src/myapp -w /usr/src/myapp \
+  php:$version php $@
