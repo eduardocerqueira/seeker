@@ -1,0 +1,57 @@
+#date: 2024-07-02T16:49:34Z
+#url: https://api.github.com/gists/27367cadfff22a99a017be37f95c1bc7
+#owner: https://api.github.com/users/lcatlett
+
+#!/bin/bash
+# Runs tasks to release code from Pantheon test -> live environment including:
+#   - Race condition handling for workflows, terminus commands, and git commands
+#   - Configuration of environment variables commonly required in enterprise deployment scripts
+#   - Logging of failed site deployments for automatic retries
+# Usage:
+# ./deploy-live <site-name or uuid> <environment>
+#
+# ###
+
+SITE=$1
+ENV=$2
+current_dir=$3
+DEV=$(echo "${SITE}.dev")
+TEST=$(echo "${SITE}.test")
+LIVE=$(echo "${SITE}.live")
+
+START=$SECONDS
+
+echo -e "Starting live deploy of Pantheon site ${SITE} from Test" | sed "s/^/[$SITE] /" >>"${current_dir}/logs/deploy-$ENV.log"
+
+# Basic code deploy from Pantheon test -> live environment
+function code_deploy() {
+    # Deploy code to Pantheon environment
+    echo "Deploying code from Pantheon test to $ENV environment"
+    terminus env:deploy $LIVE --cc -n -q
+
+    # if the push fails with a non-zero exit code, add the site to the failed-sites-<env>.txt file
+    if [[ "$?" -ne 0 ]]; then
+        echo "Code push failed for $SITE.$ENV"
+        echo "[code] $SITE" >>"${current_dir}/logs/failed-sites-$ENV.txt"
+    fi
+}
+
+code_deploy 2>&1 | sed "s/^/[$SITE] /" >>"${current_dir}/logs/deploy-$ENV.log"
+
+# if any of the functions above fail, the code deployment has failed. Add the site to the failed-sites-<env>.txt file.
+if [[ $? -eq 0 ]]; then
+    echo "Code deploy tasks successful for $SITE.$ENV" | sed "s/^/[$SITE] /" >>"${current_dir}/logs/deploy-$ENV.log"
+    # if the site was
+    if [[ -f "${current_dir}/logs/failed-sites-$ENV.txt" ]]; then
+        sed -i "/$SITE/d" "${current_dir}/logs/failed-sites-$ENV.txt"
+    fi
+else
+    echo "Code deploy tasks failed for $SITE.$ENV" | sed "s/^/[$SITE] /" >>"${current_dir}/logs/deploy-$ENV.log"
+    echo "[code] $SITE" >>"${current_dir}/logs/failed-sites-$ENV.txt"
+fi
+
+# Report time to results.
+DURATION=$((SECONDS - START))
+TIME_DIFF=$(bc <<<"scale=2; $DURATION / 60")
+MIN=$(printf "%.2f" $TIME_DIFF)
+echo -e "Finished live code deploy for ${SITE} in ${MIN} minutes" | sed "s/^/[$SITE] /" >>"${current_dir}/logs/deploy-$ENV.log"
