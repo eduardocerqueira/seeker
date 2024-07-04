@@ -1,4 +1,47 @@
 --------------------------------------------------------------------------------
+ 2024-07-04 17:12:06.735708
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/ColdTurkeyBlockerActivator.py
+	deleted:    snippet/Dockerfile
+	deleted:    snippet/Q1.py
+	deleted:    snippet/Q2.py
+	deleted:    snippet/YUMDMScraper.py
+	deleted:    snippet/attention.py
+	deleted:    snippet/azimuth-image-upload.sh
+	deleted:    snippet/backup_gitea.sh
+	deleted:    snippet/bg.sh
+	deleted:    snippet/content_import_parsers.py
+	deleted:    snippet/deploy-dev
+	deleted:    snippet/deploy-from-dev-to-test-wrapper.sh
+	deleted:    snippet/deploy-from-local-to-dev-wrapper.sh
+	deleted:    snippet/deploy-live
+	deleted:    snippet/deploy-tasks
+	deleted:    snippet/deploy-test
+	deleted:    snippet/deploy-to-live-wrapper.sh
+	deleted:    snippet/dspyMetricInputsConfusion.py
+	deleted:    snippet/factorial.py
+	deleted:    snippet/fibonacci.py
+	deleted:    snippet/goal_scraper.py
+	deleted:    snippet/install-pwsh.sh
+	deleted:    snippet/install_php_8_1.sh
+	deleted:    snippet/restore_gitea_container.sh
+	deleted:    snippet/restore_gitea_data.sh
+	deleted:    snippet/wurm.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/rec_demo_and_memoization.py
+	snippet/search_tgz.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2024-07-03 17:11:15.022730
 --------------------------------------------------------------------------------
   On branch main
