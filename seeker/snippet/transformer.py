@@ -208,7 +208,9 @@ if __name__ == "__main__":
     print("Ours: "**********"
     print("Ref: "**********"
 ementation="eager", use_cache=False)
-    input_ids = tokenizer(prompt, return_tensors="pt").to("cuda")
-    outputs = model.generate(**input_ids, max_new_tokens=10, num_beams=1, do_sample=False)
-    print("Ours:", tokenizer.decode(in_tokens[0].tolist()))
+    input_ids = "**********"="pt").to("cuda")
+    outputs = "**********"=10, num_beams=1, do_sample=False)
+    print("Ours: "**********"
+    print("Ref: "**********"
+("Ours:", tokenizer.decode(in_tokens[0].tolist()))
     print("Ref:", tokenizer.decode(outputs[0]))
