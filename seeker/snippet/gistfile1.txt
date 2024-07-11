@@ -1,0 +1,452 @@
+#date: 2024-07-11T16:45:12Z
+#url: https://api.github.com/gists/0b2db4a2701d7b71fc8ea0c18efa2f28
+#owner: https://api.github.com/users/Nienelames
+
+#!/bin/bash
+
+
+rootDir=/opt/mopidy
+
+
+
+# Install deps
+
+sudo apt install -y build-essential \
+    python3-gi \
+    python3-venv \
+    python3-dev \
+    python3-pip \
+    pkg-config \
+    gir1.2-gst-plugins-base-1.0 \
+    gir1.2-gstreamer-1.0 \
+    gstreamer1.0-plugins-good \
+    gstreamer1.0-plugins-ugly \
+    gstreamer1.0-tools \
+    gstreamer1.0-pipewire \
+    libxt-dev \
+    libcairo2-dev \
+    libgirepository1.0-dev \
+    python3-gst-1.0 \
+    tmux \
+    snapserver \
+    snapclient
+
+
+# Install mopidy
+
+sudo mkdir $rootDir
+sudo chown -R $USER:$USER $rootDir
+
+python3 -m venv "${rootDir}/.venv"
+. "${rootDir}/.venv/bin/activate"
+cd $rootDir
+
+pip install PyGObject mopidy mopidy-local mopidy-iris mopidy-mobile mopidy-youtube "yt-dlp[default]"
+
+
+# Configure Mopidy
+
+mkdir -p ~/.config/mopidy
+touch ~/.config/mopidy/mopidy.conf
+bash -c "cat > ~/.config/mopidy/mopidy.conf" << EOF
+[core]
+#cache_dir = $XDG_CACHE_DIR/mopidy
+#config_dir = $XDG_CONFIG_DIR/mopidy
+#data_dir = $XDG_DATA_DIR/mopidy
+max_tracklist_length = 10000
+restore_state = true
+
+[logging]
+verbosity = 0
+format = %(levelname)-8s %(asctime)s [%(process)d:%(threadName)s] %(name)s\n  %(message)s
+color = true
+config_file =
+
+[audio]
+#mixer = software
+#mixer_volume =
+output = audioresample quality=10 ! audioconvert ! audio/x-raw,rate=48000,channels=2,format=S16LE ! tcpclientsink host=127.0.0.1 port=9000
+#buffer_time =
+
+[proxy]
+#scheme =
+#hostname =
+#port =
+#username =
+ "**********"# "**********"p "**********"a "**********"s "**********"s "**********"w "**********"o "**********"r "**********"d "**********"  "**********"= "**********"
+
+[file]
+enabled = true
+media_dirs =
+  $HOME/Music
+#  ~/|Home
+excluded_file_extensions =
+  .directory
+  .html
+  .jpeg
+  .jpg
+  .log
+  .nfo
+  .pdf
+  .png
+  .txt
+  .zip
+show_dotfiles = false
+follow_symlinks = false
+metadata_timeout = 1000
+
+[http]
+enabled = true
+hostname = ::
+port = 6680
+zeroconf = Mopidy HTTP server on $hostname
+#allowed_origins =
+csrf_protection = true
+default_app = mopidy
+
+[m3u]
+enabled = true
+base_dir = $XDG_MUSIC_DIR
+default_encoding = latin-1
+default_extension = .m3u8
+#playlists_dir =
+
+[softwaremixer]
+enabled = true
+
+[stream]
+enabled = true
+protocols =
+  http
+  https
+  mms
+  rtmp
+  rtmps
+  rtsp
+metadata_blacklist =
+timeout = 5000
+
+[iris]
+enabled = true
+country = LT
+locale = en_US
+verify_certificates = true
+snapcast_enabled = true
+snapcast_host = $(ip route get 1 | awk '{print $NF;exit}')
+snapcast_port = 1780
+snapcast_ssl = false
+snapcast_stream = Default
+spotify_authorization_url = https://jamesbarnsley.co.nz/iris/auth_spotify.php
+lastfm_authorization_url = https://jamesbarnsley.co.nz/iris/auth_lastfm.php
+genius_authorization_url = https://jamesbarnsley.co.nz/iris/auth_genius.php
+
+[local]
+enabled = true
+max_search_results = 100
+media_dir = $HOME/Music
+scan_timeout = 1000
+scan_flush_threshold = 100
+scan_follow_symlinks = false
+#included_file_extensions =
+excluded_file_extensions =
+  .cue
+  .directory
+  .html
+  .jpeg
+  .jpg
+  .log
+  .nfo
+  .pdf
+  .png
+  .txt
+  .zip
+#directories =
+#  Albums                  local:directory?type=album
+#  Artists                 local:directory?type=artist
+#  Composers               local:directory?type=artist&role=composer
+#  Genres                  local:directory?type=genre
+#  Performers              local:directory?type=artist&role=performer
+#  Release Years           local:directory?type=date&format=%25Y
+#  Tracks                  local:directory?type=track
+#  Last Week's Updates     local:directory?max-age=604800
+#  Last Month's Updates    local:directory?max-age=2592000
+timeout = 10
+use_artist_sortname = false
+album_art_files =
+  *.jpg
+  *.jpeg
+  *.png
+
+[youtube]
+enabled = true
+allow_cache = true
+#youtube_api_key =
+search_results = 10
+playlist_max_videos = 20
+api_enabled = false
+#channel_id =
+musicapi_enabled = false
+#musicapi_cookie =
+autoplay_enabled = false
+strict_autoplay = false
+max_autoplay_length = 600
+max_degrees_of_separation = 3
+youtube_dl_package = yt_dlp
+EOF
+
+
+# Configure Snapcast
+
+sudo bash -c "cat > /etc/default/snapserver" << EOF
+START_SNAPSERVER=true
+SNAPSERVER_OPTS=""
+EOF
+
+sudo bash -c "cat > /etc/default/snapclient" << EOF
+START_SNAPCLIENT=true
+SNAPCLIENT_OPTS=""
+EOF
+
+sudo bash -c "cat > /lib/systemd/system/snapclient.service" << EOF
+[Unit]
+Description=Snapcast client
+Documentation=man:snapclient(1)
+Wants=network-online.target avahi-daemon.service
+After=network-online.target time-sync.target sound.target avahi-daemon.service
+
+[Service]
+EnvironmentFile=-/etc/default/snapclient
+ExecStart="tmux new-session -d -s snapclient 'snapclient'"
+User=$USER
+Group=$USER
+# very noisy on stdout
+StandardOutput=null
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo bash -c "cat > /etc/snapserver.conf" << EOF
+###############################################################################
+#     ______                                                                  #
+#    / _____)                                                                 #
+#   ( (____   ____   _____  ____    ___  _____   ____  _   _  _____   ____    #
+#    \____ \ |  _ \ (____ ||  _ \  /___)| ___ | / ___)| | | || ___ | / ___)   #
+#    _____) )| | | |/ ___ || |_| ||___ || ____|| |     \ V / | ____|| |       #
+#   (______/ |_| |_|\_____||  __/ (___/ |_____)|_|      \_/  |_____)|_|       #
+#                          |_|                                                #
+#                                                                             #
+#  Snapserver config file                                                     #
+#                                                                             #
+###############################################################################
+
+# default values are commented
+# uncomment and edit to change them
+
+# Settings can be overwritten on command line with:
+#  "--<section>.<name>=<value>", e.g. --server.threads=4
+
+
+# General server settings #####################################################
+#
+[server]
+# Number of additional worker threads to use
+# - For values < 0 the number of threads will be 2 (on single and dual cores)
+#   or 4 (for quad and more cores)
+# - 0 will utilize just the processes main thread and might cause audio drops 
+#   in case there are a couple of longer running tasks, such as encoding 
+#   multiple audio streams
+threads = -1
+
+# the pid file when running as daemon
+#pidfile = /var/run/snapserver/pid
+
+# the user to run as when daemonized
+#user = snapserver
+# the group to run as when daemonized
+#group = snapserver
+
+# directory where persistent data is stored (server.json)
+# if empty, data dir will be
+#  - "/var/lib/snapserver/" when running as daemon
+#  - "$HOME/.config/snapserver/" when not running as daemon
+#datadir = 
+
+#
+###############################################################################
+
+
+# HTTP RPC ####################################################################
+#
+[http]
+# enable HTTP Json RPC (HTTP POST and websockets)
+enabled = true
+
+# address to listen on, can be specified multiple times
+# use "0.0.0.0" to bind to any IPv4 address or :: to bind to any IPv6 address
+# or "127.0.0.1" or "::1" to bind to localhost IPv4 or IPv6, respectively
+# use the address of a specific network interface to just listen to and accept
+# connections from that interface
+bind_to_address = ::
+
+# which port the server should listen to
+port = 1780
+
+# serve a website from the doc_root location
+# disabled if commented or empty
+doc_root = /usr/share/snapserver/snapweb
+
+# Hostname or IP under which clients can reach this host
+# used to serve cached cover art
+# use <hostname> as placeholder for your actual host name  
+#host = <hostname>
+
+#
+###############################################################################
+
+
+# TCP RPC #####################################################################
+#
+[tcp]
+# enable TCP Json RPC
+enabled = true
+
+# address to listen on, can be specified multiple times
+# use "0.0.0.0" to bind to any IPv4 address or :: to bind to any IPv6 address
+# or "127.0.0.1" or "::1" to bind to localhost IPv4 or IPv6, respectively
+# use the address of a specific network interface to just listen to and accept
+# connections from that interface
+bind_to_address = ::
+
+# which port the server should listen to
+port = 1705
+
+
+#
+###############################################################################
+
+
+# Stream settings #############################################################
+#
+[stream]
+# address to listen on, can be specified multiple times
+# use "0.0.0.0" to bind to any IPv4 address or :: to bind to any IPv6 address
+# or "127.0.0.1" or "::1" to bind to localhost IPv4 or IPv6, respectively
+# use the address of a specific network interface to just listen to and accept
+# connections from that interface
+bind_to_address = ::
+
+# which port the server should listen to
+port = 1704
+
+# source URI of the PCM input stream, can be configured multiple times
+# The following notation is used in this paragraph:
+#  <angle brackets>: the whole expression must be replaced with your specific setting
+# [square brackets]: the whole expression is optional and can be left out
+# [key=value]: if you leave this option out, "value" will be the default for "key"
+#
+# Format: TYPE://host/path?name=<name>[&codec=<codec>][&sampleformat=<sampleformat>][&chunk_ms=<chunk ms>][&controlscript=<control script filename>[&controlscriptparams=<control script command line arguments>]]
+#  parameters have the form "key=value", they are concatenated with an "&" character
+#  parameter "name" is mandatory for all sources, while codec, sampleformat and chunk_ms are optional
+#  and will override the default codec, sampleformat or chunk_ms settings
+# Available types are:
+# pipe: pipe:///<path/to/pipe>?name=<name>[&mode=create], mode can be "create" or "read"
+# "**********": "**********":///<path/to/librespot>?name=<name>[&username=<my username>&password=<my password>][&devicename=Snapcast][&bitrate=320][&wd_timeout=7800][&volume=100][&onevent=""][&nomalize=false][&autoplay=false][&params=<generic librepsot process arguments>]
+#  note that you need to have the librespot binary on your machine
+#  sampleformat will be set to "44100:16:2"
+# file: file:///<path/to/PCM/file>?name=<name>
+# process: process:///<path/to/process>?name=<name>[&wd_timeout=0][&log_stderr=false][&params=<process arguments>]
+# airplay: airplay:///<path/to/airplay>?name=<name>[&port=5000]
+#  note that you need to have the airplay binary on your machine
+#  sampleformat will be set to "44100:16:2"
+# tcp server: tcp://<listen IP, e.g. 127.0.0.1>:<port>?name=<name>[&mode=server]
+# tcp client: tcp://<server IP, e.g. 127.0.0.1>:<port>?name=<name>&mode=client
+# alsa: alsa:///?name=<name>&device=<alsa device>[&send_silence=false][&idle_threshold=100][&silence_threshold_percent=0.0]
+# meta: meta:///<name of source#1>/<name of source#2>/.../<name of source#N>?name=<name>
+source = tcp://127.0.0.1:9000?name=Mopidy
+
+# Default sample format: <sample rate>:<bits per sample>:<channels>
+#sampleformat = 48000:16:2
+
+# Default transport codec
+# (flac|ogg|opus|pcm)[:options]
+# Start Snapserver with "--stream:codec=<codec>:?" to get codec specific options
+codec = pcm
+
+# Default source stream read chunk size [ms]. 
+# The server will continously read this number of milliseconds from the source into buffer and pass this buffer to the encoder.
+# The encoded buffer is sent to the clients. Some codecs have a higher latency and will need more data, e.g. Flac will need ~26ms chunks
+#chunk_ms = 20
+
+# Buffer [ms]
+# The end-to-end latency, from capturing a sample on the server until the sample is played-out on the client
+buffer = 750
+
+# Send audio to muted clients
+#send_to_muted = false
+#
+
+
+# Streaming client options ####################################################
+#
+[streaming_client]
+
+# Volume assigned to new snapclients [percent]
+# Defaults to 100 if unset
+#initial_volume = 100
+#
+###############################################################################
+
+
+# Logging options #############################################################
+#
+[logging]
+
+# log sink [null,system,stdout,stderr,file:<filename>]
+# when left empty: if running as daemon "system" else "stdout"
+#sink = 
+
+# log filter <tag>:<level>[,<tag>:<level>]* 
+# with tag = * or <log tag> and level = [trace,debug,info,notice,warning,error,fatal]
+#filter = *:info
+#
+###############################################################################
+EOF
+
+
+# Write service
+
+sudo touch /etc/systemd/system/mopidy.service
+sudo bash -c "cat > /etc/systemd/system/mopidy.service" << EOF
+[Unit]
+Description=Mopidy music server
+After=network.target remote-fs.target
+Wants=named.service alsa-utils.service avahi-daemon.service dbus.service pipewire.service
+
+[Service]
+Type=simple
+User=$USER
+Group=audio
+PermissionsStartOnly=true
+ExecStart=/opt/mopidy/.venv/bin/mopidy --config $HOME/.config/mopidy/mopidy.conf
+Restart=on-failure
+Environment=PATH=/sbin:/usr/sbin:/bin:/usr/bin:/opt/mopidy/.venv/bin
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now snapserver
+sudo systemctl enable --now snapclient
+sleep 10
+sudo systemctl enable --now mopidy
+sleep 3
+sudo systemctl restart snapserver
+
+
+
+systemctl status mopidy
