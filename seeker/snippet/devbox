@@ -1,0 +1,75 @@
+#date: 2024-07-12T17:01:35Z
+#url: https://api.github.com/gists/aba9e766f881d47aea64f3f38c7c2118
+#owner: https://api.github.com/users/pythoninthegrass
+
+#!/usr/bin/env bash
+
+# shellcheck disable=SC1091,SC2317
+
+# shift shim behind real binary
+export PATH="/usr/local/bin/:${PATH}"
+
+# env vars
+git_root="$(git rev-parse --show-toplevel 2>/dev/null)"
+script_dir=$(dirname "$(readlink -f "$0")")
+if [ -n "$git_root" ]; then
+	tld="$(git rev-parse --show-toplevel)"
+else
+	tld="${script_dir}"
+fi
+env_file="${tld}/.env"
+
+# $USER
+[[ -n $(logname >/dev/null 2>&1) ]] && logged_in_user=$(logname) || logged_in_user=$(whoami)
+
+# $HOME
+logged_in_home=$(eval echo "~${logged_in_user}")
+
+install_shim() {
+	mkdir -p "${logged_in_home}/.local/bin"
+	ln -s "${script_dir}/devbox" "${logged_in_home}/.local/bin/devbox"
+}
+
+uninstall_shim() {
+	if [ -f "${logged_in_home}/.local/bin/devbox" ]; then
+		echo "Removing devbox shim"
+		rm -f "${logged_in_home}/.local/bin/devbox"
+	else
+		echo "devbox shim not found"
+	fi
+}
+
+main() {
+	# cap infinite recursion by limiting SHLVL
+	if [ "${SHLVL}" -gt 10 ]; then
+		echo "Error: Too many nested shells, stopping to prevent infinite loop."
+		exit 1
+	fi
+
+	if [ $# -eq 0 ]; then
+		devbox
+	else
+		case $1 in
+			-i|--install)
+				install_shim
+				;;
+			-u|--uninstall)
+				uninstall_shim
+				;;
+			shell|run)
+				devbox "$@"
+				;;
+			services)
+				# append `--env-file` to `devbox services` command
+				if [ -f "${env_file}" ] && [ -s "${env_file}" ]; then
+					set -- "$1" "--env-file" "${env_file}" "${@:2}"
+				fi
+				devbox "$@"
+				;;
+			*)
+				devbox "$@"
+				;;
+		esac
+	fi
+}
+main "$@"
