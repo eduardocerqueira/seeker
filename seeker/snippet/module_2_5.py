@@ -1,5 +1,5 @@
-#date: 2024-07-16T17:08:15Z
-#url: https://api.github.com/gists/0e6f3e88bf14b546482299c18ab83de2
+#date: 2024-07-17T16:49:10Z
+#url: https://api.github.com/gists/5a85aeba6500ba21709aaa1b457d715a
 #owner: https://api.github.com/users/MaXVoLD
 
 def get_matrix(n, m, value):
