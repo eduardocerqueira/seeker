@@ -44,7 +44,7 @@ def purge():
     day = get_config("purge", "day")
     files = listdir("snippet")
     for file in files:
-        with open(f"snippet/{file}", "rb") as fp:
+        with open(f"snippet/{file}", "r") as fp:
             data = fp.read()
             re_pattern = "(date:).(\d{4}-\d{2}-\d{2})"
             for m in re.finditer(re_pattern, data):

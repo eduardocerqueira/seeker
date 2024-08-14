@@ -88,6 +88,7 @@ docker run -e GITHUB_TOKEN=$GITHUB_TOKEN -e GITHUB_USERNAME="eduardocerqueira" -
 Feel free to send PR's and/or file issues. Please remember running black as showing below before sending your PR.
 
 ```shell
+pip install pre-commit
 pre-commit run --all
 ```
 
