@@ -1,5 +1,19 @@
 # .github/release.yml
 
+# WIP ...
+
+name: Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: write
+  packages: write
+  pull-requests: write
+
 changelog:
   exclude:
     labels:
@@ -15,6 +29,6 @@ changelog:
       labels:
         - Semver-Minor
         - enhancement
-    - title: Other Changes
+    - title: Changes
       labels:
         - "*"
