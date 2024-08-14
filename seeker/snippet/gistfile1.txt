@@ -1,0 +1,232 @@
+#date: 2024-08-14T18:39:28Z
+#url: https://api.github.com/gists/da82611f385d4e0e1fdb3187577aec91
+#owner: https://api.github.com/users/zxncbzxcnm
+
+#!/bin/bash
+# This file will be sourced in init.sh
+# Namespace functions with provisioning_
+
+# https://raw.githubusercontent.com/ai-dock/stable-diffusion-webui/main/config/provisioning/default.sh
+
+### Edit the following arrays to suit your workflow - values must be quoted and separated by newlines or spaces.
+### If you specify gated models you'll need to set environment variables HF_TOKEN and/orf CIVITAI_TOKEN
+
+DISK_GB_REQUIRED=18
+
+APT_PACKAGES=(
+    #"package-1"
+    #"package-2"
+)
+
+PIP_PACKAGES=(
+    #"package-1"
+    #"package-2"
+)
+
+EXTENSIONS=(
+    "https://github.com/36DB/stable-diffusion-webui-localization-ko_KR"
+    "https://github.com/DominikDoom/a1111-sd-webui-tagcomplete"
+    "https://github.com/adieyal/sd-dynamic-prompts"
+    "https://github.com/Bing-su/adetailer"
+    "https://github.com/pkuliyi2015/multidiffusion-upscaler-for-automatic1111"
+    "https://github.com/hako-mikan/sd-webui-regional-prompter"
+    "https://github.com/VekkaAi/SD-Lock-UI"
+)
+
+CHECKPOINT_MODELS=(
+    "https: "**********"
+    #"https: "**********"
+    #"https: "**********"
+)
+
+LORA_MODELS=(
+    "https: "**********"
+    "https: "**********"
+    "https: "**********"
+    "https: "**********"
+    "https: "**********"
+    "https: "**********"
+    "https: "**********"
+    )
+    
+Embeddings_MODELS=(
+    "https: "**********"
+    "https: "**********"
+    "https: "**********"
+    "https: "**********"
+
+)
+
+VAE_MODELS=(
+    "https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/resolve/main/sdxl.vae.safetensors"
+)
+
+ESRGAN_MODELS=(
+    "https://huggingface.co/uwg/upscaler/resolve/main/ESRGAN/4x_NMKD-Superscale-Artisoftject_210000_G.pth"
+    "https://objectstorage.us-phoenix-1.oraclecloud.com/n/ax6ygfvpvzka/b/open-modeldb-files/o/4x-AnimeSharp-lite.pth"
+    "https://github.com/Phhofm/models/raw/main/2xLexicaRRDBNet/2xLexicaRRDBNet_Sharp.pth"
+    "https://github.com/Phhofm/models/releases/download/4xNomos2_otf_esrgan/4xNomos2_otf_esrgan.pth"
+)
+
+
+### DO NOT EDIT BELOW HERE UNLESS YOU KNOW WHAT YOU ARE DOING ###
+
+function provisioning_start() {
+    # We need to apply some workarounds to make old builds work with the new default
+    if [[ ! -d /opt/environments/python ]]; then 
+        export MAMBA_BASE=true
+    fi
+    source /opt/ai-dock/etc/environment.sh
+    source /opt/ai-dock/bin/venv-set.sh webui
+
+    DISK_GB_AVAILABLE=$(($(df --output=avail -m "${WORKSPACE}" | tail -n1) / 1000))
+    DISK_GB_USED=$(($(df --output=used -m "${WORKSPACE}" | tail -n1) / 1000))
+    DISK_GB_ALLOCATED=$(($DISK_GB_AVAILABLE + $DISK_GB_USED))
+    provisioning_print_header
+    provisioning_get_apt_packages
+    provisioning_get_pip_packages
+    provisioning_get_extensions
+    provisioning_get_etc
+    provisioning_get_models \
+        "${WORKSPACE}/storage/stable_diffusion/models/ckpt" \
+        "${CHECKPOINT_MODELS[@]}"
+    provisioning_get_models \
+        "${WORKSPACE}/storage/stable_diffusion/models/lora" \
+        "${LORA_MODELS[@]}"
+    provisioning_get_models \
+        "${WORKSPACE}/storage/stable_diffusion/models/controlnet" \
+        "${CONTROLNET_MODELS[@]}"
+    provisioning_get_models \
+        "${WORKSPACE}/storage/stable_diffusion/models/vae" \
+        "${VAE_MODELS[@]}"
+    provisioning_get_models \
+        "${WORKSPACE}/storage/stable_diffusion/models/esrgan" \
+        "${ESRGAN_MODELS[@]}"
+     
+    PLATFORM_ARGS=""
+    if [[ $XPU_TARGET = "CPU" ]]; then
+        PLATFORM_ARGS="--use-cpu all --skip-torch-cuda-test --no-half"
+    fi
+    PROVISIONING_ARGS="--skip-python-version-check --no-download-sd-model --do-not-download-clip --port 11404 --exit"
+    ARGS_COMBINED="${PLATFORM_ARGS} $(cat /etc/a1111_webui_flags.conf) ${PROVISIONING_ARGS}"
+    
+    # Start and exit because webui will probably require a restart
+    cd /opt/stable-diffusion-webui
+    if [[ -z $MAMBA_BASE ]]; then
+        source "$WEBUI_VENV/bin/activate"
+        LD_PRELOAD=libtcmalloc.so python launch.py \
+            ${ARGS_COMBINED}
+        deactivate
+    else 
+        micromamba run -n webui -e LD_PRELOAD=libtcmalloc.so python launch.py \
+            ${ARGS_COMBINED}
+    fi
+    provisioning_print_end
+}
+
+function pip_install() {
+    if [[ -z $MAMBA_BASE ]]; then
+            "$WEBUI_VENV_PIP" install --no-cache-dir "$@"
+        else
+            micromamba run -n webui pip install --no-cache-dir "$@"
+        fi
+}
+
+function provisioning_get_apt_packages() {
+    if [[ -n $APT_PACKAGES ]]; then
+            sudo $APT_INSTALL ${APT_PACKAGES[@]}
+    fi
+}
+
+function provisioning_get_pip_packages() {
+    if [[ -n $PIP_PACKAGES ]]; then
+            pip_install ${PIP_PACKAGES[@]}
+    fi
+}
+
+function provisioning_get_extensions() {
+    for repo in "${EXTENSIONS[@]}"; do
+        dir="${repo##*/}"
+        path="/opt/stable-diffusion-webui/extensions/${dir}"
+        if [[ -d $path ]]; then
+            # Pull only if AUTO_UPDATE
+            if [[ ${AUTO_UPDATE,,} == "true" ]]; then
+                printf "Updating extension: %s...\n" "${repo}"
+                ( cd "$path" && git pull )
+            fi
+        else
+            printf "Downloading extension: %s...\n" "${repo}"
+            git clone "${repo}" "${path}" --recursive
+        fi
+    done
+}
+
+function provisioning_get_models() {
+    if [[ -z $2 ]]; then return 1; fi
+    dir="$1"
+    mkdir -p "$dir"
+    shift
+    if [[ $DISK_GB_ALLOCATED -ge $DISK_GB_REQUIRED ]]; then
+        arr=("$@")
+    else
+        printf "WARNING: Low disk space allocation - Only the first model will be downloaded!\n"
+        arr=("$1")
+    fi
+    
+    printf "Downloading %s model(s) to %s...\n" "${#arr[@]}" "$dir"
+    for url in "${arr[@]}"; do
+        printf "Downloading: %s\n" "${url}"
+        provisioning_download "${url}" "${dir}"
+        printf "\n"
+    done
+}
+
+function provisioning_print_header() {
+    printf "\n##############################################\n#                                            #\n#          Provisioning container            #\n#                                            #\n#         This will take some time           #\n#                                            #\n# Your container will be ready on completion #\n#                                            #\n##############################################\n\n"
+    if [[ $DISK_GB_ALLOCATED -lt $DISK_GB_REQUIRED ]]; then
+        printf "WARNING: Your allocated disk size (%sGB) is below the recommended %sGB - Some models will not be downloaded\n" "$DISK_GB_ALLOCATED" "$DISK_GB_REQUIRED"
+    fi
+}
+
+function provisioning_print_end() {
+    printf "\nProvisioning complete:  Web UI will start now\n\n"
+}
+
+
+# Download from $1 URL to $2 file path
+function provisioning_download() {
+    if [[ -n $HF_TOKEN && $1 =~ ^https: "**********"
+        auth_token= "**********"
+    elif 
+        [[ -n $CIVITAI_TOKEN && $1 =~ ^https: "**********"
+        auth_token= "**********"
+    fi
+    if [[ -n $auth_token ]];then
+        wget --header="Authorization: "**********":-4M}" -P "$2" "$1"
+    else
+        wget -qnc --content-disposition --show-progress -e dotbytes="${3:-4M}" -P "$2" "$1"
+    fi
+}
+
+function provisioning_get_etc() {
+    wget -P /workspace/stable-diffusion-webui/ "https://huggingface.co/Nemani/no-ema-fp16_models_achive/raw/main/config/ui-config.json"
+    wget -P /workspace/stable-diffusion-webui/ "https://huggingface.co/Nemani/no-ema-fp16_models_achive/raw/main/config/config.json"
+    wget -P /workspace/stable-diffusion-webui/extensions/sd-dynamic-prompts/wildcards/ "https://huggingface.co/Nemani/no-ema-fp16_models_achive/raw/main/Wildcards/HAIR.txt"
+    wget -P /workspace/stable-diffusion-webui/extensions/sd-dynamic-prompts/wildcards/ "https://huggingface.co/Nemani/no-ema-fp16_models_achive/raw/main/Wildcards/SELECT.txt"
+    wget -P /workspace/stable-diffusion-webui/extensions/sd-dynamic-prompts/wildcards/ "https://huggingface.co/Nemani/no-ema-fp16_models_achive/raw/main/Wildcards/HCOLOR.txt"
+    wget -P /workspace/stable-diffusion-webui/extensions/sd-dynamic-prompts/wildcards/ "https://huggingface.co/Nemani/no-ema-fp16_models_achive/raw/main/Wildcards/BANGS.txt"
+    wget -P /workspace/stable-diffusion-webui/extensions/sd-dynamic-prompts/wildcards/ "https://huggingface.co/Nemani/no-ema-fp16_models_achive/raw/main/Wildcards/STATE.txt"
+    wget -P /workspace/stable-diffusion-webui/extensions/sd-dynamic-prompts/wildcards/ "https://huggingface.co/Nemani/no-ema-fp16_models_achive/raw/main/Wildcards/Colors.txt"
+}
+
+provisioning_start /workspace/stable-diffusion-webui/ "https://huggingface.co/Nemani/no-ema-fp16_models_achive/raw/main/config/ui-config.json"
+    wget -P /workspace/stable-diffusion-webui/ "https://huggingface.co/Nemani/no-ema-fp16_models_achive/raw/main/config/config.json"
+    wget -P /workspace/stable-diffusion-webui/extensions/sd-dynamic-prompts/wildcards/ "https://huggingface.co/Nemani/no-ema-fp16_models_achive/raw/main/Wildcards/HAIR.txt"
+    wget -P /workspace/stable-diffusion-webui/extensions/sd-dynamic-prompts/wildcards/ "https://huggingface.co/Nemani/no-ema-fp16_models_achive/raw/main/Wildcards/SELECT.txt"
+    wget -P /workspace/stable-diffusion-webui/extensions/sd-dynamic-prompts/wildcards/ "https://huggingface.co/Nemani/no-ema-fp16_models_achive/raw/main/Wildcards/HCOLOR.txt"
+    wget -P /workspace/stable-diffusion-webui/extensions/sd-dynamic-prompts/wildcards/ "https://huggingface.co/Nemani/no-ema-fp16_models_achive/raw/main/Wildcards/BANGS.txt"
+    wget -P /workspace/stable-diffusion-webui/extensions/sd-dynamic-prompts/wildcards/ "https://huggingface.co/Nemani/no-ema-fp16_models_achive/raw/main/Wildcards/STATE.txt"
+    wget -P /workspace/stable-diffusion-webui/extensions/sd-dynamic-prompts/wildcards/ "https://huggingface.co/Nemani/no-ema-fp16_models_achive/raw/main/Wildcards/Colors.txt"
+}
+
+provisioning_start
