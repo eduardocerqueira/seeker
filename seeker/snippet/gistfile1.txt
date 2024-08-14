@@ -1,5 +1,5 @@
-#date: 2024-08-14T18:39:28Z
-#url: https://api.github.com/gists/da82611f385d4e0e1fdb3187577aec91
+#date: 2024-08-14T19:01:32Z
+#url: https://api.github.com/gists/1d4f2fec7389881ca91910313cddfbde
 #owner: https://api.github.com/users/zxncbzxcnm
 
 #!/bin/bash
@@ -36,7 +36,7 @@ EXTENSIONS=(
 CHECKPOINT_MODELS=(
     "https: "**********"
     #"https: "**********"
-    #"https: "**********"
+    "https: "**********"
 )
 
 LORA_MODELS=(
@@ -219,7 +219,7 @@ function provisioning_get_etc() {
     wget -P /workspace/stable-diffusion-webui/extensions/sd-dynamic-prompts/wildcards/ "https://huggingface.co/Nemani/no-ema-fp16_models_achive/raw/main/Wildcards/Colors.txt"
 }
 
-provisioning_start /workspace/stable-diffusion-webui/ "https://huggingface.co/Nemani/no-ema-fp16_models_achive/raw/main/config/ui-config.json"
+provisioning_startble-diffusion-webui/ "https://huggingface.co/Nemani/no-ema-fp16_models_achive/raw/main/config/ui-config.json"
     wget -P /workspace/stable-diffusion-webui/ "https://huggingface.co/Nemani/no-ema-fp16_models_achive/raw/main/config/config.json"
     wget -P /workspace/stable-diffusion-webui/extensions/sd-dynamic-prompts/wildcards/ "https://huggingface.co/Nemani/no-ema-fp16_models_achive/raw/main/Wildcards/HAIR.txt"
     wget -P /workspace/stable-diffusion-webui/extensions/sd-dynamic-prompts/wildcards/ "https://huggingface.co/Nemani/no-ema-fp16_models_achive/raw/main/Wildcards/SELECT.txt"
