@@ -1,0 +1,18 @@
+#date: 2024-08-15T16:48:59Z
+#url: https://api.github.com/gists/8d3ccefcc69b649c130d9554ebdcdd44
+#owner: https://api.github.com/users/dserodio
+
+#!/bin/bash
+
+if type "pkgx" &> /dev/null; then
+    echo "pkgx is already installed"
+    eval "$(pkgx --shellcode)"
+else
+    echo "installing pkgx"
+    eval "$(curl -Ssf https://pkgx.sh)"
+fi
+
+env +jq +yq
+
+jq --version
+yq --version

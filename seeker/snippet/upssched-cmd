@@ -1,0 +1,42 @@
+#date: 2024-08-15T16:40:06Z
+#url: https://api.github.com/gists/28a25b884b37b4118eaefaac49dcaae2
+#owner: https://api.github.com/users/fabrizziosoares
+
+#! /bin/sh
+case $1 in
+	ONLINE)
+		logger -t upssched-cmd "UPS on line power"
+		;;
+	ONBATT)
+		logger -t upssched-cmd "UPS on battery"
+	  	;;
+	LOWBATT)
+		logger -t upssched-cmd "UPS battery is low"
+		;;
+	FSD)
+		logger -t upssched-cmd "UPS forced shutdown in progress. System is going down!"
+		/usr/bin/osascript -e 'tell app \"System Events\" to shut down'
+		;;
+	COMMOK)
+		logger -t upssched-cmd "Communications with UPS established"
+		;;
+	COMMBAD)
+		logger -t upssched-cmd "Communications with UPS lost"
+		;;
+	SHUTDOWN)
+		logger -t upssched-cmd "Auto logout and shutdown proceeding. Executing graceful shutdown."
+		/usr/local/sbin/upsmon -c fsd
+		;;
+	REPLBATT)
+		logger -t upssched-cmd "UPS battery needs to be replaced"
+		;;
+	NOCOMM)
+		logger -t upssched-cmd "UPS is unavailable"
+		;;
+	NOPARENT)
+		logger -t upssched-cmd "upsmon parent process died - shutdown impossible"
+		;;
+	*)
+		logger -t upssched-cmd "Unrecognized UPS command: $1"
+		;;
+esac
