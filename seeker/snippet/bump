@@ -1,0 +1,27 @@
+#date: 2024-09-03T17:12:01Z
+#url: https://api.github.com/gists/2c8108dfaafccc0553fef195b88efe70
+#owner: https://api.github.com/users/garrettdimon
+
+#!/usr/bin/env bash
+
+# Exit on error
+set -o errexit
+
+# Get the version from the .ruby-version file
+target_ruby_version=$(cat .ruby-version)
+
+# Make sure the latest Ruby versions are present and available
+arch -arm64 brew update && arch -arm64 brew upgrade ruby-build
+
+# List latest stable versions for each Ruby for verification
+rbenv install --list
+
+# Install the version specified in the .ruby-version file
+rbenv install $target_ruby_version
+
+# Wipe out the Gemfile.lock file
+rm Gemfile.lock
+
+# Re-bundle and ensure linux is added
+bundle install
+bundle lock --add-platform x86_64-linux
