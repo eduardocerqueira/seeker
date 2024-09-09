@@ -1,0 +1,68 @@
+#date: 2024-09-09T17:04:27Z
+#url: https://api.github.com/gists/65c6e405989da5b4c0229fccbc06df3c
+#owner: https://api.github.com/users/coresh
+
+#!/usr/bin/env bash
+# This script renews letsecnrypt SSL certificates using Cloudflare dns-1 renewal
+# It assumes you are using Mailcow
+set -euo pipefail
+
+# REQUIRED set these:
+your_email=letsencrypt@your.domain
+your_domain=mail.your.domain # only tested with single domain
+cloudflare_ini_path=/root/.cloudflare # add your Cloudflare file here, called cloudflare.ini
+
+# OPTIONAL also set these:
+log_file=/var/log/certbot-cloudflare.log # if you don't want any logs, change it to /dev/null
+
+# send all output and errors to log file
+exec 1>$log_file
+exec 2>&1
+
+# log what we are doing
+set -x
+
+date # overwrite, no log rotate!
+echo "starting renewal"
+
+docker pull certbot/dns-cloudflare
+docker run --rm \
+    -v $cloudflare_ini_path/cloudflare.ini:/cloudflare.ini \
+    -v /opt/mailcow-dockerized/data/assets/ssl:/etc/letsencrypt \
+    certbot/dns-cloudflare \
+    certonly -n --agree-tos -m $your_email \
+    --dns-cloudflare --dns-cloudflare-credentials /cloudflare.ini \
+    -d $your_domain
+
+cd /opt/mailcow-dockerized/data/assets/ssl
+newcerts=$(find live/$your_domain/ -mmin -5)
+if [ -z "$newcerts" ]; then
+    echo "no renewals found, not restarting services"
+    exit
+fi
+
+ln -sfv live/$your_domain/privkey.pem key.pem
+ln -sfv live/$your_domain/cert.pem cert.pem
+
+cd ../../..
+
+function reload_ssl_service () {
+    service=$1
+    port=$2
+    echo "restarting SSL service $1 on port $2"
+    docker-compose restart $service
+    timeout 30 sh -c '\
+        while ! \
+        openssl s_client -showcerts -connect $0:$1 2>/dev/null </dev/null | openssl x509 -noout 2>/dev/null; do
+        # $0 and $1 are inside single quotes, which means they expand to the arguments provided to sh -c
+            sleep 1
+        done' $your_domain $port
+    echo "$service SSL cert expiration"
+    openssl s_client -showcerts -connect $your_domain:$port 2>/dev/null </dev/null | openssl x509 -noout -text | grep 'Not After'
+}
+reload_ssl_service nginx-mailcow 443
+reload_ssl_service dovecot-mailcow 993
+reload_ssl_service postfix-mailcow 465
+
+date
+echo "completed"
