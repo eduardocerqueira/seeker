@@ -1,0 +1,31 @@
+#date: 2024-09-23T17:10:00Z
+#url: https://api.github.com/gists/0dcd3460ff8a5746a29e2dc909d932fc
+#owner: https://api.github.com/users/jhoanborges
+
+#!/bin/bash
+
+# https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.5.0.2216-linux.zip
+SONAR_SCANNER_VERSION=sonar-scanner-cli-6.1.0.4477-linux-x64
+
+cd /tmp || exit
+echo "Downloading sonar-scanner....."
+if [ -d "/tmp/$SONAR_SCANNER_VERSION.zip" ];then
+    sudo rm /tmp/$SONAR_SCANNER_VERSION.zip
+fi
+wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/$SONAR_SCANNER_VERSION.zip
+echo "Download completed."
+
+echo "Unziping downloaded file..."
+unzip $SONAR_SCANNER_VERSION.zip
+echo "Unzip completed."
+rm $SONAR_SCANNER_VERSION.zip
+
+echo "Installing to opt..."
+if [ -d "/var/opt/sonar-scanner-$SONAR_SCANNER_VERSION" ];then
+    sudo rm -rf /var/opt/sonar-scanner-$SONAR_SCANNER_VERSION
+fi
+sudo mv sonar-scanner-$SONAR_SCANNER_VERSION /var/opt
+
+echo "Installation completed successfully."
+
+echo "You can use sonar-scanner!"
