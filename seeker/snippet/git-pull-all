@@ -1,0 +1,9 @@
+#date: 2024-09-24T16:53:22Z
+#url: https://api.github.com/gists/e85a78f025614080ecf66a5ae31d5c32
+#owner: https://api.github.com/users/muktoakash
+
+#!/usr/bin/env bash
+
+git branch -r | grep -v '\->' | while read remote; do git branch --track "${remote#origin/}" "$remote"; done
+git fetch --all
+git pull --all
