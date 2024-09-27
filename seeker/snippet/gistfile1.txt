@@ -1,0 +1,54 @@
+#date: 2024-09-27T17:09:45Z
+#url: https://api.github.com/gists/096996ec929af58d03e76a176b34e2c1
+#owner: https://api.github.com/users/mdolan-pivotal
+
+#!/bin/bash
+
+# Check if an om env file is provided as the first argument
+if [ -z "$1" ]; then
+    echo "Usage: $0 <om_env_file>"
+    echo "Please provide the path to an om environment file."
+    exit 1
+fi
+
+OM_ENV_FILE="$1"
+
+# Function to check for required tools
+check_dependencies() {
+    for cmd in om jq yq; do
+        if ! command -v $cmd &> /dev/null; then
+            echo "Error: $cmd is not installed."
+            exit 1
+        fi
+    done
+}
+
+# Check for dependencies
+check_dependencies
+
+# Ensure the om env file exists
+if [ ! -f "$OM_ENV_FILE" ]; then
+    echo "Error: om environment file '$OM_ENV_FILE' does not exist."
+    exit 1
+fi
+
+# Get a list of staged products using the provided om env file
+echo "Fetching staged products from Ops Manager..."
+STAGED_PRODUCTS=$(om --env "$OM_ENV_FILE" staged-products -f json)
+
+
+# Loop through each staged product
+echo "$STAGED_PRODUCTS" | jq -r '.[] | @base64' | while read -r product_encoded; do
+    product() {
+        echo "$product_encoded" | base64 --decode | jq -r "$1"
+    }
+
+    PRODUCT_NAME=$(product '.name')
+
+    echo "Processing product: $PRODUCT_NAME"
+
+    # Get the staged config for the product
+    CONFIG_FILE="${PRODUCT_NAME}_config.yml"
+    om --env "$OM_ENV_FILE" staged-config -p "$PRODUCT_NAME" --include-credentials > "$CONFIG_FILE"
+
+done
