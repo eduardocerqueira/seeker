@@ -1,0 +1,386 @@
+#date: 2024-10-25T14:45:09Z
+#url: https://api.github.com/gists/f1efce1d6a212750bebb4a8c36df58bf
+#owner: https://api.github.com/users/ryzhykovoleksandr
+
+#!/bin/bash
+
+# Base packages
+sudo pacman -S base-devel git wget curl
+
+# Install X server and needed components
+sudo pacman -S xorg xorg-xinit xorg-server
+
+# Install and setup dwm
+git clone https://git.suckless.org/dwm
+cd dwm
+
+# Patches for dwm
+wget https://dwm.suckless.org/patches/alpha/dwm-alpha-20201019-61bb8b2.diff
+wget https://dwm.suckless.org/patches/autostart/dwm-autostart-20161205-bb3bd6f.diff
+patch -p1 < dwm-alpha-20201019-61bb8b2.diff
+patch -p1 < dwm-autostart-20161205-bb3bd6f.diff
+sudo make clean install
+cd ..
+
+# Install st (terminal)
+git clone https://git.suckless.org/st
+cd st
+sudo make clean install
+cd ..
+
+# Install dmenu
+git clone https://git.suckless.org/dmenu
+cd dmenu
+sudo make clean install
+cd ..
+
+# Install Emacs and Doom Emacs
+sudo pacman -S emacs
+git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.emacs.d
+~/.emacs.d/bin/doom install
+
+# Install Neovim and plugins manager
+sudo pacman -S neovim python-pynvim
+git clone --depth 1 https://github.com/wbthomason/packer.nvim\
+~/.local/share/nvim/site/pack/packer/start/packer.nvim
+
+# Install development tools
+sudo pacman -S \
+    tmux \
+    fzf \
+    ripgrep \
+    fd \
+    bat \
+    exa \
+    docker \
+    docker-compose \
+    htop \
+    zsh \
+    nodejs \
+    npm \
+    python \
+    python-pip \
+    rust
+
+# Install Oh My Zsh
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+
+# Create X configuration
+cat > ~/.xinitrc << EOF
+# Composite manager
+picom &
+
+# Install wallpapers
+nitrogen --restore &
+
+# Starting status panel
+while true; do
+    xsetroot -name "\
+ 💻 $(cpu) |\
+ 🧠 $(memory) |\
+ 🔋 $(battery) |\
+ 🕒 $(date +"%H:%M")"
+    sleep 1
+done &
+
+# Starting dwm
+exec dwm
+EOF
+
+# Create Neovim base configuration
+mkdir -p ~/.config/nvim
+cat > ~/.config/nvim/init.lua << EOF
+-- Base configs
+vim.opt.number = true
+vim.opt.relativenumber = true
+vim.opt.expandtab = true
+vim.opt.shiftwidth = 2
+vim.opt.tabstop = 2
+vim.opt.smartindent = true
+vim.opt.termguicolors = true
+
+-- Install Packer
+require('packer').startup(function()
+    use 'wbthomason/packer.nvim'
+    use 'neovim/nvim-lspconfig'
+    use 'hrsh7th/nvim-cmp'
+    use 'nvim-treesitter/nvim-treesitter'
+    use 'nvim-telescope/telescope.nvim'
+    use 'folke/tokyonight.nvim'
+end)
+
+-- Setup LSP
+require('lspconfig').pyright.setup{}
+require('lspconfig').rust_analyze.setup{}
+
+-- Install color scheme
+vim.cmd[[colorscheme tokyonight]]
+EOF
+
+# Advanced utils
+sudo pacman -S \
+    picom \
+    nitrogen \
+    network-manager-applet \
+    dunst \
+    flameshot
+
+# Create scripts directory for statusbar
+mkdir -p ~/.local/bin
+
+# Create script for statusbar
+cat > ~/.local/bin/cpu << EOF
+#!/bin/bash
+top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}'
+EOF
+
+cat > ~/.local/bin/memory << EOF
+#!/bin/bash
+free -h | awk '/^Mem/ {print $3 "/" $2}'
+EOF
+
+cat > ~/.local/bin/battery << EOF
+#!/bin/bash
+bat_capacity=\$(cat /sys/class/power_supply/BAT0/capacity)
+echo "\${bat_capacity}%"
+EOF
+
+chmod +x ~/.local/bin/*
+
+# Add scripts to PATH
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+
+# Installing additional terminal programs
+sudo pacman -S \
+    ranger \
+    mc \
+    ncdu \
+    btop \
+    neofetch \
+    tree \
+    jq \
+    lazygit \
+    tig \
+    nnn \
+    ncmpcpp \
+    newsboat \
+    calcurse \
+    w3m \
+    mpv \
+    youtube-dl \
+    ffmpeg \
+    imagemagick
+
+# Installing yay (AUR helper)
+git clone https://aur.archlinux.org/yay.git
+cd yay
+makepkg -si
+cd ..
+rm -rf yay
+
+# Installing additional programs from AUR
+yay -S \
+    lf \
+    bottom \
+    dust \
+    procs \
+    delta-git \
+    lazydocker
+
+# Ranger Configuration
+ranger --copy-config=all
+# Enabling image previews in ranger
+echo "set preview_images true" >> ~/.config/ranger/rc.conf
+echo "set preview_images_method ueberzug" >> ~/.config/ranger/rc.conf
+
+# Create aliases file
+cat > ~/.aliases << EOF
+# Navigation
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias .....='cd ../../../..'
+alias ~='cd ~'
+alias -- -='cd -'
+
+# Ls improvements (using exa)
+alias ls='exa --icons --group-directories-first'
+alias l='exa -l --icons --group-directories-first'
+alias la='exa -la --icons --group-directories-first'
+alias lt='exa -T --icons --group-directories-first'
+alias ll='exa -l --icons --group-directories-first'
+alias llt='exa -T -l --icons --group-directories-first'
+
+# Grep improvements
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
+
+# Git aliases
+alias g='git'
+alias gst='git status'
+alias gd='git diff'
+alias ga='git add'
+alias gaa='git add --all'
+alias gc='git commit'
+alias gcm='git commit -m'
+alias gp='git push'
+alias gpl='git pull'
+alias gl='git log'
+alias glo='git log --oneline --graph'
+alias lg='lazygit'
+
+# Docker aliases
+alias d='docker'
+alias dc='docker-compose'
+alias dps='docker ps'
+alias dpsa='docker ps -a'
+alias dl='docker logs'
+alias dlf='docker logs -f'
+alias ld='lazydocker'
+
+# Vim/Neovim
+alias v='nvim'
+alias vi='nvim'
+alias vim='nvim'
+
+# Ranger/MC
+alias r='ranger'
+alias mc='mc'
+
+# System aliases
+alias free='free -h'
+alias df='df -h'
+alias du='du -h'
+alias top='btop'
+alias cat='bat'
+alias ping='ping -c 5'
+alias mkdir='mkdir -pv'
+alias rm='rm -i'
+alias rf='rm -rf'
+alias cp='cp -i'
+alias mv='mv -i'
+
+# Python
+alias py='python'
+alias pip='pip3'
+alias ve='python -m venv venv'
+alias va='source venv/bin/activate'
+alias vd='deactivate'
+
+# NPM
+alias ni='npm install'
+alias nid='npm install --save-dev'
+alias nig='npm install -g'
+alias nr='npm run'
+alias nrs='npm run start'
+alias nrd='npm run dev'
+alias nrb='npm run build'
+
+# Rust
+alias c='cargo'
+alias cr='cargo run'
+alias cb='cargo build'
+alias ct='cargo test'
+alias cc='cargo check'
+
+# Utils
+alias h='history'
+alias j='jobs -l'
+alias path='echo -e ${PATH//:/\\n}'
+alias now='date +"%T"'
+alias nowdate='date +"%d-%m-%Y"'
+alias week='date +%V'
+alias cpu='top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk "{print 100 - \$1\\"%\"}"'
+alias mem='free -h | awk "/^Mem/ {print \$3\\"/\"\$2}"'
+alias ports='netstat -tulanp'
+
+# Archives
+alias uz='unzip'
+alias tgz='tar -zxvf'
+alias tbz='tar -jxvf'
+
+# Network
+alias myip='curl http://ipecho.net/plain; echo'
+alias ports='netstat -tulanp'
+alias wget='wget -c'
+
+# Security
+alias sha='shasum -a 256'
+alias enc='openssl enc -aes-256-cbc -salt -in'
+alias dec='openssl enc -d -aes-256-cbc -in'
+
+# Clipboard
+alias pb='xclip -selection clipboard'
+alias pbcopy='xclip -selection clipboard'
+alias pbpaste='xclip -selection clipboard -o'
+
+# Pacman
+alias pac='sudo pacman -S'
+alias pacu='sudo pacman -Syu'
+alias pacs='pacman -Ss'
+alias pacr='sudo pacman -R'
+alias pacc='sudo pacman -Sc'
+
+# Yay
+alias yayi='yay -S'
+alias yays='yay -Ss'
+alias yayu='yay -Syu'
+EOF
+
+# Adding aliases to .zshrc
+echo "source ~/.aliases" >> ~/.zshrc
+
+# Setting up ZSH history
+cat >> ~/.zshrc << EOF
+# History
+HISTSIZE=10000
+SAVEHIST=10000
+HISTFILE=~/.zsh_history
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_SAVE_NO_DUPS
+setopt HIST_REDUCE_BLANKS
+setopt INC_APPEND_HISTORY_TIME
+
+# Autocompletion
+autoload -Uz compinit
+compinit
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+
+# Syntax highlighting
+source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null
+
+# FZF integration
+source /usr/share/fzf/key-bindings.zsh
+source /usr/share/fzf/completion.zsh
+EOF
+
+# Setting up MC
+mkdir -p ~/.config/mc
+cat > ~/.config/mc/ini << EOF
+[Midnight-Commander]
+use_internal_edit=true
+editor_syntax_highlighting=true
+auto_save_setup=true
+use_internal_view=true
+use_internal_edit=true
+confirm_delete=true
+confirm_overwrite=true
+confirm_execute=false
+confirm_exit=false
+confirm_directory_hotlist_delete=true
+safe_delete=false
+mouse_repeat_rate=100
+double_click_speed=250
+skin=modarcon16root-defbg
+EOF
+
+# Install ZSH syntax highlighting plugin
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+
+# Install ZSH autocompletion plugin
+git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+
+# Update plugins in .zshrc
+sed -i 's/plugins=(git)/plugins=(git zsh-syntax-highlighting zsh-autosuggestions fzf docker docker-compose rust python npm)/g' ~/.zshrc
