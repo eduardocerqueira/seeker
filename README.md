@@ -49,7 +49,7 @@ sh ops/scripts/egg_build.sh
 # from local build
 python3 -m venv venv
 source venv/bin/activate
-pip install dist/seeker-0.0.1.tar.gz
+pip install dist/seeker-0.0.2.tar.gz
 
 # from local path with editable
 git clone git@github.com:eduardocerqueira/seeker.git

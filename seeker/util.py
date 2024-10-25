@@ -1,14 +1,14 @@
 import logging
 import json
 import re
-from configparser import SafeConfigParser
+from configparser import ConfigParser
 from datetime import datetime, timedelta
 from os import remove, rename, listdir
 from subprocess import call, check_output
 
 
 def get_config(section, parameter):
-    config = SafeConfigParser()
+    config = ConfigParser()
     config.read("seeker.conf")
     return json.loads(config.get(section, parameter))
 
