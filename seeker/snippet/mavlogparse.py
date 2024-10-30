@@ -1,6 +1,6 @@
-#date: 2024-10-29T17:02:00Z
-#url: https://api.github.com/gists/b251aaf9330d56c8995ce9da752c7933
-#owner: https://api.github.com/users/timofuzz
+#date: 2024-10-30T17:02:40Z
+#url: https://api.github.com/gists/9f926b6e7d4fb8cd07b54762f6548915
+#owner: https://api.github.com/users/edxmorgan
 
 #!/usr/bin/env python3
 ''' Mavlink telemetry (.tlog) file parser.
