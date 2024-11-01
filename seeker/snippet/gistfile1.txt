@@ -1,0 +1,41 @@
+#date: 2024-11-01T16:53:26Z
+#url: https://api.github.com/gists/7fac485c90d73f0401df414776ad1c4c
+#owner: https://api.github.com/users/jenriquez-bit
+
+#!/bin/bash
+
+# Función para verificar si una regla ya existe
+check_rule_exists() {
+    iptables-save | grep -q -- "-p $1 --dport $2 -j ACCEPT"
+}
+
+# Agregar regla solo si no existe
+add_rule_if_needed() {
+    protocol=$1
+    port=$2
+    if check_rule_exists $protocol $port; then
+        echo "La regla para el puerto $port/$protocol ya existe. No se aplica ningún cambio."
+    else
+        echo "Agregando regla para el puerto $port/$protocol..."
+        iptables -A INPUT -p $protocol --dport $port -j ACCEPT
+    fi
+}
+
+whoami
+
+# Verificar y agregar reglas de iptables
+add_rule_if_needed tcp 80
+add_rule_if_needed tcp 443
+add_rule_if_needed tcp 554
+add_rule_if_needed tcp 7091
+add_rule_if_needed tcp 7661
+add_rule_if_needed tcp 7662
+add_rule_if_needed tcp 15000:17000
+add_rule_if_needed udp 7661
+add_rule_if_needed udp 7662
+add_rule_if_needed udp 15000:17000
+
+/tmp/restart.sh
+# /tmp/status.sh
+echo "Ip tables set up End success"
+exit 0
