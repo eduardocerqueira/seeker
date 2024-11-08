@@ -1,4 +1,34 @@
 --------------------------------------------------------------------------------
+ 2024-11-08 17:12:52.543647
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/00-full-command-transcript.sh
+	deleted:    snippet/chart_asset_data.sh
+	deleted:    snippet/dts-from-json.sh
+	deleted:    snippet/leave.sh
+	deleted:    snippet/shallow_copy.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/DCNv2_GDCN.py
+	snippet/FabricDuckDBSession.py
+	snippet/clean_csv_up.py
+	snippet/generate.sh
+	snippet/gini
+	snippet/homework.py
+	snippet/inventory.py
+	snippet/main.py
+	snippet/rna-transcription.py
+	snippet/test 23534.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2024-11-07 17:12:31.383151
 --------------------------------------------------------------------------------
   On branch main

@@ -1,0 +1,17 @@
+#date: 2024-11-08T17:10:53Z
+#url: https://api.github.com/gists/1ccaa3d1418bf292182f8a9df7a95d38
+#owner: https://api.github.com/users/roycohen2013
+
+#!/usr/bin/env bash 
+git init .
+touch .gitignore
+git add --all
+git commit -m"initial commit"
+
+git remote add origin $1
+
+git branch develop
+git push origin --all
+git push origin --tags
+
+echo "Done."    
