@@ -1,0 +1,151 @@
+#date: 2024-11-18T17:00:49Z
+#url: https://api.github.com/gists/b653a2ead58122c6bab90751070eaf6d
+#owner: https://api.github.com/users/CultriX-Github
+
+#!/bin/bash
+
+# Functions
+
+install_basic_packages() {
+        echo "Installing basic packages..."
+        apt update -y && apt install -y screen nano git git-lfs speedometer htop libaio-dev || {
+                echo "Failed to install basic packages" >&2
+                exit 1
+        }
+}
+
+install_croc() {
+        echo "Installing croc..."
+        curl -fsSL https://getcroc.schollz.com | bash || {
+                echo "Failed to install croc" >&2
+                exit 1
+        }
+}
+
+install_python_tools() {
+        echo "Installing Python tools..."
+        pip install --upgrade pip || {
+                echo "Failed to upgrade pip" >&2
+                exit 1
+        }
+        pip install wandb huggingface_hub || {
+                echo "Failed to install Python tools" >&2
+                exit 1
+        }
+}
+
+login_tools() {
+        echo "Logging into WandB and Huggingface..."
+        if [ -z "$HF_TOKEN" ]; then
+                echo "Environment variable HF_TOKEN is not set. Please set it and try again." >&2
+                exit 1
+        fi
+        huggingface-cli login --token "$HF_TOKEN" || {
+                echo "Huggingface login failed" >&2
+                exit 1
+        }
+
+        if [ -z "$WANDB_API_KEY" ]; then
+                echo "Environment variable WANDB_API_KEY is not set. Please set it and try again." >&2
+                exit 1
+        fi
+        wandb login "$WANDB_API_KEY" || {
+                echo "WandB login failed" >&2
+                exit 1
+        }
+}
+
+clone_llama_factory() {
+        echo "Cloning LLaMA-Factory..."
+        git clone --depth 1 https://github.com/hiyouga/LLaMA-Factory.git || {
+                echo "Failed to clone LLaMA-Factory" >&2
+                exit 1
+        }
+        cd LLaMA-Factory || exit 1
+        pip install -e ".[torch,metrics,deepspeed,qwen,vllm,bitsandbytes]" || {
+                echo "Failed to install LLaMA-Factory dependencies" >&2
+                exit 1
+        }
+        pip install flash-attn || {
+                echo "Failed to install flash-attn" >&2
+                exit 1
+        }
+}
+
+download_model() {
+        if [ ! -z "$MODEL" ]; then
+                echo "Environment variable MODEL is set. Downloading with huggingface-cli..." >&2
+                echo "Downloading model..."
+                huggingface-cli download "$MODEL" || {
+                        echo "Failed to download model" >&2
+                        exit 1
+                }
+        else
+                echo "Environment variable MODEL is not set. Not downloading any models..."
+        fi
+}
+
+create_dataset_info() {
+        echo "Creating dataset_info.json..."
+        cat <<'EOF' >/workspace/Llama-Factory/data/dataset_info.json
+{
+    // Dataset details here
+}
+EOF
+        echo "Dataset info created."
+}
+
+run_accelerate_config() {
+        echo "Running accelerate config..."
+        accelerate config || {
+                echo "Accelerate config failed" >&2
+                exit 1
+        }
+}
+
+start_webui() {
+        echo "Starting web UI..."
+        screen -S webui -m bash -c 'llamafactory-cli webui' || {
+                echo "Failed to start web UI" >&2
+                exit 1
+        }
+}
+
+train_freeze() {
+        echo "Running freeze training..."
+        llamafactory-cli train \
+                --stage sft \
+                --do_train True \
+                --model_name_or_path saves/Qwen2.5-1.5B-Instruct/freeze/train_2024-11-15-00-14-55
+        # Other parameters here...
+}
+
+train_qlora() {
+        echo "Running QLoRA training..."
+        llamafactory-cli train \
+                --stage sft \
+                --do_train True \
+                --model_name_or_path Qwen/Qwen2.5-1.5B-Instruct
+        # Other parameters here...
+}
+
+# Main Script Execution
+
+main() {
+        install_basic_packages
+        install_croc
+        install_python_tools
+        login_tools
+        clone_llama_factory
+        download_model
+        #    create_dataset_info
+        run_accelerate_config
+        start_webui
+
+        # Uncomment to run training
+        # train_freeze
+        # train_qlora
+}
+
+main "$@"
+exit 0
