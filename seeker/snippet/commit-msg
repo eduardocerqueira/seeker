@@ -1,0 +1,34 @@
+#date: 2024-11-20T17:09:28Z
+#url: https://api.github.com/gists/e70c9709330d4f21c4d0119c7ec0563a
+#owner: https://api.github.com/users/runswithd6s
+
+#!/usr/bin/env bash
+# -*- mode: sh; -*-
+#
+# commit-msg
+#
+# Ensure that the commit message has the correct summary line with Jira slug.
+#
+# See also: git-hook(1), githooks(5)
+#
+
+set -euo pipefail
+
+COMMIT_MSG_FILE="$1"
+COMMIT_MSG=`head -n1 $COMMIT_MSG_FILE`
+PATTERN="^([A-Z][A-Z0-9]+-[0-9]+)"
+
+if [[ ! ${COMMIT_MSG} =~ $PATTERN ]]
+then
+  echo "ERROR! Commit message lacks Jira slug." >&2
+
+  BRANCH_NAME=$(git symbolic-ref --short HEAD)
+  if [[ $BRANCH_NAME =~ $PATTERN ]]
+  then
+    echo "Branch name matches Jira slug. Prepending to commit summary." >&2
+    sed -i '' "1s/^/${BASH_REMATCH[1]} /" "$COMMIT_MSG_FILE"
+  else
+    echo "ERROR! Bad commit message. Add a Jira slug and retry." >&2
+    exit 1
+  fi
+fi
