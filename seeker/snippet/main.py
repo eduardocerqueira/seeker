@@ -1,12 +1,24 @@
-#date: 2024-11-19T17:10:34Z
-#url: https://api.github.com/gists/40b980eadde4a630c8fd8dae655bce4e
+#date: 2024-11-21T16:58:41Z
+#url: https://api.github.com/gists/2ac3079d8938fa160857862bd1178f4b
 #owner: https://api.github.com/users/mypy-play
 
-# mypy: enable-error-code="possibly-undefined"
-def func(flag: bool) -> str:
-    if flag:
-        name = "Name"
-    return name
+from typing import Any
+from collections.abc import Callable
+import inspect
 
 
-func(False)
+class CallableClass:
+    def __init__(self) -> None:
+        pass
+    
+    def __call__(self, *args: Any, **kwargs: Any) -> None:
+        return None
+
+
+
+assert callable(CallableClass) # Success
+
+
+callable_instance = CallableClass()
+assert isinstance(callable_instance, Callable[..., None]) # Errors
+assert isinstance(callable_instance, Callable) # Also erros

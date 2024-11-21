@@ -1,155 +1,18 @@
-#date: 2024-11-20T17:11:55Z
-#url: https://api.github.com/gists/971d90d09ed10abbe0af9ada8c345344
-#owner: https://api.github.com/users/yjm7026
+#date: 2024-11-21T16:54:14Z
+#url: https://api.github.com/gists/baefea843da366a4949e94e67fce8c6a
+#owner: https://api.github.com/users/AleksPopov4
 
-#!/bin/bash
-# This file will be sourced in init.sh
-# Namespace functions with provisioning_
+#! /bin/bash
 
-### Edit the following arrays to suit your workflow - values must be quoted and separated by newlines or spaces.
-DISK_GB_REQUIRED=30
+#sum all numbers from 0 to 1000 where a number can be divided by 3 or 5 but not both
+sum=0
 
-APT_PACKAGES=(
-    # Add any APT packages if needed
-)
+for ((i=1; i<=1000; i++));
+do
+  if (( i % 3 == 0 && i % 5 != 0 )) || ((i % 5 == 0 && i % 3 != 0 ));
+  then
+        sum=$((sum + i))
+  fi
+done
 
-PIP_PACKAGES=(
-    # Add any PIP packages if needed
-)
-
-EXTENSIONS=(
-    "https://github.com/muerrilla/sd-webui-detail-daemon"
-    "https://github.com/bbc-mc/sd-webui-model-merger" # 모델 병합 확장 기능
-    "https://github.com/deforum-art/sd-webui-deforum"
-    "https://github.com/adieyal/sd-dynamic-prompts"
-    "https://github.com/ototadana/sd-face-editor"
-    "https://github.com/AlUlkesh/stable-diffusion-webui-images-browser"
-    "https://github.com/hako-mikan/sd-webui-regional-prompter"
-    "https://github.com/Coyote-A/ultimate-upscale-for-automatic1111"
-    "https://github.com/Gourieff/sd-webui-reactor"
-)
-
-CHECKPOINT_MODELS=(
-    "https: "**********"
-    "https: "**********"
-    "https: "**********"
-)
-
-LORA_MODELS=(
-    # Add LoRA model URLs if needed later
-)
-
-VAE_MODELS=(
-    "https: "**********"
-)
-
-ESRGAN_MODELS=(
-    "https://huggingface.co/ai-forever/Real-ESRGAN/resolve/main/RealESRGAN_x4.pth"
-    "https://huggingface.co/FacehugmanIII/4x_foolhardy_Remacri/resolve/main/4x_foolhardy_Remacri.pth"
-    "https://huggingface.co/Akumetsu971/SD_Anime_Futuristic_Armor/resolve/main/4x_NMKD-Siax_200k.pth"
-)
-
-CONTROLNET_MODELS=(
-    # Add ControlNet model URLs if needed
-)
-
-### DO NOT EDIT BELOW THIS LINE UNLESS YOU KNOW WHAT YOU ARE DOING ###
-function provisioning_start() {
-    if [[ ! -d /opt/environments/python ]]; then 
-        export MAMBA_BASE=true
-    fi
-    source /opt/ai-dock/etc/environment.sh
-    source /opt/ai-dock/bin/venv-set.sh webui
-
-    DISK_GB_AVAILABLE=$(($(df --output=avail -m "${WORKSPACE}" | tail -n1) / 1000))
-    DISK_GB_USED=$(($(df --output=used -m "${WORKSPACE}" | tail -n1) / 1000))
-    DISK_GB_ALLOCATED=$(($DISK_GB_AVAILABLE + $DISK_GB_USED))
-    provisioning_print_header
-    provisioning_get_apt_packages
-    provisioning_get_pip_packages
-    provisioning_get_extensions
-    provisioning_get_models \
-        "${WORKSPACE}/storage/stable_diffusion/models/ckpt" \
-        "${CHECKPOINT_MODELS[@]}"
-    provisioning_get_models \
-        "${WORKSPACE}/storage/stable_diffusion/models/lora" \
-        "${LORA_MODELS[@]}"
-    provisioning_get_models \
-        "${WORKSPACE}/storage/stable_diffusion/models/vae" \
-        "${VAE_MODELS[@]}"
-    provisioning_get_models \
-        "${WORKSPACE}/storage/stable_diffusion/models/esrgan" \
-        "${ESRGAN_MODELS[@]}"
-     
-    PLATFORM_ARGS=""
-    if [[ $XPU_TARGET = "CPU" ]]; then
-        PLATFORM_ARGS="--use-cpu all --skip-torch-cuda-test --no-half"
-    fi
-    PROVISIONING_ARGS="--skip-python-version-check --no-download-sd-model --do-not-download-clip --port 11404 --exit"
-    ARGS_COMBINED="${PLATFORM_ARGS} $(cat /etc/a1111_webui_flags.conf) ${PROVISIONING_ARGS}"
-    
-    cd /opt/stable-diffusion-webui
-    if [[ -z $MAMBA_BASE ]]; then
-        source "$WEBUI_VENV/bin/activate"
-        LD_PRELOAD=libtcmalloc.so python launch.py \
-            ${ARGS_COMBINED}
-        deactivate
-    else 
-        micromamba run -n webui -e LD_PRELOAD=libtcmalloc.so python launch.py \
-            ${ARGS_COMBINED}
-    fi
-    provisioning_print_end
-}
-
-function provisioning_get_extensions() {
-    for repo in "${EXTENSIONS[@]}"; do
-        dir="${repo##*/}"
-        path="/opt/stable-diffusion-webui/extensions/${dir}"
-        if [[ -d $path ]]; then
-            if [[ ${AUTO_UPDATE,,} == "true" ]]; then
-                printf "Updating extension: %s...\n" "${repo}"
-                ( cd "$path" && git pull )
-            fi
-        else
-            printf "Downloading extension: %s...\n" "${repo}"
-            git clone "${repo}" "${path}" --recursive
-        fi
-    done
-}
-
-function provisioning_get_models() {
-    if [[ -z $2 ]]; then return 1; fi
-    dir="$1"
-    mkdir -p "$dir"
-    shift
-    arr=("$@")
-    printf "Downloading %s model(s) to %s...\n" "${#arr[@]}" "$dir"
-    for url in "${arr[@]}"; do
-        printf "Downloading: %s\n" "${url}"
-        provisioning_download "${url}" "${dir}"
-    done
-}
-
-function provisioning_download() {
-    wget -qnc --content-disposition --show-progress -P "$2" "$1"
-}
-
-provisioning_start
-ioning_get_models() {
-    if [[ -z $2 ]]; then return 1; fi
-    dir="$1"
-    mkdir -p "$dir"
-    shift
-    arr=("$@")
-    printf "Downloading %s model(s) to %s...\n" "${#arr[@]}" "$dir"
-    for url in "${arr[@]}"; do
-        printf "Downloading: %s\n" "${url}"
-        provisioning_download "${url}" "${dir}"
-    done
-}
-
-function provisioning_download() {
-    wget -qnc --content-disposition --show-progress -P "$2" "$1"
-}
-
-provisioning_start
+echo "$sum"
