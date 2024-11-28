@@ -1,4 +1,34 @@
 --------------------------------------------------------------------------------
+ 2024-11-28 17:13:08.973410
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/block_bittorrent.sh
+	deleted:    snippet/bocker.sh
+	deleted:    snippet/ex.py
+	deleted:    snippet/lambda-sqs-dlw.sh
+	deleted:    snippet/pizzeria.py
+	deleted:    snippet/protconf.py
+	deleted:    snippet/quiz.py
+	deleted:    snippet/skillspass_data_export.py
+	deleted:    snippet/vpnauto.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/cde.py
+	snippet/generate-llms.sh
+	snippet/get-latest-tag-on-git.sh
+	snippet/gistfile1.txt
+	snippet/org-id-to-login-method.py
+	snippet/sensors_a_json.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2024-11-27 17:13:27.573024
 --------------------------------------------------------------------------------
   On branch main

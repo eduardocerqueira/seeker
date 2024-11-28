@@ -1,0 +1,12 @@
+#date: 2024-11-28T17:05:24Z
+#url: https://api.github.com/gists/f51051aa535eec7d624c26b5ebbe0809
+#owner: https://api.github.com/users/yehwankim23
+
+#!/bin/bash
+
+cd $HOME/ActivityService
+$(which pip3) install -r requirements.txt --upgrade
+chmod 777 Activities
+chmod 777 ActivityService.sh
+chmod 777 ActivityService.py
+ls -l
