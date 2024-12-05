@@ -705,11 +705,14 @@ headline-precmd() {
 
   # Right prompt
   if [[ $HL_CLOCK_MODE == 'on' ]]; then
-    RPROMPT='${HL_CLOCK_TEMPLATE/$HL_TEMPLATE_TOKEN/$(eval ${=HL_CLOCK_SOURCE})}%{$reset%}$HL_RPROMPT'
+    RPROMPT= "**********"=HL_CLOCK_SOURCE})}%{$reset%}$HL_RPROMPT'
   else
     RPROMPT=$HL_RPROMPT
   fi
 
   _HL_CMD_NUM_PREV=$_HL_CMD_NUM
+  _HL_AT_TOP='false'
+}
+$_HL_CMD_NUM
   _HL_AT_TOP='false'
 }
