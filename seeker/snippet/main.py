@@ -1,17 +1,16 @@
-#date: 2024-12-04T16:56:44Z
-#url: https://api.github.com/gists/2e782bb6132502e0c5dffd6bb06ac6cb
+#date: 2024-12-06T16:53:15Z
+#url: https://api.github.com/gists/ab69360a59973d779645203c39d076f1
 #owner: https://api.github.com/users/mypy-play
 
-from typing import Callable, Sequence, Any, MutableSequence
+from __future__ import annotations
 
-def f(x: list[int]) -> None:
-    x[0] / 10
+class Bar: ...
 
-def g(x: list[str]) -> None:
-    x[0].startswith("a")
+class Foo:
+    x: "Bar" = Bar()
 
-def do_it(fn: Callable[[list[Any]], None]) -> None:
-    fn([1])
+    class Bar: ...
+    y: "Bar" = Bar()
 
-do_it(f)
-do_it(g)
+reveal_type(Foo.x)  # __main__.Bar
+reveal_type(Foo.y)  # __main__.Foo.Bar
