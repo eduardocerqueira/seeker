@@ -1,4 +1,29 @@
 --------------------------------------------------------------------------------
+ 2024-12-12 17:13:49.093684
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/JamfConnectUninstall.sh
+	deleted:    snippet/binaryninja_get_function_names_from_type_library.py
+	deleted:    snippet/nv.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/_main_.py
+	snippet/check_mesh.py
+	snippet/live_test.py
+	snippet/mas.sh
+	snippet/no_queue_version.py
+	snippet/print.py
+	snippet/un_json.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2024-12-11 17:13:44.050025
 --------------------------------------------------------------------------------
   On branch main
