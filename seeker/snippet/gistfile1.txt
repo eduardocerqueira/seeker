@@ -1,0 +1,301 @@
+#date: 2024-12-16T17:07:09Z
+#url: https://api.github.com/gists/d2a8907417b6ef691d685eb681de52a7
+#owner: https://api.github.com/users/sakaloner
+
+#!/usr/bin/env python3
+import re
+from contextlib import contextmanager
+import sounddevice as sd
+import io
+import requests
+import soundfile as sf
+import numpy as np
+import wave
+import keyboard
+from queue import Queue
+import threading
+import time
+from openai import OpenAI
+import anthropic
+from loguru import logger
+import os
+
+logger.add("voice_assistant.log", rotation="500 MB", level="DEBUG")
+
+@contextmanager
+def timer(name):
+    start = time.perf_counter()
+    yield
+    end = time.perf_counter()
+    logger.info(f"{name} took {end - start:.2f} seconds")
+
+class VoiceAssistant:
+    def __init__(self):
+        self.openai_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+        self.claude_client = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
+        self.message_history = []
+        self.is_recording = False
+        self.audio_frames = []
+        self.tts_lock = threading.Lock()  # Add this lock
+
+        # Audio settings
+        self.channels = 2
+        self.sample_rate = 44100
+        self.stream = None
+
+        # Threading events
+        self.recording_completed = threading.Event()
+
+        self.setup_keyboard_shortcuts()
+        ## audio
+        self.audio_queue = Queue()
+        self.tts_thread = threading.Thread(target=self._audio_player_worker, daemon=True)
+        self.tts_thread.start()
+
+        self.interrupt_event = threading.Event()
+        ## stopping
+        self.should_stop = threading.Event()
+        self.is_processing = threading.Event()
+
+        logger.info("Voice Assistant initialized")
+
+    def _audio_player_worker(self):
+        """Consumer: Plays audio from queue"""
+        while True:
+            audio_data, samplerate = self.audio_queue.get()
+            if audio_data is None:  # Poison pill
+                break
+
+            if self.should_stop.is_set():
+                self.audio_queue.task_done()
+                continue
+            if not self.audio_queue.empty():
+                time.sleep(0.3)  # Pause only when sentences are backed up
+
+            sd.play(audio_data, samplerate)
+            sd.wait()
+            self.audio_queue.task_done()
+
+    def setup_keyboard_shortcuts(self):
+        def on_hotkey():
+            logger.debug("Hotkey pressed!")
+            self.toggle_recording()
+
+        keyboard.add_hotkey('ctrl+shift+o', on_hotkey)
+        logger.debug("Press ctrl+shift+o to start recording!")
+
+    def audio_callback(self, indata, frames, time, status):
+        if status:
+            logger.warning(f"Audio callback status: {status}")
+        self.audio_frames.append(indata.copy())
+
+    def start_recording(self):
+        try:
+            self.is_recording = True
+            self.audio_frames = []
+            self.stream = sd.InputStream(
+                samplerate=self.sample_rate,
+                channels=self.channels,
+                callback=self.audio_callback
+            )
+            self.stream.start()
+            logger.info("Recording started")
+        except Exception as e:
+            logger.exception("Failed to start recording")
+            self.is_recording = False
+            raise
+
+    def stop_recording(self):
+        if not self.is_recording:
+            return
+
+        try:
+            self.is_recording = False
+            if self.stream:
+                self.stream.stop()
+                self.stream.close()
+
+            audio_data = np.concatenate(self.audio_frames, axis=0)
+            self.save_audio('temp_recording.wav', audio_data)
+
+            # Process the recording
+            transcript = self.speech_to_text()
+            bot_response = self.get_bot_response(transcript)  # This now handles streaming TTS
+            # Remove the text_to_speech call since it's handled in get_bot_response
+
+            os.remove('temp_recording.wav')
+            logger.info("Recording processed successfully")
+
+        except Exception as e:
+            logger.exception("Error processing recording")
+            raise
+        finally:
+            self.recording_completed.set()
+
+    def toggle_recording(self):
+        if self.is_processing.is_set():
+            # Stop current processing
+            self.should_stop.set()
+            self.audio_queue.queue.clear()
+            # Add these lines:
+            if self.stream:
+                self.stream.stop()
+                self.stream.close()
+            self.is_recording = False
+            self.is_processing.clear()
+            logger.info("Interrupting current process")
+            return
+
+        if not self.is_recording:
+            self.start_recording()
+        else:
+            self.stop_recording()
+
+    def save_audio(self, filename, audio_data):
+        try:
+            with wave.open(filename, 'wb') as wf:
+                wf.setnchannels(self.channels)
+                wf.setsampwidth(2)
+                wf.setframerate(self.sample_rate)
+                wf.writeframes((audio_data * 32767).astype(np.int16).tobytes())
+            logger.debug(f"Audio saved to {filename}")
+        except Exception as e:
+            logger.exception("Failed to save audio")
+            raise
+
+    def speech_to_text(self):
+        try:
+            transcription = self.openai_client.audio.transcriptions.create(
+                model="whisper-1",
+                file=open('temp_recording.wav', 'rb')
+            )
+            logger.info(f"Transcription: {transcription.text}")
+            return transcription.text
+        except Exception as e:
+            logger.exception("Speech to text failed")
+            raise
+
+    def interrupt(self):
+        """Can be called from anywhere to interrupt current processing"""
+        self.interrupt_event.set()
+        self.should_stop.set()
+        self.audio_queue.queue.clear()
+        if self.stream:
+            self.stream.stop()
+            self.stream.close()
+        self.is_recording = False
+        self.is_processing.clear()
+        logger.info("Interruption requested")
+
+    def get_bot_response(self, user_input):
+        try:
+            self.message_history.append({"role": "user", "content": user_input})
+            sentence_buffer = ""
+
+            with self.claude_client.messages.stream(
+                model="claude-3-5-haiku-20241022",
+                max_tokens= "**********"
+                messages=self.message_history
+            ) as stream:
+                full_response = ""
+                for chunk in stream:
+                    if self.should_stop.is_set():
+                        logger.info("Processing interrupted")
+                        return "Processing interrupted."
+
+                    if chunk.type == "content_block_delta":
+                        text_chunk = chunk.delta.text
+                        full_response += text_chunk
+                        sentence_buffer += text_chunk
+
+                        #print(text_chunk, end='', flush=True)
+
+                        # Using our regex approach with more punctuation
+                        splits = re.split(r'(?<![\d])[.!?;]\s+|\n+', sentence_buffer)
+                        if len(splits) > 1:  # We have a complete sentence
+                            complete_sentence = splits[0]
+                            logger.debug(f'current sentence: {complete_sentence}')
+                            with self.tts_lock:
+                                self.stream_tts(complete_sentence)
+                            sentence_buffer = splits[-1]  # Keep the incomplete part
+
+                # Handle remaining text
+                if sentence_buffer:
+                    logger.debug(f'remaining sentence: {complete_sentence}')
+                    with self.tts_lock:
+                        self.stream_tts(sentence_buffer)
+
+                self.message_history.append({"role": "assistant", "content": full_response})
+                return full_response
+
+        except Exception as e:
+            logger.exception("Failed to get bot response")
+            raise
+        finally:
+            self.is_processing.clear()
+
+    def stream_tts(self, text):
+        try:
+            url = "https://api.openai.com/v1/audio/speech"
+            headers = {
+                "Authorization": f"Bearer {os.getenv('OPENAI_API_KEY')}",
+                "Content-Type": "application/json",
+            }
+            tts_params = {
+                "model": "tts-1",
+                "input": text,
+                "voice": "shimmer",
+                "response_format": "mp3",
+                "speed": 1.1
+            }
+
+            # Split longer text into smaller chunks at sentence boundaries
+            response = requests.post(url, headers=headers, json=tts_params, stream=True)
+            response.raise_for_status()
+
+            audio_buffer = io.BytesIO(response.content)
+            audio_data, samplerate = sf.read(audio_buffer)
+
+            # Add to queue for playback
+            self.audio_queue.put((audio_data, samplerate))
+
+        except Exception as e:
+            logger.exception("Stream TTS failed")
+            raise
+
+
+    def run(self):
+        """Main loop of the application"""
+        try:
+            logger.info("Starting Voice Assistant")
+            while True:
+                time.sleep(0.1)  # Prevent CPU hogging
+                if self.recording_completed.is_set():
+                    self.recording_completed.clear()
+                if self.interrupt_event.is_set():
+                    break
+
+        except KeyboardInterrupt:
+            logger.info("Voice Assistant stopped by user")
+
+    def cleanup(self):
+        """Cleanup resources"""
+        try:
+            if self.stream:
+                self.stream.stop()
+                self.stream.close()
+            logger.info("Cleanup completed")
+        except Exception as e:
+            logger.exception("Cleanup failed")
+
+if __name__ == "__main__":
+    try:
+        assistant = VoiceAssistant()
+        def on_hotkey():
+            logger.debug("Hotkey pressed!")
+            assistant.interrupt()
+
+        keyboard.add_hotkey('ctrl+shift+u', on_hotkey)
+        assistant.run()
+    except Exception as e:
+        logger.exception("Failed to start Voice Assistant")
