@@ -1,64 +1,37 @@
-#date: 2024-12-18T17:03:26Z
-#url: https://api.github.com/gists/138d3b34fb62197302bb90a5a9ae953f
-#owner: https://api.github.com/users/wpcarro
+#date: 2024-12-19T16:50:03Z
+#url: https://api.github.com/gists/5b4701b7475961712cb01d00b431250a
+#owner: https://api.github.com/users/jymchng
 
-lock = threading.Lock()
-state = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+import os, sys # Possible to import most packages; go to [Installed Packages] tab, type in the names 
+# delimited by comma of the packages you want to install.
+# Click on [Add Package(s)]
+# Then import those packages, e.g. import attrs
 
-def persist_state():
-    print("Persisting state...")
-    tmp = "/tmp/buffer.json"
-    dst = "/tmp/dump.json"
-    with lock:
-        content = json.dumps(state)
-    with open(tmp, "w") as f:
-        f.write(content)
-        f.flush()
-        os.fsync(f)
-    os.rename(tmp, dst)
+import logging
+from logging import getLogger
 
-def handle_signal(signum, _frame):
-    print(f"Received signal: {signum}")
-    match signum:
-        case signal.SIGINT:
-            persist_state()
-            # Restore the default behavior and re-signal
-            signal.signal(signal.SIGINT, signal.SIG_DFL)
-            raise KeyboardInterrupt
-        case signal.SIGTERM:
-            persist_state()
-            # Restore the default behavior and re-signal
-            signal.signal(signal.SIGTERM, signal.SIG_DFL)
-            raise SystemExit
-        case signal.SIGHUP:
-            persist_state()
-            # Restore the default behavior and re-signal
-            signal.signal(signal.SIGHUP, signal.SIG_DFL)
-            raise SystemExit
-        case x:
-            logger.error(f"Unhandled signal: {x}")
+logger = getLogger(__name__)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s', stream=sys.stdout)
 
-signal.signal(signal.SIGINT, handle_signal)
-signal.signal(signal.SIGTERM, handle_signal)
-signal.signal(signal.SIGHUP, handle_signal)
+# Click on the dropdown button and choose [Format], then click on the [Format] button
+# to see how the `fibonacci` function definition is reformatted.
 
-def checkpoint():
-    sleep = 5
-    minute = 60 / sleep
-    for _ in range(int(60 * minute)):
-        persist_state()
-        print("Sleeping...")
-        time.sleep(sleep)
+# Define a function that takes an integer n and returns the nth number in the Fibonacci
+# sequence.
+def fibonacci(n):
+    """Compute the nth number in the Fibonacci sequence."""
+    x = 1
+    if n == 0: return 0
+    elif n == 1: return 1
+    else: return fibonacci(n - 1) + fibonacci(n - 2)
 
-# Start background thread that checkpoints state
-t = threading.Thread(target=lambda: checkpoint(), daemon=True)
-t.start()
+# Use a for loop to generate and print the first 10 numbers in the Fibonacci sequence.
+for i in range(10):
+    print(fibonacci(i))
+    logger.info(f"`fibonacci({i})` = {fibonacci(i)}")
 
-sleep = 5
-minute = 60 / sleep
-for _ in range(int(60 * minute)):
-    print("Awaiting signal...")
-    if random.choice([True, False]):
-        with lock:
-            state.append(random.choice(range(100)))
-    time.sleep(sleep)
+# Click on the dropdown button and choose [Test], then click on the [Test] button
+# to see how you can use pytest on this playground.
+def test_fibonacci():
+    for i in range(10):
+        assert fibonacci(i) == fibonacci(i)
