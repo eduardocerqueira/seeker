@@ -1,4 +1,71 @@
 --------------------------------------------------------------------------------
+ 2025-01-01 17:12:15.607508
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/TESTE.PY
+	deleted:    snippet/actions.py
+	deleted:    snippet/anki_intake.py
+	deleted:    snippet/auth_challenge.py
+	deleted:    snippet/choose_pairing.py
+	deleted:    snippet/coffee_robot_server.py
+	deleted:    snippet/gh-mirror.sh
+	deleted:    snippet/gistMaciek3.py
+	deleted:    snippet/list-tcp-streams.sh
+	deleted:    snippet/mlre_samps2mono.py
+	deleted:    snippet/show_fixture.py
+	deleted:    snippet/test.py
+	deleted:    snippet/test_burr_e2e.py
+	deleted:    snippet/test_burr_test1.py
+	deleted:    snippet/test_example_git.py
+	deleted:    snippet/test_example_stability.py
+	deleted:    snippet/test_my_agent.py
+	deleted:    snippet/test_my_agent2.py
+	deleted:    snippet/test_pytestharvest_example.py
+	deleted:    snippet/test_pytestharvest_example2.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/CalendarPrinter.py
+	snippet/dataclass_alias.py
+	snippet/docker-restart.sh
+	snippet/feature_1.py
+	snippet/feature_2.py
+	snippet/feature_3.py
+	snippet/feature_4.py
+	snippet/feature_5.py
+	snippet/feature_6.py
+	snippet/fzf.sh
+	snippet/main.go
+	snippet/maxScore.go
+	snippet/model_mem.py
+	snippet/nn_1.py
+	snippet/nn_10.py
+	snippet/nn_2.py
+	snippet/nn_3.py
+	snippet/nn_4.py
+	snippet/nn_5.py
+	snippet/nn_6.py
+	snippet/nn_7.py
+	snippet/nn_8.py
+	snippet/nn_9.py
+	snippet/optimization_10.py
+	snippet/optimization_11.py
+	snippet/optimization_12.py
+	snippet/optimization_13.py
+	snippet/optimization_14.py
+	snippet/pdf_unshit.py
+	snippet/tpmorse.py
+	snippet/train_model.py
+	snippet/walletfind.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2024-12-30 17:12:17.002499
 --------------------------------------------------------------------------------
   On branch main
