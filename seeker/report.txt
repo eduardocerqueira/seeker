@@ -1,4 +1,43 @@
 --------------------------------------------------------------------------------
+ 2025-01-06 17:12:43.626639
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/Project.py
+	deleted:    snippet/bid.sh
+	deleted:    snippet/convert_to_md.py
+	deleted:    snippet/docker-start.sh
+	deleted:    snippet/gistfile1.txt
+	deleted:    snippet/git-loc-changes.sh
+	deleted:    snippet/image_data_extraction.py
+	deleted:    snippet/interview_ready_coding_challenge_sudoku_solver.py
+	deleted:    snippet/ransom.py
+	deleted:    snippet/regression_3.py
+	deleted:    snippet/regression_4.py
+	deleted:    snippet/regression_5.py
+	deleted:    snippet/regression_6.py
+	deleted:    snippet/regression_7.py
+	deleted:    snippet/txt_handler.sh
+	deleted:    snippet/weather.py
+	deleted:    snippet/write_markdown_to_a_file.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/ability_cash.py
+	snippet/kimsufi.py
+	snippet/link_dataset.py
+	snippet/pdf_green_remover.py
+	snippet/python_decorator_exception_handler.py
+	snippet/python_decorator_mesure_perfomance.py
+	snippet/reset-dock.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2025-01-03 17:12:37.537101
 --------------------------------------------------------------------------------
   On branch main
