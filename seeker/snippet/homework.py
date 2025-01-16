@@ -1,225 +1,230 @@
-#date: 2025-01-15T17:00:21Z
-#url: https://api.github.com/gists/4f0ecbc42e37e61cd7b9126ea42af4d9
-#owner: https://api.github.com/users/shh-AQA
+#date: 2025-01-16T16:53:35Z
+#url: https://api.github.com/gists/9b1fce7ae3d37cec538bab0007df76bd
+#owner: https://api.github.com/users/bnszekely
 
-# Homework Lesson 2 - Numbers - Homework
+# Homework Lesson 3 - Strings
 
 # READ CAREFULLY THE EXERCISE DESCRIPTION AND SOLVE IT RIGHT AFTER IT
 
 # ---------------------------------------------------------------------
-# Exercise 0 - This exercise is solved so you can have an ----------
-# example of how we are expecting your answers to be.
+# Exercise 1: Personalized Greeting
+# Write a program that takes a user's name as input
+# and then greets them using an f-string: "Hello, [name]!"
 #
-# You are shopping online and found two items with prices $5.99
-# and $3. Calculate and print the total cost.
-item1_price = 5.99
-item2_price = 3
-total_cost = item1_price + item2_price
-print(total_cost)
+# Example Input: "Alice"
+# Example Output: "Hello, Alice!"
+
+name = input("Enter yor name: ")
+result = f"Hello, {name}!"
+print(result)
 
 # ---------------------------------------------------------------------
-# Exercise 1 - Travel Distance
-# Alex is planning a road trip and wants to know the total distance
-# he will be driving. He will travel at an average speed of 60 miles
-# per hour and has 4 hours available for driving. Calculate the
-# total distance he can cover and print the result.
+# Exercise 2: Greeting with User's Favorite Activity
+# Write a program that takes a user's name and their
+# favorite activity as input, and then greets them
+# using the formatting method of your choice as:
+# "Hello, [name]! Enjoy [activity]!"
 
-average_speed = 60
-hours_available = 4
-total_distance = average_speed * hours_available # calculate here
-print(total_distance)  # print the result
+# Example Input:
+# Name: Emily
+# Favorite Activity: hiking
+# Example Output: "Hello, Emily! Enjoy hiking!"
 
-# ---------------------------------------------------------------------
-# Exercise 2 - Pizza Slices
-# A pizza is cut into 8 equal slices. Calculate and print how many
-# slices each person will get if there are 4 people sharing the pizza.
-
-pizza_slices = 8
-people = 4
-slices_per_person = pizza_slices / people
-print(slices_per_person)
+name = input('Enter your name: ')
+activity = input('Enter your favorite activity: ')
+result = f'Hello {name}! Enjoy {activity}!'
+print(result)
 
 # ---------------------------------------------------------------------
-# Exercise 3 - Shopping Discount
-# Lisa wants to buy a pair of shoes that cost $80. The store is
-# offering a 20% discount on the shoes.
-# Create two variables: original_price and discount_percentage and
-# assign the given values.
-# Create final_price to calculate the price Lisa has to pay and
-# print the result.
-# The formula to count the discounted price:
-# multiply the original price by the discount percentage and divide by 100.
+# Exercise 3: Membership Cards
+# You are designing a simple registration system for a club.
+# When new members sign up, you want to ensure their names
+# are displayed in uppercase on their membership cards.
+# Write a program that takes the new member's name as
+# input and prints it in uppercase and prints a welcome message
+# using .format()
 
-original_price = 80
-discount_percentage = 20
-discounted_price = (original_price * discount_percentage) / 100
-final_price = original_price - discounted_price
+# Example Input:
+# Name: Emily
+# Example Output: "Welcome, Emily! Your name in uppercase is: EMILY!"
 
-print(final_price)
-
+name = input('What is your name: ')
+print('Welcome {name}! Your name in uppercase is: {uppercase_name}!'.format(name=name, uppercase_name=name.upper()))
 
 # ---------------------------------------------------------------------
-# Exercise 4 - Temperature Conversion
-# You are designing a weather app and need to convert temperature
-# from Celsius to Fahrenheit for display. Convert a given
-# temperature and print the result.
-# To convert Celsis to Fahrenheit you need to multiply
-# the temperature in Celsius by 9/5 and add 32 to the result
-
-temp_c = 35
-temp_f = (temp_c * 9/5) + 32
-
-print(temp_f)
-
-
-# ---------------------------------------------------------------------
-# Exercise 5 - Gardening
-# You're planning a garden and need to calculate the area of
-# a circular flowerbed with a radius of 3.5 meters. Calculate
-# and print the area of the flowerbed.
-# To calculate the area of a circle, multiply π (~3.141) with the square of
-# the circle's radius.
-
-pi = 3.141
-radius = 3.5
-area = pi * radius ** 2
-
-print(area)
-
-
-# ---------------------------------------------------------------------
-# Exercise 6 - Convert Temperature
-# You're building a weather app, and you want to display the current
-# temperature rounded to the nearest whole number. The
-# temperature data you received from the weather service is a float.
-# Your task is to convert the float temperature to an integer
-# temperature for display.
-# As an example, if the temperature is 24.8ºC, you need to print 24.
-
-temp = 24.6
-print(int(temp))
-
-
-# ---------------------------------------------------------------------
-# Exercise 7 - Baking Cookies
-# You are baking cookies and have 17 chocolate chips. You
-# want to distribute them evenly into 5 cookies. Calculate and
-# print the number of chocolate chips in each cookie and the
-# remaining chips.
-
-chips = 17
-cookies = 5
-chips_per_cookie = chips // cookies
-leftover = chips % cookies
-
-print(chips_per_cookie)
-print(leftover)
-
-# ---------------------------------------------------------------------
-# Exercise 8 - Fix the Code - Event total earnings
-# FOR THIS EXERCISE YOU WILL HAVE AN EXISTING CODE THAT IS
-# NOT WORKING CORRECTLY. YOUR TASK IS TO LOOK AT THE CODE
-# AND FIX THE PROBLEM SO IT WORKS AS EXPECTED.
+# Exercise 4: User Profile Creation
+# Build a user profile generator. Ask
+# the user for their first name, last name, and age. Create
+# a profile summary using .title(), .upper(), and .format().
 #
-# Tip: Copy the code and try to run it alone. See the results
-# and try to figure out why it is not working.
+# Example Input:
+# First name: john
+# Last name: smith
+# Age: 28
 #
-# You organized two events. The first event had 250 participants
-# and the second event had 500 participants. With a ticket price
-# of $1000, calculate and print the total earning of the two events
-# together.
+# Example Output:
+# Name: John Smith
+# Age: 28
+
+first_name = input('What is your first name? ')
+last_name = input('What is your last name? ')
+age = input('How old are you? ')
+
+title_first_name = first_name.title()
+title_last_name = last_name.title()
+
+print('Name: {} {}'.format(title_first_name, title_last_name))
+print('Age: {}'.format(age))
+
+# ---------------------------------------------------------------------
+# Exercise 5: Text message limits
+# You are developing a text messaging application that limits the
+# number of characters in a single message. Your task is to create
+# a Python program that takes a message as input from the user.
+# The program should calculate and display the number of characters
+# in the message, including spaces, and format the output using
+# an f-string. This character count will help users ensure their
+# messages fit within the allowed limit.
+
+text_field = input('Enter your message here: ')
+length = len(text_field)
+print(length)
+
+# ---------------------------------------------------------------------
+# Exercise 6: Text Transformation Game
+# Create a text transformation game. Ask the user
+# to enter a sentence. Replace all vowels with '*'. Display the
+# modified sentence.
 #
-# For the values provided we are expecting a total earning of 750000,
-# however the code is not working correctly. Can you fix it?
+# Example Input: "Hello, world!"
+# Example Output: "H*ll*, w*rld!"
 
-# 1st_event_participants = 250
-# 2nd_event_participants = 500
-# ticket_$ = 1000
+sentence = input("Enter a sentence: ")
+vowel = 'aeiouAEIOU'
+new_sentence = sentence
+for char in vowel:
+    new_sentence = new_sentence.replace(char, '*')
+
+print(new_sentence)
+
+
+# ------------------------------# ---------------------------------------------------------------------
+# Exercise 7: Extracting Information
+# The variable 'data' is a student record in the format "name:age"
+# Use string slicing and string methods to extract the name and the age
+# and print the result formatted.
 #
-# total_earnings = (1st_event_total + 2nd_event_total) * ticket_$
-# print(total_earnings)
+# data = "lucy smith:28"
+#
+# Expected output:
+# Name: Lucy Smith
+# Age: 28
 
-first_event_participants = 250
-second_event_participants = 500
-ticket_price = 1000
-
-total_earnings = (first_event_participants + second_event_participants) * ticket_price
-print(total_earnings)
+data = 'lucy smith: 28'
+sliced_data_name = data[0:10]
+sliced_data_age = data[12:15]
+print('Name: ', str.title(sliced_data_name))
+print('Age: ', (sliced_data_age))
 
 
 # ---------------------------------------------------------------------
-# Exercise 9 - Fix the Code - Student age mean
-# FOR THIS EXERCISE YOU WILL HAVE AN EXISTING CODE THAT IS
-# NOT WORKING CORRECTLY. YOUR TASK IS TO LOOK AT THE CODE
-# AND FIX THE PROBLEM SO IT WORKS AS EXPECTED
-#
-# Tip: Copy the code and try to run it alone. See the results
-# and try to figure out why it is not working.
-#
-# You're a teacher organizing a school event and need to
-# calculate the mean age of three students participating in
-# the event. The ages of the students are as follows:
-#   Student 1: 15 years old
-#   Student 2: 17 years old
-#   Student 3: 13 years old
-#
-# For these ages, we expect an age mean of 15.0, but your code
-# is returning 36.3. Fix the code to print the correct value.
+# Exercise 8: Miles to Kilometers Conversion
+# Write a program that converts a distance in miles to kilometers.
+# Take the distance in miles as input, convert it to kilometers
+# using the formula miles * 1.6, and display the
+# result using f-strings.
 
+# Example Input: 10
+# Example Output: 10 miles is approximately 16.0 kilometers.
 
-# student_1_age = 15
-# student_2_age = 17
-# student_3_age = 13
-#
-# students_age_mean = student_1_age + student_2_age + student_3_age / 3
-# print(students_mean_age)
+# We are converting the input string to float:
+# Input: float("1.23")
+# Output: 1.23
 
-student_1_age = 15
-student_2_age = 17
-student_3_age = 13
+miles = float(input("Enter distance in miles: "))
+kilometers = miles * 1.6
+conversion = f"{miles} miles is approximately {kilometers} kilometers."
 
-students_age_mean = (student_1_age + student_2_age + student_3_age) / 3
-print(students_age_mean)
+print(conversion)
 
 # ---------------------------------------------------------------------
-# Challenge (OPTIONAL!): Separating Digits of a Number
-# Given the number 1597, your task is to write a Python code
-# that separates this number into four variables, each containing
-# a digit of the number: 1, 5, 9, and 7. You'll use the
-# knowledge of Python operators % and /, variable assignment,
-# and working with integers to accomplish this task.
+# Exercise 9: Workouts calculator
+# Write a Python program that asks the user to input the number
+# of minutes spent on three different exercises: cardio, strength
+# training, and yoga using the input() function. Convert the input
+# strings to integers using the int() function. Calculate the
+# total time spent on workouts by summing up the minutes from all
+# three activities. Based on the total workout time, provide a
+# motivational message using an f-string that encourages the user
+# to stay consistent and reach their fitness goals. Display the
+# motivational message to the user.
 
-# Tip: To separate the digits of a number, think about how you
-# can extract each digit using the remainder (%) and division (/)
-# operators. Start by extracting the last digit and then move on
-# to the next digits by dividing the number progressively.
-# Remember that the remainder when dividing by 10 gives you
-# the last digit, and integer division by 10 removes the last digit.
+cardio = input('How many minutes were spent on cardio: ')
+strength_training = input('How many minutes were spent on strength_training: ')
+yoga = input('How many minutes were spent on yoga: ')
+total_time_exercising = int(cardio) + int(strength_training) + int(yoga)
+print(f"This is great! You spent {total_time_exercising} minutes on exercise today!")
+
+# ---------------------------------------------------------------------
+# Challenge 1 (OPTIONAL!): Reverse the negative integer -324 and keep
+# the negative symbol. Expected output: -423
+input_number = -324
+
+reversed_input_number = int(str(input_number)[::-1] if input_number >= 0 else -int(str(input_number)[:0:-1]))
+print(reversed_input_number)
+
+# Convert the integer to a string to handle the negative symbol separately
+
+num_str = str(524)
+
+# Reverse the digits (excluding the negative symbol) using slicing [::-1]
+# Use this simple guide to help you slice the reversed string:
+# http://bit.ly/3siP47n
+
+# (ADD YOUR CODE BELOW)
+
+# Add the negative symbol back to the reversed string
+reversed_num = int(num_str[0] )
+
+# Output the result
+# (ADD YOUR CODE BELOW)
+
+# ---------------------------------------------------------------------
+# Challenge 2 (OPTIONAL!): Formatting Average Speed
+# In this exercise, we're developing a program to determine the
+# average speed of a truck based on the distance traveled in miles
+# and the total time taken in hours. Your task is to format and display
+# this average speed accurately.
+# Task:
+# Your program should take the number of miles and the total number
+# of hours traveled as input and calculate the average speed. Then,
+# present the average speed in a user-friendly format, rounded to one
+# decimal place.
 #
-# The following code should help you to get an understanding on
-# how to get the digits of the number
-number = 1597
+# Example:
+# If the driver covered 60 miles in 3 hours, the calculated average
+# speed is 20.0 miles per hour. However, we want to display it as
+# 'The average speed is 20.0 miles per hour'.
+#
+# Similarly, for 55 miles and 3 hours, the calculated speed is
+#  approximately 18.33333333332, but we want to format and display
+#  it as 'The average speed is 18.3 miles per hour'.
+#
+# Hints:
+# Refer to the "Format examples" section in the official Python
+# documentation for string formatting techniques:
+# https://docs.python.org/3/library/string.html#format-examples
+# Experiment with different formatting options to achieve the
+# desired presentation of the average speed.
 
-digit_1 = number % 10
-number = number // 10
+# Taking input for miles and hours
+miles = int(input("Enter the number of miles: "))
+hours = int(input("Enter the total number of hours: "))
 
-# print(digit_1) # will print 7
-# print(number)  # will print 159
+# Calculating average speed
+average_speed = miles / hours
 
-digit_2 = number % 10
-number = number // 10
-
-digit_3 = number % 10
-number = number // 10
-
-digit_4 = number % 10
-
-# If you repeat this operation with the second, the third and
-# the fourth digits, you will be able to get all the digits.
-# Your code here
-
-# Print the result for all four digits
-print(digit_1)
-print(digit_2)
-print(digit_3)
-print(digit_4)
+# Formatting and displaying the result
+# (Your code here)
+rounded_speed = round(average_speed, 1)
+print(f"The average speed is {rounded_speed} miles per hour")

@@ -1,0 +1,83 @@
+#date: 2025-01-16T16:52:44Z
+#url: https://api.github.com/gists/852b6dae53834a2b26151f5300a803df
+#owner: https://api.github.com/users/lfglance
+
+#!/bin/bash
+
+set -ex
+
+YT_ID=49l39sSrGqk
+PROMPT=prompt.txt
+INPUT=brainrot.mp3
+BUCKET_NAME=brainrot-demo-9812931729361
+JOB_NAME=brainrot-demo-$(date +%Y%m%d-%H%M%S)
+
+echo -e "\n[+] Cloning echomind"
+git clone https://github.com/nothingmn/echomind
+cd echomind
+
+
+echo -e "\n[+] Downloading video ${YT_ID} and extracting audio to ${INPUT}"
+yt-dlp \
+    ${YT_ID} \
+    -o ${INPUT} \
+    --extract-audio \
+    --audio-format mp3
+
+
+echo -e "\n\n[+] Building echomind container image"
+docker build -t echomind .
+
+
+echo -e "\n\n[+] Creating prompt"
+cat << EOF > ${PROMPT}
+You are a large language model dedicated to transcribing audio streams.
+
+Given an audio file, produce a full transcription.
+EOF
+
+
+echo -e "\n\n[+] Running echomind on ${INPUT}"
+docker run \
+    --rm \
+    -it \
+    -v ./:/app \
+    -v ./model:/root/.cache/whisper \
+    -e INPUT_FILE=${INPUT} \
+    -e PROMPT_FILE=${PROMPT} \
+    -e CONFIG_FILE=config.yml \
+    --network=host \
+    echomind
+
+
+##################
+# AWS Transcribe #
+##################
+
+echo -e "\n\n[+] Setting up AWS S3 bucket and copying ${INPUT}"
+aws s3 mb s3://${BUCKET_NAME} || echo bucket exists
+aws s3 cp ${INPUT} s3://${BUCKET_NAME}/${INPUT}
+
+
+echo -e "\n\n[+] Running AWS Transcribe job on ${INPUT}"
+aws transcribe start-transcription-job \
+    --language-code en-US \
+    --transcription-job-name ${JOB_NAME} \
+    --media-format mp3 \
+    --media MediaFileUri=s3://${BUCKET_NAME}/${INPUT} \
+    --output-bucket-name ${BUCKET_NAME}
+
+sleep 30
+
+
+echo -e "\n\n[+] Copying transcription results"
+aws s3 cp s3://${BUCKET_NAME}/${JOB_NAME}.json brainrot_aws.json
+
+
+echo -e "\n\n[+] Deleting S3 bucket"
+aws s3 sync $(mktemp -d) s3://${BUCKET_NAME} --delete
+aws s3 rb s3://${BUCKET_NAME}
+
+
+echo -e "\n\n[+] Reading transcription from AWS Transcribe\n\n"
+cat brainrot_aws.json | jq .results.transcripts[0].transcript

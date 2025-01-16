@@ -1,0 +1,46 @@
+#date: 2025-01-16T17:05:09Z
+#url: https://api.github.com/gists/3179354368505c564804b2617da6caf3
+#owner: https://api.github.com/users/njudd
+
+#!/bin/bash
+
+# Check if a file name is provided
+if [ -z "$1" ]; then
+  echo "Usage: $0 <filename>"
+  exit 1
+fi
+
+# Extract the file name and ensure it has the .R extension
+filename="$1"
+if [[ "$filename" != *.R ]]; then
+  filename="${filename}.R"
+fi
+
+# Check if the file already exists
+if [ -e "$filename" ]; then
+  echo "Error: File '$filename' already exists. Aborting to prevent overwriting."
+  exit 2
+fi
+
+# Get the current date in YYYY-MM-DD format
+current_date=$(date +"%Y-%m-%d")
+
+# Create the R file with the comment
+echo "#### ### ----------------- ### ####
+# Nicholas Judd - njudd.com
+# Donders Institute - LCD Lab
+# File: $filename - Created on $current_date
+#### ### ----------------- ### ####
+
+# Goals:
+
+# packages & data
+if (!require(pacman)){install.packages('pacman')}; options(scipen = 999)
+pacman::p_load(tidyverse)
+
+
+" > "$filename"
+
+# Notify the user
+echo "Empty R file '$filename' created with the initial comment."
+
