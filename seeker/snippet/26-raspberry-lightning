@@ -1,0 +1,139 @@
+#date: 2025-01-30T16:53:38Z
+#url: https://api.github.com/gists/18b23955d3785c5b9e3754fc3dd37f49
+#owner: https://api.github.com/users/micheldegeofroy
+
+#!/bin/sh
+
+# motd is generated with empty environment. This ensures that TERM is set, so that colors are displayed properly
+#  src: https://unix.stackexchange.com/a/417223/31104
+export TERM="${TERM:-xterm-256color}"
+
+BOLD=$(tput bold)
+RED=$(tput setaf 1)
+GREEN=$(tput setaf 2)
+YELLOW=$(tput setaf 3)
+BLUE=$(tput setaf 4)
+# VIOLET=$(tput setaf 5)
+# SOME_COLOR=$(tput setaf 6)
+WHITE=$(tput setaf 7)
+RESET_STYLE=$(tput sgr0)
+
+ln_path=$(command -v lightning-cli)
+if [ -z ${ln_path} ]; then
+  exit 0
+fi
+
+ln_line1="${BLUE}c-lightning ${YELLOW}⚡"
+
+lightning_user=$(ps -eo user:10,command | grep "[l]ightningd" | awk '{ print $1 }')
+if [ ! -z "${lightning_user}" ]; then
+  data_dir="/home/${lightning_user}/.lightning/"
+
+  # NOTE: This script is run by root, why sudo here is required is beyond me
+  INFO=$(sudo lightning-cli --lightning-dir=${data_dir} getinfo)
+  version="$(echo ${INFO} | jq -r '.version')"
+  network="$(echo ${INFO} | jq -r '.network')"
+  blocks="$(echo ${INFO} | jq -r '.blockheight')"
+
+  PEERS=$(sudo lightning-cli --lightning-dir=${data_dir} listpeers)
+  peers_count=$(echo ${PEERS} | jq '.peers | length')
+  all_channels=$(echo ${PEERS} | jq '[[.peers[] | select(.channels != null)][].channels[]]')
+
+  ch_all=$(echo ${all_channels} | jq 'length')
+  ch_all=${ch_all:-0}
+
+  ch_pending=$(echo ${all_channels} | jq '[.[] | select((.state == "OPENINGD") or (.state == "CHANNELD_AWAITING_LOCKIN"))] | length')
+  ch_pending=${ch_pending:-0}
+
+  ch_open=$(echo ${all_channels} | jq '[.[] | select(.state == "CHANNELD_NORMAL")] | length')
+  ch_open=${ch_open:-0}
+
+  ch_closing=$(echo ${all_channels} | jq '[.[] | select((.state == "CHANNELD_SHUTTING_DOWN") or (.state == "CLOSINGD_SIGEXCHANGE") or (.state == "CLOSINGD_COMPLETE") or (.state == "FUNDING_SPEND_SEEN"))] | length')
+  ch_closing=${ch_closing:-0}
+
+  FUNDS=$(sudo lightning-cli --lightning-dir=${data_dir} listfunds)
+  on_chain=$(echo ${FUNDS} | jq '[.outputs[].value] | add | if . == null then 0 else . / 1e8 end')
+  on_chain=$(printf "%0.8f\n" ${on_chain})
+
+  channels_mine=$(echo ${FUNDS} | jq '[.channels[].channel_sat] | add | if . == null then 0 else . / 1e8 end')
+
+  max_out=$(echo ${FUNDS} | jq '[.channels[].channel_sat] | max | if . == null then 0 else . / 1e8 end')
+  if [ "${max_out}" != "0" ]; then
+    max_send=" (max: ${max_out})"
+  fi
+
+  channels_their=$(echo ${FUNDS} | jq '[.channels[] | .channel_total_sat - .channel_sat] | add | if . == null then 0 else . / 1e8 end')
+
+  max_in=$(echo ${FUNDS} | jq '[.channels[] | .channel_total_sat - .channel_sat] | max | if . == null then 0 else . / 1e8 end')
+  if [ "${max_in}" != "0" ]; then
+    max_receive=" (max: ${max_in})"
+  fi
+
+  ipv4=$(echo ${INFO} | jq -r '.address[] | select(.type == "ipv4") | "\(.address):\(.port)"')
+  ipv6=$(echo ${INFO} | jq -r '.address[] | select(.type == "ipv6") | "\(.address):\(.port)"')
+  torv2=$(echo ${INFO} | jq -r '.address[] | select(.type == "torv2") | "\(.address):\(.port)"')
+  torv3=$(echo ${INFO} | jq -r '.address[] | select(.type == "torv3") | "\(.address):\(.port)"')
+
+  pubkey="$(echo ${INFO} | jq -r '.id')"
+  best_addr="${torv3:-${ipv6:-${torv2:-$ipv4}}}"
+
+  ln_line1="${ln_line1} ${BLUE}${BOLD}(${version}, ${network})${RESET_STYLE}"
+  ln_line2="id: ${BOLD}${pubkey}${RESET_STYLE}"
+  ln_line3="peers connected: ${BOLD}${peers_count}${RESET_STYLE}\t${BLUE}synced to block: ${BOLD}${blocks}${RESET_STYLE}"
+  ln_line4="channels: ${BOLD}${ch_all}${RESET_STYLE} (${YELLOW}${BOLD}pending: ${ch_pending}${RESET_STYLE}${BLUE}, ${GREEN}${BOLD}open: ${ch_open}${RESET_STYLE}${BLUE}, ${RED}${BOLD}closing: ${ch_closing}${RESET_STYLE}${BLUE})"
+  ln_line5="balance:"
+  ln_line6="on-chain: ${BOLD}${on_chain}${RESET_STYLE}\t${BLUE}LN spend  : ${BOLD}${channels_mine}${max_send}${RESET_STYLE}"
+  ln_line7="\t\t\t\tLN receive: ${BOLD}${channels_their}${max_receive}${RESET_STYLE}"
+
+  ln_line9="accessible as"
+
+  # I'm sorry for the `if` hell below 😬
+  if [ ! -z ${ipv6} ]; then
+    ln_line9="${ln_line9} ipv6: ${BOLD}${ipv6}${RESET_STYLE}"
+  fi
+
+  if [ ! -z ${torv3} ]; then
+    ln_line10="torv3: ${BOLD}${torv3}${RESET_STYLE}"
+  fi
+
+  if [ ! -z ${torv2} ]; then
+    legacy_line="torv2: ${BOLD}${torv2}${RESET_STYLE}"
+  fi
+
+  if [ ! -z "${legacy_line}" ]; then
+    legacy_line="${legacy_line}\t"
+  fi
+
+  if [ ! -z ${ipv4} ]; then
+    legacy_line="${legacy_line}${BLUE}ipv4: ${BOLD}${ipv4}${RESET_STYLE}"
+  fi
+
+  if [ ! -z "${ln_line10}" ]; then
+    ln_line11="${legacy_line}"
+  else
+    ln_line10="${legacy_line}"
+  fi
+
+  ln_line12="best connstring:"
+
+  ln_line14="${BOLD}${pubkey}@${best_addr}"
+else
+  ln_line2="${RED}NOT RUNNING"
+fi
+
+
+echo "${YELLOW}         ____       ${BLUE}${ln_line1}${YELLOW}
+        /   /         ${BLUE}${ln_line2}${YELLOW}
+       /   /          ${BLUE}${ln_line3}${YELLOW}
+      /   /_          ${BLUE}${ln_line4}${YELLOW}
+     /_    /          ${BLUE}${ln_line5}${YELLOW}
+      /   /             ${BLUE}${ln_line6}${YELLOW}
+      /  /_           ${BLUE}${ln_line7}${YELLOW}
+      /   /
+      /  /          ${BLUE}${ln_line9}${YELLOW}
+      / /             ${BLUE}${ln_line10}${YELLOW}
+      //              ${BLUE}${ln_line11}${YELLOW}
+      /               ${BLUE}${ln_line12}${YELLOW}
+
+${ln_line14}
+${RESET_STYLE}"

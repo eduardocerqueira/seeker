@@ -1,0 +1,108 @@
+#date: 2025-01-30T16:53:38Z
+#url: https://api.github.com/gists/18b23955d3785c5b9e3754fc3dd37f49
+#owner: https://api.github.com/users/micheldegeofroy
+
+#!/bin/sh
+
+# motd is generated with empty environment. This ensures that TERM is set, so that colors are displayed properly
+#  src: https://unix.stackexchange.com/a/417223/31104
+export TERM="${TERM:-xterm-256color}"
+
+BOLD=$(tput bold)
+RED=$(tput setaf 1)
+GREEN=$(tput setaf 2)
+YELLOW=$(tput setaf 3)
+# BLUE=$(tput setaf 4)
+# VIOLET=$(tput setaf 5)
+SOME_COLOR=$(tput setaf 6)
+# WHITE=$(tput setaf 7)
+RESET_STYLE=$(tput sgr0)
+
+ram_total=$(free -mh | grep Mem | awk '{ print $2 }')
+ram_used=$(free -mh | grep Mem | awk '{ print $3 }')
+
+swap_memory=$(free -mh | grep -i swap)
+swap_total=$(echo ${swap_memory} | awk '{ print $2 }')
+if [ "${swap_total}" != "0" ]; then
+  swap_used=$(echo ${swap_memory} | awk '{ print $3 }')
+
+  swap_info="swap: ${BOLD}${swap_used} / ${swap_total}${RESET_STYLE}"
+fi
+
+sd_total=$(df -h | grep "/$" | awk '{ print $2 }')
+sd_used=$(df -h | grep "/$" | awk '{ print $3 }')
+
+external_storage=$(df -h | grep '/dev/sd')
+if [ ! -z "${external_storage}" ]; then
+  external_total=$(echo ${external_storage} | awk '{ print $2 }')
+  external_used=$(echo ${external_storage} | awk '{ print $3 }')
+
+  external_info="external: ${BOLD}${external_used} / ${external_total}${RESET_STYLE}"
+fi
+
+btc_path=$(command -v bitcoin-cli)
+if [ ! -z ${btc_path} ]; then
+  btc_line1="₿itcoin Core"
+
+  bitcoin_user=$(ps -eo user:10,command | grep "[b]itcoind" | awk '{ print $1 }')
+  data_dir="/home/${bitcoin_user}/.bitcoin"
+
+  BLOCKCHAIN_INFO="$(bitcoin-cli -datadir=${data_dir} getblockchaininfo 2> /dev/null)"
+  chain="$(echo ${BLOCKCHAIN_INFO} | jq -r '.chain')"
+  if [ ! -z $chain ]; then
+    chain="${chain}net"
+  fi
+
+  blocks="$(echo ${BLOCKCHAIN_INFO} | jq -r '.blocks')"
+
+  # add current sync status
+  progress="$(echo ${BLOCKCHAIN_INFO} | jq -r '.verificationprogress')"
+  percentage=$(printf "%.2f%%" "$(echo $progress | awk '{print 100 * $1}')")
+  if [ -n $percentage ]; then
+    l2_extra="sync progress: ${percentage}"
+  fi
+
+  PEER_INFO="$(bitcoin-cli -datadir=${data_dir} getpeerinfo 2> /dev/null)"
+  peers_count=$(echo ${PEER_INFO} | jq 'length')
+
+  balance="$(bitcoin-cli -datadir=${data_dir} getbalance 2> /dev/null)"
+
+  NETWORK_INFO="$(bitcoin-cli -datadir=${data_dir} getnetworkinfo 2> /dev/null)"
+  networks="$(echo ${NETWORK_INFO} | jq -r '[.localaddresses[] | [.address, .port|tostring] | join(":")] | join("\t")')"
+  version="$(echo ${NETWORK_INFO} | jq -r '.subversion' | grep -Po '((\d+\.?){3})')"
+
+  MEMPOOL_INFO="$(bitcoin-cli -datadir=${data_dir} getmempoolinfo 2> /dev/null)"
+  mempool="$(echo ${MEMPOOL_INFO} | jq -r '.size')"
+else
+  btc_line2="$(tput -T xterm setaf 1)NOT RUNNING"
+fi
+
+if [ ! -z "${btc_line1}" ] && [ ! -z ${chain} ]; then
+  btc_line1="${btc_line1} ${BOLD}(v${version}, ${chain})${RESET_STYLE}"
+  btc_line2="peers connected: ${BOLD}${peers_count}${RESET_STYLE}\t${SOME_COLOR}last block: ${BOLD}${blocks} (${percentage})${RESET_STYLE}"
+  btc_line3="balance: ${BOLD}${balance}${RESET_STYLE}\t${SOME_COLOR}mempool transactions: ${BOLD}${mempool}${RESET_STYLE}"
+
+  if [ ! -z "${networks}" ]; then
+    btc_line4="${networks}"
+  fi
+else
+  ps cax | grep bitcoind >/dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    btc_line2="${YELLOW}STARTING…"
+  else
+    btc_line2="${RED}NOT RUNNING"
+  fi
+fi
+
+echo "${GREEN}
+   .~~.   .~~.      resources used
+  '. \ ' ' / .'       mem: ${BOLD}${ram_used} / ${ram_total}${RESET_STYLE}${GREEN}\t\t${swap_info}${RED}
+   .~ .~~~..~.        ${GREEN}storage: ${BOLD}${sd_used} / ${sd_total}${RESET_STYLE}${GREEN}\t${external_info}${RED}
+  : .~.'~'.~. :
+ ~ (   ) (   ) ~    ${SOME_COLOR}${btc_line1}${RED}
+( : '~'.~.'~' : )     ${SOME_COLOR}${btc_line2}${RED}
+ ~ .~ (   ) ~. ~      ${SOME_COLOR}${btc_line3}${RED}
+  (  : '~' :  )
+   '~ .~~~. ~'      ${SOME_COLOR}accessible as${RED}
+       '~'            ${SOME_COLOR}${BOLD}${btc_line4}${RESET_STYLE}${RED}
+${RESET_STYLE}"

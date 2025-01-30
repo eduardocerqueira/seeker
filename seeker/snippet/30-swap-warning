@@ -1,0 +1,31 @@
+#date: 2025-01-30T16:53:38Z
+#url: https://api.github.com/gists/18b23955d3785c5b9e3754fc3dd37f49
+#owner: https://api.github.com/users/micheldegeofroy
+
+#!/bin/sh
+
+# motd is generated with empty environment. This ensures that TERM is set, so that colors are displayed properly
+#  src: https://unix.stackexchange.com/a/417223/31104
+export TERM="${TERM:-xterm-256color}"
+
+RED=$(tput setaf 1)
+# GREEN=$(tput setaf 2)
+# YELLOW=$(tput setaf 3)
+# BLUE=$(tput setaf 4)
+# VIOLET=$(tput setaf 5)
+# SOME_COLOR=$(tput setaf 6)
+# WHITE=$(tput setaf 7)
+RESET_STYLE=$(tput sgr0)
+
+ram_swap=$(free -m | grep Swap | awk '{ print $3 }')
+if [ "${ram_swap}" -eq "0" ]; then
+  exit 0
+fi
+
+echo "${RED}${ram_swap}M of SWAP is being used! It can significanly shorten the life span of your microSD card.
+
+  Disable SWAP with:${RESET_STYLE}
+    sudo swapoff --all && sudo apt-get remove dphys-swapfile && sudo apt-get autoremove
+  ${RED}
+  Or disable this warning with:${RESET_STYLE}
+    sudo chmod -x /etc/update-motd.d/30-swap-warning"
