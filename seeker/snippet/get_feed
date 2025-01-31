@@ -1,0 +1,53 @@
+#date: 2025-01-31T16:46:03Z
+#url: https://api.github.com/gists/85b85ef16dd58885668f00f05f637f16
+#owner: https://api.github.com/users/ReidCameron
+
+#!/usr/bin/env python3
+import argparse
+import subprocess
+import re
+
+# Set up CLI argument parsing
+parser = argparse.ArgumentParser(description="Get the latest JSON record from \
+    S3 using s3cmd.")
+# Site ID
+parser.add_argument('--siteID', default='', help='Required site [siteID]')
+# Should we rename the file? Take the file name, no extension
+parser.add_argument('--fileOut', default='', help='Rename file after downloading [name]')
+
+# Main get feed function, used by --siteID flag
+def get_feed(site_id, file_name=''):
+
+    # Using subprocess to conveniently call s3cmd commands within the current terminal's path
+    data = subprocess.run(["s3cmd", "ls", f"s3://b7i-etl-data/sites/{site_id}/feed/"],
+                          text=True, stdout=subprocess.PIPE)
+
+    # Regex pattern to find all siteID/ feed / timestamp folders.
+    buckets = re.findall(r"[a-z0-9]{6}/feed/\d+", f'{data.stdout}')
+
+    # Get the most recent versioned JSON folder
+    last = subprocess.run(["s3cmd", "ls", f"s3://b7i-etl-data/sites/{buckets.pop()}/records.json.gz"],
+                          text=True, stdout=subprocess.PIPE)
+
+    # Get the url for the file
+    file = re.findall(r's3:\S*', last.stdout)
+
+    # Download the records.json file to the current folder where the command was run
+    subprocess.run(["s3cmd", "get", f"{file[0]}", "--force"])
+
+    # Unzip file
+    subprocess.run(["gzip", "-d", "records.json.gz"])
+
+    # check if we need to rename the newly downloaded feed
+    if file_name != '':
+        subprocess.run(["mv", "records.json", file_name + '.json'])
+        subprocess.run(["code", file_name + '.json'])
+
+if __name__ == '__main__':
+    args = parser.parse_args()
+    if args.siteID == '':
+        print("No siteID")
+        parser.print_help()
+    else:
+        if args.siteID != '':
+            get_feed(args.siteID, args.fileOut)

@@ -306,7 +306,7 @@ def main():
         print(f"ERROR: "**********": {e}")
 
 if __name__ == "__main__":
-    main()t tokens call failed: {e}")
+    main()t tokens call failed: "**********"
 
 if __name__ == "__main__":
     main()
