@@ -1,0 +1,16 @@
+#date: 2025-02-18T17:08:27Z
+#url: https://api.github.com/gists/dd60fc48d603a33d46e92ced46274984
+#owner: https://api.github.com/users/sgohl
+
+#!/bin/bash
+#
+# backup docker volumes to $PWD
+#
+
+while read VOL
+do
+  if [[ ! ${#VOL} -eq 64 ]]
+  then
+    docker run --rm -v ${VOL}:/src -v ${PWD}/${VOL}:/dst alpine sh -c 'cp -Rfvp /src /dst/'
+  fi
+done < <(docker volume ls -q)
