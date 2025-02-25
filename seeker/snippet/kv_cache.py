@@ -25,6 +25,6 @@ for use_KV in (True, False):
     print(f"{setting} KV cache: {round(np.mean(dur[use_KV]),3)} ± {round(np.std(dur[use_KV]),3)} seconds")
 print(f"Ratio of Without/With: x {round(np.mean(dur[False])/np.mean(dur[True]),3)} speed-up\n")
 
-print("*****\n"+tokenizer.decode(response[0], skip_special_tokens= "**********",3)} speed-up\n")
+print("*****\n"+tokenizer.decode(response[0], skip_special_tokens= "**********"
 
-print("*****\n"+tokenizer.decode(response[0], skip_special_tokens=True)+"\n*****")
+print("*****\n"+tokenizer.decode(response[0], skip_special_tokens= "**********"ens=True)+"\n*****")

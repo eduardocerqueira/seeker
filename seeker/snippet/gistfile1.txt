@@ -1,0 +1,44 @@
+#date: 2025-02-25T17:10:24Z
+#url: https://api.github.com/gists/a04e0c183598b4707ced01a83ff3ae51
+#owner: https://api.github.com/users/RicoElectrico
+
+#!/bin/bash
+
+# A script to paste a phone number into an OSM editor (JOSM, iD etc.) in a normalized form.
+# Before running ensure you have xdotool and xclip installed. Make this file executable (chmod +x).
+# Bind this script to a custom keyboard shortcut in your desktop environment.
+# Then, before using, first copy a number to the clipboard and focus the cursor in a relevant field in your OSM editor.
+
+# Adjust this to your country's international calling  prefix
+COUNTRY_CODE="+48"
+
+# Read from clipboard using xclip (using the clipboard selection)
+original=$(xclip -selection clipboard -o)
+
+# Process the string:
+# 1. Remove any plus signs not at beginning and non-digit characters.
+# First, remove any extra plus signs (if any) after the first character.
+if [[ "$original" =~ ^\+ ]]; then
+    # Remove all non-digit characters from the rest of the string.
+    processed="+$(echo "$original" | cut -c2- | sed 's/[^0-9]//g')"
+else
+    processed=$(echo "$original" | sed 's/[^0-9]//g')
+fi
+
+# Ensure the phone number begins with country code.
+if [[ "$processed" != $COUNTRY_CODE* ]]; then
+    # Remove any leading plus (if exists) and then add the prefix.
+    processed="$COUNTRY_CODE$(echo "$processed" | sed 's/^\+//')"
+fi
+
+# Place the processed string into the clipboard.
+echo -n "$processed" | xclip -selection clipboard
+
+# Brief pause before pasting.
+sleep 0.1
+
+# Simulate pasting the clipboard content (Ctrl+V)
+xdotool key --clearmodifiers "ctrl+v"
+
+exit 0
+
