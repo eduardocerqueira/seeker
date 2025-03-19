@@ -1,16 +1,14 @@
-#date: 2025-03-18T16:58:34Z
-#url: https://api.github.com/gists/8294ea8d49b3905b764fd2680673a3b7
-#owner: https://api.github.com/users/mypy-play
+#date: 2025-03-19T16:55:16Z
+#url: https://api.github.com/gists/a337dd2350f0adf12de80265950925c4
+#owner: https://api.github.com/users/pschanely
 
-from typing import Iterator
+import re
+from typing import Optional
 
-
-def fib(n: int) -> Iterator[int]:
-    a, b = 0, 1
-    while a < n:
-        yield a
-        a, b = b, a + b
-
-
-fib(10)
-fib("10")
+def parse_year(yearstring: str) -> Optional[int]:
+    '''
+    Something is wrong with this year parser! Can you guess what it is?
+    
+    post: __return__ is None or 1000 <= __return__ <= 9999
+    '''
+    return int(yearstring) if re.match('[1-9][0-9][0-9][0-9]', yearstring) else None
