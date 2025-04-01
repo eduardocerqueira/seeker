@@ -1,4 +1,23 @@
 --------------------------------------------------------------------------------
+ 2025-04-01 17:14:56.270510
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   snippet/main.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/OMRZZ.py
+	snippet/bfsearch.py
+	"snippet/mac \350\247\243\345\243\223\347\270\256\357\274\213\345\220\210\344\275\265 \345\244\232\345\200\213\345\243\223\347\270\256\345\210\206\345\211\262\346\252\224\347\232\204\346\214\207\344\273\244.sh"
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2025-03-31 17:13:40.193222
 --------------------------------------------------------------------------------
   On branch main
