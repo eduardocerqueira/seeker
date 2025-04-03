@@ -1,12 +1,14 @@
-#date: 2025-04-02T17:12:21Z
-#url: https://api.github.com/gists/cb9a519dc0edb1f268314fb5c9260f29
+#date: 2025-04-03T17:12:38Z
+#url: https://api.github.com/gists/3ad72d5595fa743cc2d41178a1c24e61
 #owner: https://api.github.com/users/mypy-play
 
+from typing import Self
 
-def check_int(a: int | None) -> None:
-    if a is None:
-        raise TypeError()
 
-v: int | None = 1
-check_int(v)
-logging.info(f"{v+1}")
+class Klass:
+    def list(self) -> list[int]:
+        raise NotImplementedError
+
+    @classmethod
+    def from_list(cls, items: list[int]) -> Self:
+        raise NotImplementedError
