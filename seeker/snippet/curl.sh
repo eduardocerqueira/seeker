@@ -1,0 +1,22 @@
+#date: 2025-04-14T17:01:01Z
+#url: https://api.github.com/gists/490b0902eb78d46b5a475ed952438de4
+#owner: https://api.github.com/users/sudeepiic
+
+curl 'https://backend-test.data-vault.vretail.space/retarget/campaign' \
+  -H 'accept: */*' \
+  -H 'accept-language: en-US,en;q=0.9' \
+  -H 'authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiTGFyc2VuIFRvdWJybyIsInVuaXF1ZV9pZCI6IkFELWxVNmdMV2dONlQzUXBCZncwT1FZIiwicm9sZXMiOlsiQURNSU4iXSwicHJvamVjdCI6WyJQUi1PUlNWS1JjaGs1Q0tIWW02WHpJNWRTaG1OIl0sImVtYWlsIjoiZGl2eWEuamFpbkBnbWFpbC5jb20iLCJwZXJtaXNzaW9ucyI6W3siYWN0aW9uIjoicmVhZCIsInN1YmplY3QiOiJhbmFseXRpY3MifSx7ImFjdGlvbiI6Im1hbmFnZSIsInN1YmplY3QiOiJhY2NvdW50LW1hbmFnZXJzIn0seyJhY3Rpb24iOiJyZWFkIiwic3ViamVjdCI6InByb2plY3RzIn0seyJhY3Rpb24iOiJ1cGRhdGUiLCJzdWJqZWN0IjoicHJvamVjdHMifSx7ImFjdGlvbiI6Im1hbmFnZSIsInN1YmplY3QiOiJjdXN0b21fb2ZmZXJzIn0seyJhY3Rpb24iOiJtYW5hZ2UiLCJzdWJqZWN0IjoiY2hhdHNfYW5kX3RhZ3MifSx7ImFjdGlvbiI6Im1hbmFnZSIsInN1YmplY3QiOiJ3aWRnZXRfY3VzdG9taXNhdGlvbnMifSx7ImFjdGlvbiI6ImNyZWF0ZSIsInN1YmplY3QiOiJ0aWNrZXQifSx7ImFjdGlvbiI6Im1hbmFnZSIsInN1YmplY3QiOiJkYXRhLXZhdWx0LXBsdXMifSx7ImFjdGlvbiI6InJlYWQiLCJzdWJqZWN0IjoicGVyZm9ybWFuY2UtcmVwb3J0In0seyJhY3Rpb24iOiJyZWFkIiwic3ViamVjdCI6InBpdGNoZXMifSx7ImFjdGlvbiI6InJlYWQiLCJzdWJqZWN0IjoicHJvZHVjdC1pbnNpZ2h0cyJ9LHsiYWN0aW9uIjoicmVhZCIsInN1YmplY3QiOiJzYWxlcy1mbG93In0seyJhY3Rpb24iOiJtYW5hZ2UiLCJzdWJqZWN0Ijoic2VudGltZW50LWFuYWx5c2lzIn0seyJhY3Rpb24iOiJyZWFkIiwic3ViamVjdCI6ImFuYWx5dGljcyJ9LHsiYWN0aW9uIjoibWFuYWdlIiwic3ViamVjdCI6ImFjY291bnQtbWFuYWdlcnMifSx7ImFjdGlvbiI6InJlYWQiLCJzdWJqZWN0IjoicHJvamVjdHMifSx7ImFjdGlvbiI6InVwZGF0ZSIsInN1YmplY3QiOiJwcm9qZWN0cyJ9LHsiYWN0aW9uIjoibWFuYWdlIiwic3ViamVjdCI6ImN1c3RvbV9vZmZlcnMifSx7ImFjdGlvbiI6Im1hbmFnZSIsInN1YmplY3QiOiJjaGF0c19hbmRfdGFncyJ9LHsiYWN0aW9uIjoibWFuYWdlIiwic3ViamVjdCI6IndpZGdldF9jdXN0b21pc2F0aW9ucyJ9LHsiYWN0aW9uIjoiY3JlYXRlIiwic3ViamVjdCI6InRpY2tldCJ9LHsiYWN0aW9uIjoicmVhZCIsInN1YmplY3QiOiJkYXNoYm9hcmQifV0sImF2YXRhciI6Imh0dHBzOi8vYXNzZXRzLXRlc3QuY29yZS52cmV0YWlsLnNwYWNlL2F2YXRhcnMvYXY4LnN2ZyIsImlhdCI6MTc0NDYxODA2NCwiZXhwIjoxNzQ0NzA0NDY0fQ.1m4jwynqF05hNxsgrUYupbs_vzWtBtga2579TE9Snb4' \
+  -H 'content-type: multipart/form-data; boundary=----WebKitFormBoundaryq7JricM0OMiDB0bF' \
+  -H 'origin: http://localhost:3000' \
+  -H 'priority: u=1, i' \
+  -H 'referer: http://localhost:3000/' \
+  -H 'sec-ch-ua: "Google Chrome";v="135", "Not-A.Brand";v="8", "Chromium";v="135"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "Linux"' \
+  -H 'sec-fetch-dest: empty' \
+  -H 'sec-fetch-mode: cors' \
+  -H 'sec-fetch-site: cross-site' \
+  -H 'sec-fetch-storage-access: active' \
+  -H 'user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36' \
+  -H 'x-nonce: _8PEM5WsrrcLGyhRhb0V0fJ1BT' \
+  --data-raw $'------WebKitFormBoundaryq7JricM0OMiDB0bF\r\nContent-Disposition: form-data; name="name"\r\n\r\nProject L&T Thane\r\n------WebKitFormBoundaryq7JricM0OMiDB0bF\r\nContent-Disposition: form-data; name="projectId"\r\n\r\nPR-ORSVKRchk5CKHYm6XzI5dShmN\r\n------WebKitFormBoundaryq7JricM0OMiDB0bF\r\nContent-Disposition: form-data; name="productId"\r\n\r\nPROD-qt4U9jPF441WK4aWAa1YdrUFR\r\n------WebKitFormBoundaryq7JricM0OMiDB0bF\r\nContent-Disposition: form-data; name="productName"\r\n\r\nIsland Cove\r\n------WebKitFormBoundaryq7JricM0OMiDB0bF\r\nContent-Disposition: form-data; name="retargetOnWhatsapp"\r\n\r\ntrue\r\n------WebKitFormBoundaryq7JricM0OMiDB0bF\r\nContent-Disposition: form-data; name="retargetOnEmail"\r\n\r\ntrue\r\n------WebKitFormBoundaryq7JricM0OMiDB0bF\r\nContent-Disposition: form-data; name="smartGroups[0][productId]"\r\n\r\nPROD-jV0xBuRYon4FXcCpHETqWz4Bv\r\n------WebKitFormBoundaryq7JricM0OMiDB0bF\r\nContent-Disposition: form-data; name="smartGroups[0][groups][0][type]"\r\n\r\nHot Lead\r\n------WebKitFormBoundaryq7JricM0OMiDB0bF\r\nContent-Disposition: form-data; name="smartGroups[0][groups][0][subType][0]"\r\n\r\nNot Agreed to Visit\r\n------WebKitFormBoundaryq7JricM0OMiDB0bF\r\nContent-Disposition: form-data; name="smartGroups[0][groups][1][type]"\r\n\r\nMild Lead\r\n------WebKitFormBoundaryq7JricM0OMiDB0bF\r\nContent-Disposition: form-data; name="smartGroups[0][groups][1][subType][0]"\r\n\r\nLocation Issue\r\n------WebKitFormBoundaryq7JricM0OMiDB0bF\r\nContent-Disposition: form-data; name="file"; filename="qrcode.png"\r\nContent-Type: image/png\r\n\r\n\r\n------WebKitFormBoundaryq7JricM0OMiDB0bF--\r\n'
