@@ -1,0 +1,88 @@
+#date: 2025-04-18T16:51:48Z
+#url: https://api.github.com/gists/ec086fcc0dfa0e2c2f5c17282d4e5a24
+#owner: https://api.github.com/users/dcolthorp
+
+#!/usr/bin/env bash
+#
+# pbfile — read stdin into a temp file and copy it as a file into the macOS clipboard
+
+set -euo pipefail
+
+USE_LLM=true
+while getopts "n" opt; do
+  case $opt in
+    n) USE_LLM=false ;;
+    \?) echo "Usage: $0 [-n] < input" >&2; exit 1 ;;
+  esac
+done
+shift $((OPTIND-1))
+
+FINAL_TMPFILE="" # Initialize for robustness, used in both branches
+
+if [ "$USE_LLM" = true ]; then
+  # Create a basic temp file first
+  BASIC_TMPFILE=$(mktemp "${TMPDIR:-/tmp}/pbcopy-file-base.XXXXXX")
+  # Ensure cleanup of the *initial* temp file if script exits early
+  trap 'rm -f "$BASIC_TMPFILE"' EXIT
+
+  # Write stdin to the basic temp file
+  cat > "$BASIC_TMPFILE"
+
+  # Use llm to generate a descriptive file name
+  # Sanitize the name: lowercase, replace spaces/underscores with hyphens, remove non-alphanumeric/hyphen/dot
+  echo "Generating semantic filename using LLM..." >&2
+  SEMANTIC_NAME=$(llm --model openai/gpt-4.1-nano --system "Generate a concise, filesystem-safe, descriptive file name (lowercase, hyphens for spaces, no special characters except hyphens and dots) based on the text:" < "$BASIC_TMPFILE" | tr '[:upper:]' '[:lower:]' | tr ' _' '-' | tr -cd '[:alnum:].-' | sed 's/-\+/-/g; s/^-//; s/-$//')
+
+  # Handle empty or invalid names from LLM
+  if [ -z "$SEMANTIC_NAME" ]; then
+    echo "LLM failed to generate a name, using fallback." >&2
+    SEMANTIC_NAME="pbcopy-file-$(date +%s)" # Fallback name
+  fi
+
+  # Construct final path: add .txt only if LLM name lacks an extension
+  FINAL_FILENAME_BASE="${SEMANTIC_NAME}"
+  if [[ "$SEMANTIC_NAME" != *.* ]]; then
+    FINAL_FILENAME_BASE="${SEMANTIC_NAME}.txt"
+    echo "LLM name lacked extension, appending .txt" >&2
+  fi
+
+  # Ensure TMPDIR path doesn't have a trailing slash before appending filename
+  TEMP_DIR_PATH=${TMPDIR:-/tmp}
+  TEMP_DIR_PATH=${TEMP_DIR_PATH%/} # Remove single trailing slash if present
+  FINAL_TMPFILE="${TEMP_DIR_PATH}/${FINAL_FILENAME_BASE}"
+
+  # Avoid collisions if the final name somehow already exists
+  if [ -e "$FINAL_TMPFILE" ]; then
+      # Add timestamp before the extension (if any) or at the end
+      if [[ "$FINAL_FILENAME_BASE" == *.* ]]; then
+          local_name="${FINAL_FILENAME_BASE%.*}"
+          local_ext="${FINAL_FILENAME_BASE##*.}"
+          # Use the cleaned TEMP_DIR_PATH here too
+          FINAL_TMPFILE="${TEMP_DIR_PATH}/${local_name}-$(date +%s).${local_ext}"
+      else
+          # Use the cleaned TEMP_DIR_PATH here too
+          FINAL_TMPFILE="${TEMP_DIR_PATH}/${FINAL_FILENAME_BASE}-$(date +%s)"
+      fi
+  fi
+  echo "Using filename: $FINAL_TMPFILE" >&2
+  mv "$BASIC_TMPFILE" "$FINAL_TMPFILE"
+  # DO NOT add a trap for FINAL_TMPFILE - it needs to persist
+  trap - EXIT
+else
+  # Create a temp file directly with .txt suffix
+  FINAL_TMPFILE=$(mktemp "${TMPDIR:-/tmp}/pbcopy-file.XXXXXX.txt")
+  # DO NOT add a trap for FINAL_TMPFILE - it needs to persist
+  echo "Using temporary filename: $FINAL_TMPFILE" >&2
+
+  # Write stdin to the temp file
+  cat > "$FINAL_TMPFILE"
+fi
+
+
+# copy a Finder‐style alias of that file into the clipboard
+osascript <<EOF
+  set the clipboard to (POSIX file "$FINAL_TMPFILE")
+EOF
+
+# The file at FINAL_TMPFILE is intentionally left in the temp directory
+# for the clipboard reference to remain valid. OS cleanup will handle it.
