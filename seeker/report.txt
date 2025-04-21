@@ -1,4 +1,43 @@
 --------------------------------------------------------------------------------
+ 2025-04-21 17:14:46.814461
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/app(5).py
+	deleted:    snippet/app.py
+	deleted:    snippet/apple_energy.py
+	deleted:    snippet/controlnet_union(7).py
+	deleted:    snippet/funcs.py
+	deleted:    snippet/git_auto_commit.py
+	deleted:    snippet/gridcensus.py
+	deleted:    snippet/main.py
+	deleted:    snippet/pbfile
+	deleted:    snippet/pipeline_fill_sd_xl(7).py
+	deleted:    snippet/swdtoac.py
+	deleted:    snippet/wikipedia ChatGPT - API-KEY - Imbunatatit de GROK.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/.bashrc
+	snippet/CrossRNG.py
+	snippet/RMSNormCompile.py
+	snippet/client_url_in_shell.sh
+	snippet/crewai_agentops_integration.py
+	snippet/decode_tx.py
+	snippet/hard_worker.py
+	snippet/nvenc-install.sh
+	snippet/pkg_opener.sh
+	snippet/random_nuubergessing.py
+	snippet/shelly-cloud-API_CURL.sh
+	"snippet/\320\267\320\260\320\264\320\260\320\275\320\270\320\265 1.py"
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2025-04-18 17:13:33.481127
 --------------------------------------------------------------------------------
   On branch main
