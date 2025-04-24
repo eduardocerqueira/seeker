@@ -1,5 +1,0 @@
-#date: 2025-04-22T17:01:00Z
-#url: https://api.github.com/gists/78125130a4e22442c6211555d8e1a172
-#owner: https://api.github.com/users/cwrayne
-
-sudo apt update && sudo apt upgrade -y && sudo apt install openjdk-21-jdk -y && mkdir server && cd server && wget https://api.papermc.io/v2/projects/paper/versions/1.21.5/builds/27/downloads/paper-1.21.5-27.jar -O server.jar && echo "java -jar server.jar nogui" > start && chmod +x start && ./start && cd plugins && wget https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/spigot -O geyser.jar && wget https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/spigot -O floodgate.jar && wget https://ci.ender.zone/job/EssentialsX/lastSuccessfulBuild/artifact/jars/EssentialsX-2.21.1-dev+13-be3e641.jar && cd .. && nano server.properties && nano eula.txt && ./start
