@@ -393,5 +393,5 @@ MARKETPLACE_API_KEY = env("MARKETPLACE_API_KEY")
 BCDA_CLIENT_ID = env("BCDA_CLIENT_ID")
 BCDA_CLIENT_SECRET = "**********"
 BCDA_API_URL = "https://api.bcda.cms.gov"LIENT_ID")
-BCDA_CLIENT_SECRET = env("BCDA_CLIENT_SECRET")
-BCDA_API_URL = "https://api.bcda.cms.gov"
+BCDA_CLIENT_SECRET = "**********"
+BCDA_API_URL = "https://api.bcda.cms.gov"bcda.cms.gov"

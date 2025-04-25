@@ -1,10 +1,18 @@
-#date: 2025-04-24T16:57:32Z
-#url: https://api.github.com/gists/5ad7c80a66c5149aa2b66bd408da2d48
+#date: 2025-04-25T16:45:32Z
+#url: https://api.github.com/gists/ed85394f44de0677ea5079ef0c388ba6
 #owner: https://api.github.com/users/mypy-play
 
-from typing import Callable
+from collections.abc import Callable
 
-def g(y: Callable[[int], str]):
-    reveal_type(type(y))
-    reveal_type(y.__class__)
-    reveal_type(type(y).__call__)
+
+class classproperty[T, C]:
+    def __init__(self, func: Callable[[type[C]], T]):
+        self.func = func
+
+    def __get__(self, _obj: C, owner: type[C]) -> T:
+        return self.func(owner)
+
+class Test:
+    @classproperty
+    def my_property(cls):
+        return 1
