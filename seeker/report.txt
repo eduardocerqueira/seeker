@@ -1,4 +1,68 @@
 --------------------------------------------------------------------------------
+ 2025-04-28 17:13:54.250314
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/.py
+	deleted:    snippet/Dockerfile
+	deleted:    snippet/Project Euler #39: Integer Right Triangles.py
+	deleted:    snippet/SimpleCodingAgent.java
+	deleted:    snippet/Voip_Thing.py
+	deleted:    snippet/api_router.py
+	deleted:    snippet/azure-openai-proxy.py
+	deleted:    snippet/base.py
+	deleted:    snippet/cascadeAndCherryPick.sh
+	deleted:    snippet/cli_download.py
+	deleted:    snippet/cli_unzip.py
+	deleted:    snippet/client.py
+	deleted:    snippet/clone.bash
+	deleted:    snippet/combined_client.py
+	deleted:    snippet/dialog.py
+	deleted:    snippet/disable_rebootdms.sh
+	deleted:    snippet/dynamodb_stream_with_delta.py
+	deleted:    snippet/entrypoint.sh
+	deleted:    snippet/ipgen
+	deleted:    snippet/italy_gdp_by_region__generate_choroplet_map.py
+	deleted:    snippet/italy_gdp_by_region__get_gdp_data.py
+	deleted:    snippet/italy_gdp_by_region__get_select_colourmap.py
+	deleted:    snippet/italy_gdp_by_region__merge_gdp_and_geo_data.py
+	deleted:    snippet/italy_gdp_by_region__plot_boundaries.py
+	deleted:    snippet/linear_heart.py
+	deleted:    snippet/local.py
+	deleted:    snippet/main.go
+	modified:   snippet/main.py
+	deleted:    snippet/main_api.py
+	deleted:    snippet/mongo_transaction.py
+	deleted:    snippet/ncbi_rename.py
+	deleted:    snippet/oauth2_settings.py
+	deleted:    snippet/production.py
+	deleted:    snippet/ps1_disc_info_checker_v1.py
+	deleted:    snippet/pyacvdRemesh.py
+	deleted:    snippet/ramnvmemailsort.py
+	deleted:    snippet/raspi-5-coral-usb-frigate.sh
+	deleted:    snippet/shrink_reindex.sh
+	deleted:    snippet/stripe_config.py
+	deleted:    snippet/text_remover.py
+	deleted:    snippet/urls.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/PricipalConversorMoedas.java
+	snippet/cp_wan_example.py
+	snippet/fix.sh
+	snippet/gitup.sh
+	snippet/query_message_sent.sh
+	snippet/script.sh
+	snippet/tape.py
+	snippet/tswatcher_standalone.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2025-04-25 17:13:16.723868
 --------------------------------------------------------------------------------
   On branch main
