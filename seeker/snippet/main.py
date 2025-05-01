@@ -1,18 +1,31 @@
-#date: 2025-04-29T16:51:20Z
-#url: https://api.github.com/gists/d16882075378d49917975e85ecb2970f
+#date: 2025-05-01T16:45:59Z
+#url: https://api.github.com/gists/9ec02e4e70b4fa04c07eb0ccece364f8
 #owner: https://api.github.com/users/mypy-play
 
-from typing import Never
-
-def never_returns() -> Never:
-    raise NotImplementedError
-
-def g(x: str) -> str:
-    return x
-
-def h() -> str:
-    return g(never_returns())  # no warning
+from collections.abc import AsyncIterator, Callable
+from typing import Any, Callable
 
 
-s: str = h()  # no warning
-print(s)  # no warning
+type TaskGroup = Any
+create_task_group: Any
+
+
+async def yield_to_start[*A, R](
+    tg: TaskGroup,
+    func: Callable[[*A], AsyncIterator[R]],
+    *args: *A,
+    name: str | None = None,
+) -> R:
+    ...
+
+
+class MyResult: ...
+
+
+def my_task() -> AsyncIterator[MyResult]: ...
+
+
+async def main() -> None:
+    async with create_task_group() as tg:
+        result = await yield_to_start(tg, my_task)
+        reveal_type(result)
