@@ -1,31 +1,28 @@
-#date: 2025-05-01T16:45:59Z
-#url: https://api.github.com/gists/9ec02e4e70b4fa04c07eb0ccece364f8
+#date: 2025-05-05T16:37:08Z
+#url: https://api.github.com/gists/7e7edfa1d3debec48847590a6c4532c9
 #owner: https://api.github.com/users/mypy-play
 
-from collections.abc import AsyncIterator, Callable
-from typing import Any, Callable
+class Foo:
+    value: bool
+
+    def __init__(self, value: bool) -> None:
+        self.thing = value
 
 
-type TaskGroup = Any
-create_task_group: Any
+def bad(maybe: bool) -> None:
+    foo = None
+    if maybe and (foo := Foo(True)).value:
+        reveal_type(foo)
 
 
-async def yield_to_start[*A, R](
-    tg: TaskGroup,
-    func: Callable[[*A], AsyncIterator[R]],
-    *args: *A,
-    name: str | None = None,
-) -> R:
-    ...
+def correct1(maybe: bool) -> None:
+    foo = None
+    if maybe and (foo := Foo(True)):
+        reveal_type(foo)
 
 
-class MyResult: ...
-
-
-def my_task() -> AsyncIterator[MyResult]: ...
-
-
-async def main() -> None:
-    async with create_task_group() as tg:
-        result = await yield_to_start(tg, my_task)
-        reveal_type(result)
+def correct2(maybe: bool) -> None:
+    foo = None
+    if maybe:
+        if (foo := Foo(True)).value:
+            reveal_type(foo)
