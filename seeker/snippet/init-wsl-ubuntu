@@ -1,0 +1,146 @@
+#date: 2025-05-08T16:59:53Z
+#url: https://api.github.com/gists/b0337cb17d059b69fc62b5b653c0c162
+#owner: https://api.github.com/users/kishor-rajbanshi
+
+#!/bin/bash
+# ----------------------------------------------------
+# Author:          Kishor Rajbanshi
+# Website:         https://www.kishor-rajbanshi.com.np
+# License:         MIT
+# ----------------------------------------------------
+
+sudo apt update && sudo apt upgrade -y
+
+echo "cd ~" >> ~/.profile
+
+default_key="/mnt/s/.ssh/wsl/id_ed25519"
+read -p "Do you want to copy an SSH key to ~/.ssh/? [y/N]: " copy_ssh_key
+if [[ "$copy_ssh_key" == "y" || "$copy_ssh_key" == "Y" ]]; then
+    prompt_for_key() {
+        read -p "Enter the SSH key file location (or press Enter to use default) [$default_key]: " input
+        if [ -z "$input" ]; then
+            echo -e "\nUsing default location: $default_key"
+            ssh_key=$default_key
+        else
+            ssh_key="$input"
+        fi
+    }
+    while true; do
+        prompt_for_key
+        if [ -f "$ssh_key" ]; then
+            break
+        else
+            echo "File does not exist at the location: $ssh_key"
+        fi
+    done
+    mkdir -p ~/.ssh
+    cp "$ssh_key" ~/.ssh/$(basename "$ssh_key")
+    chmod 700 ~/.ssh/$(basename "$ssh_key")
+fi
+
+mkdir ~/Codespace
+
+sudo mkdir -p /usr/local/bin/ && sudo curl -o /usr/local/bin/rm https://gist.githubusercontent.com/kishor-rajbanshi/b69c90f019d631b730ca2e5d2e927fea/raw/rm
+sudo chmod +x /usr/local/bin/rm
+
+curl -s https://gist.githubusercontent.com/kishor-rajbanshi/1952ec1a76e77a0d8c222ccf5e02db3e/raw/aliases.conf >> ~/.bashrc
+
+sudo apt install -y ca-certificates
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" |\
+    sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
+sudo apt update && sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo usermod -aG docker $USER
+
+sudo add-apt-repository ppa:ondrej/php -y
+sudo apt update
+sudo apt install -y \
+    bmon \
+    zip unzip sqlite3 mysql-server nginx \
+    php-{fpm,curl,mbstring,xml,bcmath,zip,gd,mysql,xdebug,sqlite3}
+
+sudo usermod -aG $USER www-data && sudo usermod -aG www-data $USER
+
+xdebug_ini="/etc/php/$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')/mods-available/xdebug.ini"
+echo "xdebug.mode = develop,debug,coverage,profile" | sudo tee -a "$xdebug_ini"
+echo "xdebug.start_with_request = yes" | sudo tee -a "$xdebug_ini"
+echo "xdebug.client_host = 127.0.0.1" | sudo tee -a "$xdebug_ini"
+echo "xdebug.client_port = 9003" | sudo tee -a "$xdebug_ini"
+echo "xdebug.output_dir = /tmp" | sudo tee -a "$xdebug_ini"
+echo "xdebug.profiler_output_name = xdebug.profiler" | sudo tee -a "$xdebug_ini"
+echo "xdebug.profiler_enable = 1" | sudo tee -a "$xdebug_ini"
+
+php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+php -r "if (hash_file('sha384', 'composer-setup.php') === 'dac665fdc30fdd8ec78b38b9800061b4150413ff2e3b6f88543c636f7cd84f6db9189d43a81e5503cda447da73c7e5b6') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+php composer-setup.php
+php -r "unlink('composer-setup.php');"
+sudo mv composer.phar /usr/local/bin/composer
+
+sudo mysql -e "CREATE USER '$USER'@'localhost' IDENTIFIED BY 'password';"
+sudo mysql -e "GRANT ALL PRIVILEGES ON *.* TO '$USER'@'localhost' WITH GRANT OPTION;"
+USER_DB_NAME=$(echo "$USER" | sed 's/[^a-zA-Z0-9_]/_/g')
+sudo mysql -e "CREATE DATABASE \`$USER_DB_NAME\`;"
+sudo mysql -e "FLUSH PRIVILEGES;"
+
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+nvm install node
+
+composer create-project laravel/laravel ~/Codespace/laravel
+sudo chmod -R 775 ~/Codespace/laravel
+
+composer create-project phpmyadmin/phpmyadmin ~/Codespace/phpmyadmin
+cp ~/Codespace/phpmyadmin/config.sample.inc.php ~/Codespace/phpmyadmin/config.inc.php
+sed -i "s/\['auth_type'\] = 'cookie';/\['auth_type'\] = 'config';/" ~/Codespace/phpmyadmin/config.inc.php
+cat <<EOL >> ~/Codespace/phpmyadmin/config.inc.php
+
+/* Custom phpMyAdmin configuration */
+\$cfg['Servers'][\$i]['user'] = '${USER}';
+\$cfg['Servers'][\$i]['password'] = "**********"
+EOL
+
+sudo sed -i '/^}/i \
+        \
+        location /phpmyadmin {\
+                alias /home/'"$USER"'/Codespace/phpmyadmin;\
+                index index.php index.html index.htm;\
+                \
+                location ~ \\.php$ {\
+                        include snippets/fastcgi-php.conf;\
+                        fastcgi_pass unix:/run/php/php-fpm.sock;\
+                        fastcgi_param SCRIPT_FILENAME $request_filename;\
+                        include fastcgi_params;\
+                }\
+        }\
+        \
+        location /laravel {\
+                alias /home/'"$USER"'/Codespace/laravel/public;\
+                index index.php index.html index.htm;\
+                \
+                try_files $uri $uri/ @rewrite_laravel;\
+                \
+                location ~ \\.php$ {\
+                        include snippets/fastcgi-php.conf;\
+                        fastcgi_pass unix:/run/php/php-fpm.sock;\
+                        fastcgi_param SCRIPT_FILENAME $request_filename;\
+                        include fastcgi_params;\
+                }\
+        }\
+        \
+        location @rewrite_laravel {\
+                rewrite /laravel/(.*)$ /laravel/index.php?/$1 last;\
+        }' /etc/nginx/sites-available/default
+
+sudo systemctl restart php$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')-fpm nginx
+
+if command -v code >/dev/null 2>&1; then
+    code ~/codespace/laravel
+fi
+
+echo "Reopen your terminal to fully apply the latest changes."
