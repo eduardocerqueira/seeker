@@ -1,74 +1,87 @@
-#date: 2025-05-13T16:46:56Z
-#url: https://api.github.com/gists/d79a3b846c7c36a80c4f5aa3a9a492ab
-#owner: https://api.github.com/users/jwrightmm
+#date: 2025-05-15T17:05:20Z
+#url: https://api.github.com/gists/b179e69917af67473bc63235c0c3256d
+#owner: https://api.github.com/users/siparker
 
-#!/usr/bin/env python3
-"""
-Script: clean_sql_dump.py
+#!/bin/bash
+set -e
 
-Reads a SQL dump file, removes emojis and unwanted control characters,
-converts null bytes to MySQL-friendly '\\0', and writes a cleaned SQL file.
-"""
-import re
-import sys
-import argparse
+echo "[1/10] Enabling I2S and SPI overlays..."
+sudo sed -i '/^dtparam=i2s=/d' /boot/config.txt
+sudo sed -i '/^dtparam=spi=/d' /boot/config.txt
+sudo sed -i '/^dtoverlay=i2s-mmap/d' /boot/config.txt
+sudo sed -i '/^dtoverlay=googlevoicehat-soundcard/d' /boot/config.txt
+echo "dtparam=i2s=on" | sudo tee -a /boot/config.txt
+echo "dtparam=spi=on" | sudo tee -a /boot/config.txt
+echo "dtoverlay=i2s-mmap" | sudo tee -a /boot/config.txt
+echo "dtoverlay=googlevoicehat-soundcard" | sudo tee -a /boot/config.txt
 
-# Regex pattern to match common emoji ranges
-emoji_pattern = re.compile(
-    u"["
-    u"\U0001F600-\U0001F64F"  # Emoticons
-    u"\U0001F300-\U0001F5FF"  # Symbols & pictographs
-    u"\U0001F680-\U0001F6FF"  # Transport & map symbols
-    u"\U0001F1E0-\U0001F1FF"  # Flags
-    u"\u2600-\u27BF"          # Dingbats
-    u"]+", 
-    flags=re.UNICODE
-)
+echo "[2/10] Installing dependencies..."
+sudo apt update
+sudo apt install -y alsa-utils sox git build-essential libasound2-dev libatlas-base-dev python3-dev python3-pip
 
-# Pattern to remove control characters except null (\x00), tab, newline, carriage return
-control_char_pattern = re.compile(r"[\x01-\x08\x0B-\x0C\x0E-\x1F\x7F]")
+echo "[3/10] Creating .asoundrc for 4-mic alias..."
+cat <<EOF > ~/.asoundrc
+pcm.mic4 {
+    type hw
+    card 0
+    device 0
+}
+EOF
 
+echo "[4/10] Cloning and building beamformit..."
+cd ~
+git clone --depth 1 https://github.com/xanguera/BeamformIt.git
+mv BeamformIt beamformit
+cd beamformit
+make clean && make
 
-def clean_text(text: str) -> str:
-    """
-    Removes emojis, converts null bytes to '\\0', and strips other control characters.
-    """
-    # Remove emojis
-    text = emoji_pattern.sub("", text)
-    # Replace null bytes with MySQL escape sequence
-    text = text.replace("\x00", "\\0")
-    # Remove other non-printable/control characters
-    text = control_char_pattern.sub("", text)
-    return text
+echo "[5/10] Creating recording test script..."
+cat <<EOF > ~/record4mic.sh
+#!/bin/bash
+arecord -D mic4 -c 4 -f S32_LE -r 16000 -d 5 test.wav
+soxi test.wav
+EOF
+chmod +x ~/record4mic.sh
 
+echo "[6/10] Creating beamformit config file..."
+cat <<EOF > ~/beamform.cfg
+narray = 4
+sampling_rate = 16000
+mic_spacing = 0.035
+EOF
 
-def process_file(input_path: str, output_path: str) -> None:
-    """
-    Processes the input SQL dump file line by line, cleans each line,
-    and writes the cleaned content to the output file.
-    """
-    with open(input_path, 'r', encoding='utf-8', errors='ignore') as infile, \
-         open(output_path, 'w', encoding='utf-8') as outfile:
-        for line in infile:
-            cleaned = clean_text(line)
-            outfile.write(cleaned)
+echo "[7/10] Installing HermesLedControl for APA102 LED ring..."
+cd ~
+git clone https://github.com/project-alice-assistant/HermesLedControl.git
+cd HermesLedControl
+pip3 install -r requirements.txt
+make
 
+echo "[8/10] Creating HermesLedControl config..."
+cat <<EOF > ~/HermesLedControl/config.json
+{
+  "use_audio_output": false,
+  "hardware": "respeaker-4mic",
+  "gpio_control": false,
+  "alsadev": "default",
+  "brightness": 32,
+  "volume": 50,
+  "enable_animations": true,
+  "start_animation": "think"
+}
+EOF
 
-def main():
-    parser = argparse.ArgumentParser(
-        description='Clean a SQL dump by removing emojis and control characters.'
-    )
-    parser.add_argument(
-        'input', help='Path to the input SQL dump file'
-    )
-    parser.add_argument(
-        'output', help='Path to write the cleaned SQL file'
-    )
-    args = parser.parse_args()
+echo "[9/10] Setting up HermesLedControl as a service..."
+sudo cp hermesledcontrol.service /etc/systemd/system/
+sudo systemctl enable hermesledcontrol
+sudo systemctl start hermesledcontrol
 
-    process_file(args.input, args.output)
-    print(f"Cleaning complete. Cleaned dump saved to: {args.output}")
+echo "[10/10] Setup complete."
+echo "➡️  Run ./record4mic.sh to test the microphone."
+echo "➡️  Run ./beamformit/beamformit -s -c beamform.cfg < test.wav > output.wav to beamform."
+echo "➡️  LED ring should now animate on boot. Reboot recommended."
 
-
-if __name__ == '__main__':
-    main()
+read -p "Reboot now? [y/N]: " input
+if [[ "$input" =~ ^[Yy]$ ]]; then
+  sudo reboot
+fi
