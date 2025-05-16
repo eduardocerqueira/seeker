@@ -1,18 +1,11 @@
-#date: 2025-05-15T16:51:50Z
-#url: https://api.github.com/gists/effd2ed9e8970ca1698c58235b6e579b
+#date: 2025-05-16T17:00:48Z
+#url: https://api.github.com/gists/d2534de6568461a01ec24c2d338381d5
 #owner: https://api.github.com/users/mypy-play
 
-from typing import Any, Callable
+from cassandra.cluster import Session as CassandraConnection
+from typing import cast, Any
+from typing_extensions import TypeAlias
 
-
-class A:
-    def __call__(self) -> Any: ...
-
-class B:
-    def __call__(self) -> Any: ...
-
-
-test_a: set[Callable[..., Any]] = {A(), B()}  # passes
-test_b: set[Callable[..., Any]] = {A(), B()} | {A(), B()}  # fails
-test_c: list[Callable[..., Any]] = [A(), B()]  # passes
-test_d: list[Callable[..., Any]] = [A(), B()] + [A(), B()]  # fails
+TransactionalConnection: TypeAlias = CassandraConnection
+x = 42
+isinstance(x, CassandraConnection)
