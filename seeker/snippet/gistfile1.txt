@@ -1,87 +1,57 @@
-#date: 2025-05-15T17:05:20Z
-#url: https://api.github.com/gists/b179e69917af67473bc63235c0c3256d
-#owner: https://api.github.com/users/siparker
+#date: 2025-05-19T16:47:44Z
+#url: https://api.github.com/gists/c3db7b70755251672504beb85d47a3fb
+#owner: https://api.github.com/users/difome
 
 #!/bin/bash
-set -e
 
-echo "[1/10] Enabling I2S and SPI overlays..."
-sudo sed -i '/^dtparam=i2s=/d' /boot/config.txt
-sudo sed -i '/^dtparam=spi=/d' /boot/config.txt
-sudo sed -i '/^dtoverlay=i2s-mmap/d' /boot/config.txt
-sudo sed -i '/^dtoverlay=googlevoicehat-soundcard/d' /boot/config.txt
-echo "dtparam=i2s=on" | sudo tee -a /boot/config.txt
-echo "dtparam=spi=on" | sudo tee -a /boot/config.txt
-echo "dtoverlay=i2s-mmap" | sudo tee -a /boot/config.txt
-echo "dtoverlay=googlevoicehat-soundcard" | sudo tee -a /boot/config.txt
+USERNAME=$(whoami)
+WORKING_DIR=$(pwd)
 
-echo "[2/10] Installing dependencies..."
-sudo apt update
-sudo apt install -y alsa-utils sox git build-essential libasound2-dev libatlas-base-dev python3-dev python3-pip
-
-echo "[3/10] Creating .asoundrc for 4-mic alias..."
-cat <<EOF > ~/.asoundrc
-pcm.mic4 {
-    type hw
-    card 0
-    device 0
-}
-EOF
-
-echo "[4/10] Cloning and building beamformit..."
-cd ~
-git clone --depth 1 https://github.com/xanguera/BeamformIt.git
-mv BeamformIt beamformit
-cd beamformit
-make clean && make
-
-echo "[5/10] Creating recording test script..."
-cat <<EOF > ~/record4mic.sh
-#!/bin/bash
-arecord -D mic4 -c 4 -f S32_LE -r 16000 -d 5 test.wav
-soxi test.wav
-EOF
-chmod +x ~/record4mic.sh
-
-echo "[6/10] Creating beamformit config file..."
-cat <<EOF > ~/beamform.cfg
-narray = 4
-sampling_rate = 16000
-mic_spacing = 0.035
-EOF
-
-echo "[7/10] Installing HermesLedControl for APA102 LED ring..."
-cd ~
-git clone https://github.com/project-alice-assistant/HermesLedControl.git
-cd HermesLedControl
-pip3 install -r requirements.txt
-make
-
-echo "[8/10] Creating HermesLedControl config..."
-cat <<EOF > ~/HermesLedControl/config.json
-{
-  "use_audio_output": false,
-  "hardware": "respeaker-4mic",
-  "gpio_control": false,
-  "alsadev": "default",
-  "brightness": 32,
-  "volume": 50,
-  "enable_animations": true,
-  "start_animation": "think"
-}
-EOF
-
-echo "[9/10] Setting up HermesLedControl as a service..."
-sudo cp hermesledcontrol.service /etc/systemd/system/
-sudo systemctl enable hermesledcontrol
-sudo systemctl start hermesledcontrol
-
-echo "[10/10] Setup complete."
-echo "➡️  Run ./record4mic.sh to test the microphone."
-echo "➡️  Run ./beamformit/beamformit -s -c beamform.cfg < test.wav > output.wav to beamform."
-echo "➡️  LED ring should now animate on boot. Reboot recommended."
-
-read -p "Reboot now? [y/N]: " input
-if [[ "$input" =~ ^[Yy]$ ]]; then
-  sudo reboot
+if [ ! -d "$WORKING_DIR" ]; then
+    echo "Working directory $WORKING_DIR does not exist"
+    exit 1
 fi
+
+VENV_DIR=$(find "$WORKING_DIR" -type d -name "venv")
+
+if [ -z "$VENV_DIR" ]; then
+    echo "Creating virtual environment..."
+    python3.12 -m venv venv
+    VENV_DIR="$WORKING_DIR/venv"
+fi
+
+PYTHON_EXEC="$VENV_DIR/bin/python3.12"
+
+if [ ! -f "$PYTHON_EXEC" ]; then
+    echo "Python executable not found in $VENV_DIR"
+    exit 1
+fi
+
+# Install dependencies if requirements.txt exists
+if [ -f "requirements.txt" ]; then
+    echo "Installing dependencies..."
+    source "$VENV_DIR/bin/activate"
+    pip install -r requirements.txt
+fi
+
+SERVICE_NAME=$(basename "$WORKING_DIR")
+SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
+
+echo "[Unit]
+Description=$SERVICE_NAME Bot Service for $USERNAME
+After=network.target
+
+[Service]
+User=$USERNAME
+WorkingDirectory=$WORKING_DIR
+ExecStart=$PYTHON_EXEC main.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target" | sudo tee $SERVICE_FILE
+
+sudo systemctl daemon-reload
+sudo systemctl start $SERVICE_NAME
+sudo systemctl enable $SERVICE_NAME
+
+echo "Service $SERVICE_NAME created and started successfully"%
