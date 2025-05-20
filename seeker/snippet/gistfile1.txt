@@ -1,57 +1,92 @@
-#date: 2025-05-19T16:47:44Z
-#url: https://api.github.com/gists/c3db7b70755251672504beb85d47a3fb
-#owner: https://api.github.com/users/difome
+#date: 2025-05-20T17:04:44Z
+#url: https://api.github.com/gists/f261798b10ccb06b974df17e4838cfa4
+#owner: https://api.github.com/users/utternerd
 
 #!/bin/bash
 
-USERNAME=$(whoami)
-WORKING_DIR=$(pwd)
-
-if [ ! -d "$WORKING_DIR" ]; then
-    echo "Working directory $WORKING_DIR does not exist"
-    exit 1
+# Check for required arguments
+if [ "$#" -ne 1 ]; then
+  echo "Usage: $0 <CIDR_network>"
+  echo "  e.g., $0 192.168.1.0/24"
+  exit 1
 fi
 
-VENV_DIR=$(find "$WORKING_DIR" -type d -name "venv")
+cidr="$1"
 
-if [ -z "$VENV_DIR" ]; then
-    echo "Creating virtual environment..."
-    python3.12 -m venv venv
-    VENV_DIR="$WORKING_DIR/venv"
+# --- Step 1: Scan the network with Nmap to find down hosts ---
+#  -sn : No port scan, host discovery only
+#  -n  : Disable DNS resolution for speed
+#  -oG -: Output in grepable format to standard output
+# The grep then filters to get only the IPs marked as 'Down'.
+down_hosts=$(sudo nmap -sn -n -oG - "$cidr" | grep "Status: Down" | awk '{print $2}')
+
+
+# --- Step 2: Process the output to find contiguous blocks ---
+
+if [ -z "$down_hosts" ]; then
+    echo "No down hosts found in the provided CIDR."
+    exit 0
 fi
 
-PYTHON_EXEC="$VENV_DIR/bin/python3.12"
+IFS=$'\n' read -r -a ip_array <<< "$down_hosts"  # Read IPs into array, handling newlines
 
-if [ ! -f "$PYTHON_EXEC" ]; then
-    echo "Python executable not found in $VENV_DIR"
-    exit 1
+# Sort IPs numerically
+sorted_ips=($(printf '%s\n' "${ip_array[@]}" | sort -n -t. -k1,1 -k2,2 -k3,3 -k4,4))
+
+# Variables for block detection
+block_start=""
+block_end=""
+in_block=0
+
+# Loop through IPs
+for ((i=0; i < ${#sorted_ips[@]}; i++)); do
+  current_ip="${sorted_ips[i]}"
+
+  if [ $in_block -eq 0 ]; then
+    # Start of a new block
+    block_start="$current_ip"
+    block_end="$current_ip"
+    in_block=1
+  else
+      # Calculate the next IP
+    IFS='.' read -r a b c d <<< "$block_end"
+    ((d++))
+    if ((d > 255)); then
+        d=0
+        ((c++))
+        if ((c > 255)); then
+            c=0
+            ((b++))
+             if ((b > 255)); then
+                b = 0
+                ((a++))
+            fi
+        fi
+    fi
+    next_ip="$a.$b.$c.$d"
+
+    if [ "$current_ip" = "$next_ip" ]; then
+      # Extend current block
+      block_end="$current_ip"
+    else
+        # End of a block - print it
+      if [ "$block_start" != "$block_end" ]; then
+          echo "Block: $block_start - $block_end"
+      else
+          echo "Single IP: $block_start"
+      fi
+      # Start a new block
+      block_start="$current_ip"
+      block_end="$current_ip"
+    fi
+  fi
+done
+
+# Print the last block if it exists
+if [ "$block_start" != "" ]; then
+  if [ "$block_start" != "$block_end" ]; then
+        echo "Block: $block_start - $block_end"
+  else
+       echo "Single IP: $block_start"
+  fi
 fi
-
-# Install dependencies if requirements.txt exists
-if [ -f "requirements.txt" ]; then
-    echo "Installing dependencies..."
-    source "$VENV_DIR/bin/activate"
-    pip install -r requirements.txt
-fi
-
-SERVICE_NAME=$(basename "$WORKING_DIR")
-SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
-
-echo "[Unit]
-Description=$SERVICE_NAME Bot Service for $USERNAME
-After=network.target
-
-[Service]
-User=$USERNAME
-WorkingDirectory=$WORKING_DIR
-ExecStart=$PYTHON_EXEC main.py
-Restart=always
-
-[Install]
-WantedBy=multi-user.target" | sudo tee $SERVICE_FILE
-
-sudo systemctl daemon-reload
-sudo systemctl start $SERVICE_NAME
-sudo systemctl enable $SERVICE_NAME
-
-echo "Service $SERVICE_NAME created and started successfully"%
