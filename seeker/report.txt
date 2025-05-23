@@ -1,4 +1,38 @@
 --------------------------------------------------------------------------------
+ 2025-05-23 17:14:36.318235
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/JupyterToConfluence.py
+	deleted:    snippet/SM.py
+	deleted:    snippet/check-deprecated-per-island
+	deleted:    snippet/check-deprecated.sh
+	deleted:    snippet/convert_lyrics_format.py
+	deleted:    snippet/new_install_nock.sh
+	deleted:    snippet/profile_flex_attn.py
+	deleted:    snippet/tana-to-raycast-ai.sh
+	deleted:    snippet/timeinwords.py
+	deleted:    snippet/var_memory.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/.tmux.conf
+	snippet/Parquet.py
+	snippet/SmartDriveCheckNG.SH
+	snippet/deps.py
+	snippet/javaStudy01.java
+	snippet/main.go
+	snippet/main.py
+	snippet/migrate2github.sh
+	snippet/s3-upload-test.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2025-05-22 17:14:15.596931
 --------------------------------------------------------------------------------
   On branch main
