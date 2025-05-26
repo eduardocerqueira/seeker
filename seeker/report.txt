@@ -1,4 +1,42 @@
 --------------------------------------------------------------------------------
+ 2025-05-26 17:13:35.790377
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/.tmux.conf
+	deleted:    snippet/3d.py
+	deleted:    snippet/Parquet.py
+	deleted:    snippet/SmartDriveCheckNG.SH
+	deleted:    snippet/Sms-spammer.py
+	deleted:    snippet/convert-keybox.py
+	deleted:    snippet/demo_db_agent.py
+	deleted:    snippet/deps.py
+	deleted:    snippet/docker-networks.sh
+	deleted:    snippet/faithful_interp_test.py
+	deleted:    snippet/format-sql
+	deleted:    snippet/generate-localhost-certs.sh
+	deleted:    snippet/gistfile1.txt
+	deleted:    snippet/javaStudy01.java
+	deleted:    snippet/main.go
+	deleted:    snippet/main.py
+	deleted:    snippet/migrate2github.sh
+	deleted:    snippet/monitor_vm_sku_capacity.py
+	deleted:    snippet/s3-upload-test.sh
+	deleted:    snippet/setup_log_analytics.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/HMTK-ch13-p2-huan-luyen-va-luu-tru-mo-hinh.py
+	snippet/HMTK-ch13-p3-trien-khai-ung-dung-main.py
+	snippet/sortable_anywidget.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2025-05-23 17:14:36.318235
 --------------------------------------------------------------------------------
   On branch main

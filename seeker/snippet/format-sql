@@ -1,8 +1,0 @@
-#date: 2025-05-22T16:51:34Z
-#url: https://api.github.com/gists/76b77198a95cafd42996a450c8ffb436
-#owner: https://api.github.com/users/mattlong
-
-#!/usr/bin/env bash
-
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-npx tsx ${SCRIPT_DIR}/format-sql.ts
