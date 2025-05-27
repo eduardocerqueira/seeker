@@ -1,0 +1,17 @@
+#date: 2025-05-27T17:06:43Z
+#url: https://api.github.com/gists/0afd544d45f81738adddce93b3691752
+#owner: https://api.github.com/users/Zbank999
+
+#!/bin/sh
+#
+# An example hook script to verify what is about to be committed.
+# Called by "git merge" with no arguments.  The hook should
+# exit with non-zero status after issuing an appropriate message to
+# stderr if it wants to stop the merge commit.
+#
+# To enable this hook, rename this file to "pre-merge-commit".
+
+. git-sh-setup
+test -x "$GIT_DIR/hooks/pre-commit" &&
+        exec "$GIT_DIR/hooks/pre-commit"
+:
