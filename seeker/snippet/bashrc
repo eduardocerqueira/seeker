@@ -1,0 +1,24 @@
+#date: 2025-06-02T16:52:38Z
+#url: https://api.github.com/gists/fa9a80f0958c4bc46c10aa4b651273ca
+#owner: https://api.github.com/users/jonathands
+
+# On ~/.bashrc or equivalent
+# usage
+#   gmergehml tries to merge current branch and gets back
+#   gmergehml  name/ofbranch specify a branch
+
+ gmergehml() {
+  local feature_branch="${1:-$(git rev-parse --abbrev-ref HEAD)}"
+  read -p "Merge branch '$feature_branch' into 'homolog'? [y/N] " answer
+  case "$answer" in
+    [Yy]* )
+      git checkout homolog \
+        && git merge "$feature_branch" \
+        && git push \
+        && git checkout "$feature_branch"
+      ;;
+    * )
+      echo "Merge aborted."
+      ;;
+  esac
+}

@@ -1,0 +1,55 @@
+#date: 2025-06-02T16:46:43Z
+#url: https://api.github.com/gists/a1060c3cbf50ecdfb9544dcd0db4a3e5
+#owner: https://api.github.com/users/iangalvao
+
+#!/bin/bash
+set -e
+
+# 📌 Check argument
+if [ -z "$1" ]; then
+  echo "❌ Usage: $0 <station-number>"
+  exit 1
+fi
+
+STATION_NUM="$1"
+IP="192.168.1.$STATION_NUM/24"
+PROFILE_NAME="Static LAN"
+CONNECTION_FILE="/etc/NetworkManager/system-connections/eth0.nmconnection"
+UUID=27783b49-b3ce-473a-8b17-499cedc91edd
+
+echo "🛠 Setting up static IP for station $STATION_NUM..."
+echo "🆔 UUID: $UUID"
+echo "🌐 IP: $IP"
+
+# 📝 Create .nmconnection file
+sudo tee "$CONNECTION_FILE" > /dev/null <<EOF
+[connection]
+id=$PROFILE_NAME
+uuid=$UUID
+type=ethernet
+interface-name=eth0
+autoconnect=true
+
+[ethernet]
+
+[ipv4]
+address1=$IP
+dns=8.8.8.8;
+method=manual
+
+[ipv6]
+addr-gen-mode=default
+method=disabled
+
+[proxy]
+EOF
+
+# 🔐 Set permissions
+sudo chmod 600 "$CONNECTION_FILE"
+
+# 🔄 Reload and apply
+echo "🔄 Reloading NetworkManager..."
+sudo nmcli connection reload
+sudo nmcli connection up "$PROFILE_NAME"
+
+echo "✅ Static IP $IP applied to eth0 (station $STATION_NUM)"
