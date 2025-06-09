@@ -1,0 +1,111 @@
+#date: 2025-06-09T17:07:34Z
+#url: https://api.github.com/gists/5e926c6ea393f9ae0963da77995ed591
+#owner: https://api.github.com/users/vanbasten23
+
+#!/bin/bash
+
+# Usage:
+# Run the file under the parent directory of the vllm directory as
+# bash run_tpu_benchmark.sh --model <model_name> --tp 1
+# bash run_tpu_benchmark.sh --model <model_name> --tp 1 --profile
+# bash run_tpu_benchmark.sh --model <model_name> --tp 4
+#
+# Commonly used models:
+# meta-llama/Meta-Llama-3.1-8B-Instruct
+# neuralmagic/Meta-Llama-3.1-8B-Instruct-quantized.w8a8
+# meta-llama/Llama-3.1-70B-Instruct
+# RedHatAI/Meta-Llama-3.1-70B-Instruct-quantized.w8a8
+# 
+# Examples:
+# bash run_tpu_benchmark.sh --model RedHatAI/Meta-Llama-3.1-70B-Instruct-quantized.w8a8 --tp 8
+# bash run_tpu_benchmark.sh --model RedHatAI/Meta-Llama-3.1-70B-Instruct-quantized.w8a8 --tp 8 --profile
+# bash run_tpu_benchmark.sh --model neuralmagic/Meta-Llama-3.1-8B-Instruct-quantized.w8a8 --tp 8
+
+
+LONGOPTS=model:,tp:,profile
+# Parse arguments
+PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@")
+if [[ $? -ne 0 ]]; then
+  exit 2
+fi
+eval set -- "$PARSED"
+profile=false
+# Option parsing
+while true; do
+  case "$1" in
+    --model)
+      model="$2"
+      shift 2
+      ;;
+    --tp)
+      tp=$2
+      shift 2
+      ;;
+    --profile)
+      profile=true
+      shift
+      ;;
+    --)
+      shift
+      break
+      ;;
+    *)
+      echo "Unknown option: $1"
+      exit 3
+      ;;
+  esac
+done
+if [[ -z "$model" ]]; then
+  echo "Error: --model is required"
+  exit 1
+fi
+if [[ -z "$tp" ]]; then
+  echo "Error: --tp is required"
+  exit 1
+fi
+if $profile; then
+  rm -rfv /tmp/tpu-profile/ && mkdir /tmp/tpu-profile
+  export VLLM_TORCH_PROFILER_DIR=/tmp/tpu-profile
+fi
+
+if [ ! -e vllm/benchmarks/sonnet_4x.txt ]; then
+  echo "Creating the data file sonnet_4x.txt"
+  touch vllm/benchmarks/sonnet_4x.txt
+  for _ in {1..4}
+  do
+  cat vllm/benchmarks/sonnet.txt >> vllm/benchmarks/sonnet_4x.txt
+  done
+else
+  echo "sonnet_4x.txt exists. Skip creating the file."
+fi
+
+DEFAULT_HOST=127.0.0.1
+DEFAULT_PORT=8000
+
+printf $profile
+if ! $profile; then
+  echo "Profiling is disabled"
+else
+  echo "Profiling is enabled"
+fi
+
+XLA_HLO_DEBUG= "**********"=1 vllm serve $model --disable-log-requests --gpu-memory-utilization 0.98 --max-num-batched-tokens 2048 --max-num-seqs 128 --max-model-len 2048 --tensor-parallel-size $tp --no-enable-prefix-caching 2>&1 | tee vllm_server_out.txt &
+
+nc -zv $DEFAULT_HOST $DEFAULT_PORT
+while [ $? -ne 0 ]; do
+  echo "Waiting for the server to start..."
+  sleep 15
+  nc -zv $DEFAULT_HOST $DEFAULT_PORT
+done
+
+echo "Server is up and running"
+if ! $profile; then
+  echo "Running the benchmark..."
+  XLA_HLO_DEBUG=1 python3 vllm/benchmarks/benchmark_serving.py --model $model --dataset-name sonnet --dataset-path vllm/benchmarks/sonnet_4x.txt --sonnet-input-len 1800 --sonnet-output-len 128 --ignore_eos 2>&1 | tee vllm_benchmark_out.txt
+else
+  echo "Running the benchmark with profiling..."
+  XLA_HLO_DEBUG=1 python3 vllm/benchmarks/benchmark_serving.py --model $model --dataset-name sonnet --dataset-path vllm/benchmarks/sonnet_4x.txt --sonnet-input-len 1800 --sonnet-output-len 128 --ignore_eos --profile
+fi
+
+echo "All done. Killing the server..."
+kill %1
