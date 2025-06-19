@@ -1,0 +1,108 @@
+#date: 2025-06-19T17:11:58Z
+#url: https://api.github.com/gists/9624dedd4007b1637ce49273f77bb8c4
+#owner: https://api.github.com/users/ditte-shy
+
+#!/bin/bash
+
+#                                                          .;;,
+#                                     .,.               .,;;;;;,
+#                                    ;;;;;;;,,        ,;;%%%%%;;
+#                                     `;;;%%%%;;,.  ,;;%%;;%%%;;
+#                                       `;%%;;%%%;;,;;%%%%%%%;;'
+#                                         `;;%%;;%:,;%%%%%;;%%;;,
+#                                            `;;%%%,;%%%%%%%%%;;;
+#                                               `;:%%%%%%;;%%;;;'
+#           ..,,,.                                 .:::::::.
+#        .;;;;;;;;;;,.                                  s.
+#        `;;;;;;;;;;;;;,                               ,SSSs.
+#          `:.:.:.:.:.:.:.                            ,SSSSSSs.
+#           .;;;;;;;;;;;;;::,                        ,SSSSSSSSS,
+#          ;;;;;;;;;;;;;;;;:::%,                    ,SS%;SSSSSSsS
+#         ;;;;;;,:,:::::::;::::%%,                  SS%;SSSSSSsSS
+#         ;;;;;,::a@@@@@@a::%%%%%%%,.   ...         SS%;SSSSSSSS'
+#         `::::::@@@@@@@@@@@a;%%%%%%%%%'  #;        `SS%;SSSSS'
+#  .,sSSSSs;%%,::@@@@@@;;' #`@@a;%%%%%'   ,'          `S%;SS'
+#sSSSSSSSSSs;%%%,:@@@@a;;   .@@@a;%%sSSSS'           .%%%;SS,
+#`SSSSSSSSSSSs;%%%,:@@@a;;;;@@@;%%sSSSS'        ..,,%%%;SSSSSSs.
+#  `SSSSSSSSSSSSs;%%,%%%%%%%%%%%SSSS'     ..,,%;sSSS;%;SSSSSSSSs.
+#     `SSSSSSSSSSS%;%;sSSSS;""""   ..,,%sSSSS;;SSSS%%%;SSSSSSSSSS.
+#         """""" %%;SSSSSS;;%..,,sSSS;%SSSSS;%;%%%;%%%%;SSSSSS;SSS.
+#                `;SSSSS;;%%%%%;SSSS;%%;%;%;sSSS;%%%%%%%;SSSSSS;SSS
+#                 ;SSS;;%%%%%%%%;%;%sSSSS%;SSS;%%%%%%%%%;SSSSSS;SSS
+#                 `S;;%%%%%%%%%%%%%SSSSS;%%%;%%%%%%%%%%%;SSSSSS;SSS
+#                  ;SS;%%%%%%%%%%%%;%;%;%%;%%%%%%%%%%%%;SSSSSS;SSS'
+#                  SS;%%%%%%%%%%%%%%%%%%%;%%%%%%%%%%%;SSSSSS;SSS'
+#                  SS;%%%%%%%%%%%%%%%%%%;%%%%%%%%%%%;SSSSS;SSS'
+#                  SS;%%%%%%%%%%%%%;sSSs;%%%%%%%%;SSSSSS;SSSS
+#                  `SS;%%%%%%%%%%%%%%;SS;%%%%%%;SSSSSS;SSSS'
+#                   `S;%%%%%%%%%%%%%%%;S;%%%%%;SSSS;SSSSS%
+#                    `S;%;%%%%%%%%%%%'   `%%%%;SSS;SSSSSS%.
+#                  ,S;%%%%%%%%%%;'      `%%%%%;S   `SSSSs%,.
+#                  ,%%%%%%%%%%;%;'         `%;%%%;     `SSSs;%%,.
+#               ,%%%%%%;;;%;;%;'           .%%;%%%       `SSSSs;%%.
+#            ,%%%%%' .%;%;%;'             ,%%;%%%'         `SSSS;%%
+#          ,%%%%'   .%%%%'              ,%%%%%'             `SSs%%'
+#        ,%%%%'    .%%%'              ,%%%%'                ,%%%'
+#      ,%%%%'     .%%%              ,%%%%'                 ,%%%'
+#    ,%%%%'      .%%%'            ,%%%%'                  ,%%%'
+#  ,%%%%'        %%%%           ,%%%'                    ,%%%%
+#  %%%%'       .:::::         ,%%%'                      %%%%'
+#.:::::        :::::'       ,%%%'                       ,%%%%
+#:::::'                   ,%%%%'                        %%%%%
+#                        %%%%%'                         %%%%%
+#                      .::::::                        .::::::
+#                      ::::::'                        ::::::'
+
+# -------------------------------------
+#
+# Mount a server with Rclone
+#
+# -------------------------------------
+
+PATH=${PATH}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin
+PATH=${PATH}:/bin
+
+export PATH
+
+####################################################################
+
+# Let's get a name of this file
+magic=$(basename "${BASH_SOURCE[@]}")
+
+# This will be a name without first part "⏻ "
+remote=${magic#"⏻ "}
+
+####################################################################
+
+declare -a remoteArray=()
+
+remoteArray+=(
+    "${remote}"
+)
+
+for remote in "${remoteArray[@]}"; do
+
+    mountPoint="${HOME}/Library/• Clouds/clouds • utiligize/${remote}"
+
+    # rm -rf "${mountPoint}"
+
+    mkdir -p "${mountPoint}" &&
+        rclone mount \
+            "ut ${remote}":/ \
+            "${mountPoint}" \
+            --dir-cache-time 8m13s \
+            --poll-interval 0m13s \
+            --no-modtime \
+            --no-checksum \
+            --noappledouble \
+            --sftp-copy-is-hardlink \
+            --vfs-cache-mode writes \
+            --daemon \
+            --volname "⏻ ${remote}" \
+            --option local \
+            --vfs-fast-fingerprint \
+            --allow-non-empty \
+            --allow-other \
+            --default-permissions
+
+done
