@@ -1,4 +1,30 @@
 --------------------------------------------------------------------------------
+ 2025-06-23 17:15:27.953949
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/def.py
+	deleted:    snippet/install.sh
+	modified:   snippet/main.py
+	deleted:    snippet/mo-3226.py
+	deleted:    snippet/replace_tewa_widedhcpv6.sh
+	deleted:    snippet/uv_commands.sh
+	deleted:    "snippet/\342\217\273 grafana"
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/TREASURE ISLAND.py
+	snippet/luistest.py
+	snippet/marshall.txt
+	snippet/t9-to-text.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2025-06-20 17:14:32.923852
 --------------------------------------------------------------------------------
   On branch main
