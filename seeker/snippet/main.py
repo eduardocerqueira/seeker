@@ -1,16 +1,12 @@
-#date: 2025-06-25T17:09:47Z
-#url: https://api.github.com/gists/f4e6279a69580bf9150e70e7545fb1b3
+#date: 2025-06-27T17:11:58Z
+#url: https://api.github.com/gists/5447e6b2d07cbb16adb5d52f225022e3
 #owner: https://api.github.com/users/mypy-play
 
-from typing import Iterator
+byt = b'abc'
+st = 'hello'
+btar = bytearray()
+num = 1
 
-
-def fib(n: int) -> Iterator[int]:
-    a, b = 0, 1
-    while a < n:
-        yield a
-        a, b = b, a + b
-
-
-fib(10)
-fib("10")
+byt == st  # E: Non-overlapping equality check (left operand type: "bytes", right operand type: "str")
+byt == num  # E: Non-overlapping equality check (left operand type: "bytes", right operand type: "int")
+btar == num  # E: Non-overlapping equality check (left operand type: "bytearray", right operand type: "int")
