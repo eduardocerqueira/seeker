@@ -1,0 +1,18 @@
+#date: 2025-07-08T16:36:53Z
+#url: https://api.github.com/gists/8e0f619679c74bfc0942b58736783c08
+#owner: https://api.github.com/users/patrickcoombe
+
+#!/bin/bash 
+while IFS= read -r url; do 
+# use sed to parse the URL since it really only needs the slug I could have done this manually instead but whatever
+# also note make sure you have a file called urls.txt with the right perms with the URLs you wanna delete
+ slug=$(echo "$url" | sed 's|.*/||; s|/$||') 
+# Find post ID by slug 
+ post_id=$(wp post list --post_name="$slug" --field=ID --post_status=any) 
+if [ ! -z "$post_id" ]; then 
+ wp post delete "$post_id" --force 
+echo "Deleted: $url (ID: $post_id)" 
+else 
+echo "Not found: $url" 
+fi 
+done < urls.txt
