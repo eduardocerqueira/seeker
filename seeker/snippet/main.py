@@ -1,24 +1,9 @@
-#date: 2025-07-09T17:02:35Z
-#url: https://api.github.com/gists/793a7496c7789e6211430a25bab446a3
+#date: 2025-07-10T17:16:48Z
+#url: https://api.github.com/gists/7c39cbdd5cd1d55212d59457583d56bb
 #owner: https://api.github.com/users/mypy-play
 
-from dataclasses import dataclass
-from typing import Protocol
+from typing import *
+import os
 
-
-class Child(Protocol):
-    val: float
-
-class Parent(Protocol):
-    sub: Child
-
-
-@dataclass
-class Child1(Child):
-    val: float
-
-@dataclass
-class Parent1(Parent):
-    sub: Child1
-
-
+r: os.stat_result = os.stat('.')
+print(r.st_ctime)
