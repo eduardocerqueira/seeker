@@ -1,0 +1,48 @@
+#date: 2025-07-14T16:59:51Z
+#url: https://api.github.com/gists/bccd9d3bd8531c4b91b3f5e4f6022b69
+#owner: https://api.github.com/users/benjaoming
+
+#!/bin/bash
+
+# The purpose of this script is to make it easy to checkout a contributor's PR using the copy button in the PR
+# where username:branch appears.
+# TODO: On Forgejo/Gitlab, this pattern is username/reponame:branchname
+
+set -e
+
+username_and_branch=$1
+
+username=""
+branch=""
+
+if [[ "$username_and_branch" =~ ^([a-zA-Z0-9_]+):([a-zA-Z0-9_\-]+)$ ]]
+then
+    username="${BASH_REMATCH[1]}"
+    branch="${BASH_REMATCH[2]}"
+else
+    echo "First argument must been username:branch"
+    exit 1
+fi
+
+# Example: git@github.com:django/birthday20.git
+remote_origin=`git remote get-url origin`
+
+remote_base_url=""
+remote_repo_name=""
+
+if [[ "$remote_origin" =~ (git@[^:]+):([^/]+)/([a-zA-Z0-9_\-]+)(\.git)? ]]
+then
+    remote_base_url="${BASH_REMATCH[1]}"
+    remote_repo_name="${BASH_REMATCH[3]}"
+else
+    echo "unexpected remote url: $remote_origin"
+fi
+
+if ! git remote | grep $username
+then
+    git remote add $username "$remote_base_url:$username/$remote_repo_name"
+fi
+
+git fetch $username
+
+git checkout $username/$branch

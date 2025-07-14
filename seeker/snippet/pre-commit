@@ -1,0 +1,78 @@
+#date: 2025-07-14T17:06:31Z
+#url: https://api.github.com/gists/88d9b5c3f284fb97a891c0cc49bafa40
+#owner: https://api.github.com/users/tpapp
+
+#!/bin/bash
+# A script that updates main, docs, and test manifests in a Julia
+# package, provided they exist. For use as a git hook, eg pre-commit.
+# 
+# Copyright (c) 2025 Tamás K. Papp
+#
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this software and associated documentation files
+# (the "Software"), to deal in the Software without restriction,
+# including without limitation the rights to use, copy, modify, merge,
+# publish, distribute, sublicense, and/or sell copies of the Software,
+# and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+# BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+# ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+# customize here
+OLD_DAYS=10            # days after which a manifest is considered old
+# runtime
+if [[ -n "$CI" ]]; then
+   echo "In CI, skipping updates."
+   exit 0
+fi
+if [ `git rev-parse --is-bare-repository` == "true" ]; then
+   echo "In bare repository, skipping updates."
+   exit 0
+fi
+JULIA=`which julia`
+if [ -z "$JULIA" ]; then
+   echo "Julia executable not found, skipping updates."
+   exit 1
+fi
+function is_manifest_old() {
+    if [[ -f $1 ]]; then
+        local mtime=$(stat -c %Y "$1")
+        local ctime=$(date +%s)
+        local agedays=$(( (ctime - mtime) / 86400))
+        if [[ agedays -ge 10 ]]; then
+            echo "old"
+        else
+            echo "recent"
+        fi
+    else
+        echo "doesnotexist"
+    fi   
+}
+MAIN="$(is_manifest_old "Manifest.toml")"
+TEST="$(is_manifest_old "test/Manifest.toml")"
+DOCS="$(is_manifest_old "docs/Manifest.toml")"
+if [[ !($MAIN == "old") || ($DOCS == "old") || ($TEST == "old") ]]; then
+    exit 0
+fi
+printf "\033[0;31mUpdating manifests, this may take a few seconds\n"
+cat <<"EOF" | $JULIA --startup-file=no -q -
+import Pkg
+function maybe_update_project(dir)
+    isfile(joinpath(dir, "Project.toml")) || return
+    Pkg.activate(dir)
+    Pkg.update()
+end
+maybe_update_project(".")
+maybe_update_project("test/")
+maybe_update_project("docs/")
+EOF
