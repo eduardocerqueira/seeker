@@ -88,7 +88,12 @@ copy_to_clipboard() {
     fi
 }
 
-copy_to_clipboard        echo "Note: No clipboard utility found. Secret not copied to clipboard."
+copy_to_clipboard        echo "Note: "**********"
+        return 1
+    fi
+}
+
+copy_to_clipboardd."
         return 1
     fi
 }
