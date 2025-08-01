@@ -36,6 +36,9 @@ output_ids = generated_ids[0][len(model_inputs.input_ids[0]):].tolist()
 content = "**********"=True)
 
 print("content:", content)
-nt = tokenizer.decode(output_ids, skip_special_tokens=True)
+nt = "**********"=True)
+
+print("content:", content)
+s=True)
 
 print("content:", content)
