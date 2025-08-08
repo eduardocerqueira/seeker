@@ -1,4 +1,83 @@
 --------------------------------------------------------------------------------
+ 2025-08-08 17:13:20.171144
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/create_user.sh
+	deleted:    snippet/download_streamci.py
+	deleted:    snippet/fix-completo.sh
+	deleted:    snippet/homework.py
+	deleted:    snippet/main.py
+	deleted:    snippet/new_vm.sh
+	deleted:    snippet/pve8to9.sh
+	deleted:    snippet/uninstall.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/00_pandas.py
+	snippet/05_basic.py
+	snippet/10_generation.py
+	snippet/11_filter.py
+	snippet/12_columns.py
+	snippet/12_update_df.py
+	snippet/14_io.py
+	snippet/15_groupby.py
+	snippet/16_merge.py
+	snippet/17_pivot_reshape.py
+	snippet/18_misc.py
+	snippet/19_type.py
+	snippet/21_category.py
+	snippet/25_time_series.py
+	snippet/90_misc.py
+	snippet/__init__.py
+	snippet/add_column_groupby_transform.py
+	snippet/aggregate.py
+	snippet/basic_security.sh
+	snippet/bench.py
+	snippet/build-dotnet-project.sh
+	snippet/check_encoding.py
+	snippet/cli.py
+	snippet/cli_tool.py
+	snippet/combine_xlsx.py
+	snippet/compile.sh
+	snippet/convert-openiv-to-onigiri-linux.go
+	snippet/custom_groupby_functions.py
+	snippet/data_analysis.py
+	snippet/describe_by_type.py
+	snippet/example.py
+	snippet/git-flip
+	snippet/github_repo_summary.py
+	snippet/graceful-shutdown-daemon-in-cgroup.sh
+	snippet/group_by_nan.py
+	snippet/handling_metadata_parquet.py
+	snippet/ingest.py
+	snippet/lib.py
+	snippet/load_rust
+	snippet/nlp_ingest.py
+	snippet/nlp_query.py
+	snippet/nlp_visualize.py
+	snippet/pandasCheatSheet.py
+	snippet/pandas_cheatsheet.py
+	snippet/pandas_preserve_leading_zeroes.py
+	snippet/pandas_subclass.py
+	snippet/parse_nlp_ingest.py
+	snippet/parse_nlp_query.py
+	snippet/parse_nlp_visualize.py
+	snippet/py code pallette.py
+	snippet/query.py
+	snippet/script.java
+	snippet/serialize.py
+	snippet/train_nlp_model.py
+	snippet/visualize.py
+	snippet/wip.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2025-08-07 17:19:10.117570
 --------------------------------------------------------------------------------
   On branch main
