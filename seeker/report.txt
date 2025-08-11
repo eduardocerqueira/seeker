@@ -1,4 +1,89 @@
 --------------------------------------------------------------------------------
+ 2025-08-11 17:17:49.715016
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/00_pandas.py
+	deleted:    snippet/05_basic.py
+	deleted:    snippet/10_generation.py
+	deleted:    snippet/11_filter.py
+	deleted:    snippet/12_columns.py
+	deleted:    snippet/12_update_df.py
+	deleted:    snippet/14_io.py
+	deleted:    snippet/15_groupby.py
+	deleted:    snippet/16_merge.py
+	deleted:    snippet/17_pivot_reshape.py
+	deleted:    snippet/18_misc.py
+	deleted:    snippet/19_type.py
+	deleted:    snippet/21_category.py
+	deleted:    snippet/25_time_series.py
+	deleted:    snippet/90_misc.py
+	deleted:    snippet/__init__.py
+	deleted:    snippet/add_column_groupby_transform.py
+	deleted:    snippet/aggregate.py
+	deleted:    snippet/basic_security.sh
+	deleted:    snippet/bench.py
+	deleted:    snippet/build-dotnet-project.sh
+	deleted:    snippet/check_encoding.py
+	deleted:    snippet/cli.py
+	deleted:    snippet/cli_tool.py
+	deleted:    snippet/combine_xlsx.py
+	deleted:    snippet/compile.sh
+	deleted:    snippet/convert-openiv-to-onigiri-linux.go
+	deleted:    snippet/custom_groupby_functions.py
+	deleted:    snippet/data_analysis.py
+	deleted:    snippet/describe_by_type.py
+	deleted:    snippet/example.py
+	deleted:    snippet/filter_failed_runs.sh
+	deleted:    snippet/git-flip
+	deleted:    snippet/github_repo_summary.py
+	deleted:    snippet/google-chrome-apt-install.sh
+	deleted:    snippet/graceful-shutdown-daemon-in-cgroup.sh
+	deleted:    snippet/group_by_nan.py
+	deleted:    snippet/handling_metadata_parquet.py
+	deleted:    snippet/ingest.py
+	deleted:    snippet/lib.py
+	deleted:    snippet/load_rust
+	deleted:    snippet/nlp_ingest.py
+	deleted:    snippet/nlp_query.py
+	deleted:    snippet/nlp_visualize.py
+	deleted:    snippet/pandasCheatSheet.py
+	deleted:    snippet/pandas_cheatsheet.py
+	deleted:    snippet/pandas_preserve_leading_zeroes.py
+	deleted:    snippet/pandas_subclass.py
+	deleted:    snippet/parse_nlp_ingest.py
+	deleted:    snippet/parse_nlp_query.py
+	deleted:    snippet/parse_nlp_visualize.py
+	deleted:    snippet/prune-branches.sh
+	deleted:    snippet/py code pallette.py
+	deleted:    snippet/query.py
+	deleted:    snippet/script.java
+	deleted:    snippet/serialize.py
+	deleted:    snippet/server-setup.sh
+	deleted:    snippet/siphon_philter_weapon_system_good_version22.py
+	deleted:    snippet/train_nlp_model.py
+	deleted:    snippet/visualize.py
+	deleted:    snippet/wip.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/chaining_interfaces.go
+	snippet/export_lambdas.sh
+	snippet/git-shortcuts.sh
+	snippet/lesson6_examples.py
+	snippet/main.py
+	snippet/random_number.py
+	snippet/rmesh_convert.py
+	snippet/sample_usage.sh
+	snippet/tracker.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2025-08-08 17:13:20.171144
 --------------------------------------------------------------------------------
   On branch main
