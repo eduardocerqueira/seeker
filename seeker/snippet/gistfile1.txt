@@ -1,0 +1,51 @@
+#date: 2025-08-13T17:00:51Z
+#url: https://api.github.com/gists/ef32c3541d0dff7776437a5ad5e40176
+#owner: https://api.github.com/users/darkrival329
+
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ===========================================
+# Config (edit for local testing)
+# ===========================================
+# Simulate GitLab CI/CD environment variables
+export CI_SERVER_HOST="${CI_SERVER_HOST:-gitlab.primary.tld}"
+export CI_REGISTRY="${CI_REGISTRY:-registry.}"
+export CI_PROJECT_ID="${CI_PROJECT_ID:-12345}"
+export CI_SERVER_URL="${CI_SERVER_URL:-https://$CI_SERVER_HOST}"
+export TOKEN_TYPE="${TOKEN_TYPE: "**********"
+export GITLAB_TOKEN="${GITLAB_TOKEN: "**********"
+export REGISTRY_HOST="${REGISTRY_HOST:-$CI_REGISTRY}"
+
+# ===========================================
+# Docker build simulation
+# ===========================================
+echo "=== Simulating GitLab Docker build locally ==="
+echo "CI_SERVER_HOST: $CI_SERVER_HOST"
+echo "CI_REGISTRY: $CI_REGISTRY"
+echo "CI_PROJECT_ID: $CI_PROJECT_ID"
+echo "CI_SERVER_URL: $CI_SERVER_URL"
+echo "TOKEN_TYPE: "**********"
+echo "REGISTRY_HOST: $REGISTRY_HOST"
+
+# If needed, login to your registry for pulling base images
+echo "=== Docker login to $REGISTRY_HOST ==="
+docker login "$REGISTRY_HOST" -u "$REG_USER" -p "$REG_PASS" || {
+    echo "⚠️ Skipping docker login (set REG_USER / REG_PASS to login)"
+}
+
+# Build the image with same args as CI
+echo "=== Building Docker image ==="
+docker build \
+  --build-arg CI_SERVER_HOST="$CI_SERVER_HOST" \
+  --build-arg CI_REGISTRY="$CI_REGISTRY" \
+  --build-arg CI_PROJECT_ID="$CI_PROJECT_ID" \
+  --build-arg CI_SERVER_URL="$CI_SERVER_URL" \
+  --build-arg TOKEN_TYPE= "**********"
+  --build-arg GITLAB_TOKEN= "**********"
+  --build-arg REGISTRY_HOST="$REGISTRY_HOST" \
+  -t local/python-runner:dev .
+
+echo "=== Build complete ==="ner:dev .
+
+echo "=== Build complete ==="
