@@ -1,0 +1,179 @@
+#date: 2025-08-20T17:02:33Z
+#url: https://api.github.com/gists/20289cf96c8425f33b6ce17c3e89d829
+#owner: https://api.github.com/users/Bryan2333
+
+#!/bin/bash
+
+[[ "$EUID" -eq 0 ]] || { echo "This script must be run as root!"; exit 1; }
+
+## 网卡
+INTERFACE=$(ip route show default | awk '/default/ {print $5}')
+INTERFACE="${INTERFACE:-wlan0}"
+
+## TProxy流量标记
+TPROXY_MARK="0x1"
+
+## TProxy路由表ID
+TPROXY_ROUTE_TABLE="200"
+
+## 绕开的用户
+BYPASS_USERS="sing-box, naiveproxy"
+
+## sing-box的透明代理端口
+TPROXY_PORT="7894"
+
+## 需要代理的协议类型
+TPROXY_L4PROTO="tcp, udp"
+
+## 常用端口
+COMMON_PORTS="22, 53, 80, 143, 194, 443, 465, 587, 853, 993, 995, 5222, 8080, 8443"
+
+function wait_http_ok() {
+    local url="$1"
+    local expect_code="$2"
+    local max_retries="$3"
+
+    for (( i = 0; i < max_retries; i++ ))
+    do
+        [[ "$(curl -sfo /dev/null -w "%{http_code}\n" "$url")" == "$expect_code" ]] && return 0
+
+        sleep 1
+    done
+
+    return 1
+}
+
+function wait_online() {
+    wait_http_ok "http://g.cn/generate_204" 204 120 || { echo "等待网络超时"; exit 1; }
+}
+
+function update_public_ipv6() {
+    wait_http_ok "https://mirrors6.tuna.tsinghua.edu.cn" 200 5 || return
+
+    local public_ipv6
+
+    public_ipv6=$(ip -6 addr show | awk '/inet6/{print $2}'| grep -Ev '(^::1|^fc|^fd|^fe80)')
+
+    [[ -z $public_ipv6 ]] && return
+
+    nft add element inet singbox MY_PUBLIC_IPv6 \{ "$(echo "$public_ipv6" | paste -sd, -)" \}
+}
+
+function start_proxy() {
+    systemctl is-active --quiet naiveproxy || systemctl start naiveproxy
+    systemctl is-active --quiet sing-box || systemctl start sing-box
+}
+
+function clear_firewall_rules() {
+    {
+        ip rule del fwmark "$TPROXY_MARK" table "$TPROXY_ROUTE_TABLE"
+        ip route del local default dev "$INTERFACE" table "$TPROXY_ROUTE_TABLE"
+        ip -6 rule del fwmark "$TPROXY_MARK" table "$TPROXY_ROUTE_TABLE"
+        ip -6 route del local default dev "$INTERFACE" table "$TPROXY_ROUTE_TABLE"
+        nft delete table inet singbox
+    } > /dev/null 2>&1
+}
+
+function set_firewall_rules() {
+    {
+        ip rule add fwmark "$TPROXY_MARK" lookup "$TPROXY_ROUTE_TABLE"
+        ip route add local default dev "$INTERFACE" table "$TPROXY_ROUTE_TABLE"
+        ip -6 rule add fwmark "$TPROXY_MARK" lookup "$TPROXY_ROUTE_TABLE"
+        ip -6 route add local default dev "$INTERFACE" table "$TPROXY_ROUTE_TABLE"
+    } > /dev/null 2>&1
+
+    nft -f - <<EOF
+table inet singbox {
+    ## 保留IPv4地址
+    set BYPASS_IPv4 {
+        type ipv4_addr
+        flags interval
+        auto-merge
+        elements = {
+            0.0.0.0/8,
+            10.0.0.0/8,
+            100.64.0.0/10,
+            127.0.0.0/8,
+            169.254.0.0/16,
+            172.16.0.0/12,
+            192.168.0.0/16,
+            224.0.0.0/4,
+            240.0.0.0/4,
+            255.255.255.255
+        }
+    }
+
+    ## 保留IPv6地址
+    set BYPASS_IPv6 {
+        type ipv6_addr
+        flags interval
+        auto-merge
+        elements = {
+            ::/128,
+            ::1/128,
+            64:ff9b::/96,
+            100::/64,
+            2001::/32,
+            2001:20::/28,
+            fe80::/10,
+            ff00::/8
+        }
+    }
+
+    ## 本机公网 IPv6 地址
+    set MY_PUBLIC_IPv6 {
+        type ipv6_addr
+        flags interval
+        auto-merge
+    }
+
+    chain tp_rule {
+        ip daddr @BYPASS_IPv4 meta l4proto { $TPROXY_L4PROTO } th dport != 53 accept comment "绕开私有IPv4地址流量"
+        ip6 daddr @BYPASS_IPv6 meta l4proto { $TPROXY_L4PROTO } th dport != 53 accept comment "绕开私有IPv6地址流量"
+        ip6 daddr @MY_PUBLIC_IPv6 meta l4proto { $TPROXY_L4PROTO } th dport != 53 accept comment "绕开本机公网IPv6地址流量"
+        meta l4proto { $TPROXY_L4PROTO } th dport != { $COMMON_PORTS } accept comment "绕开非常用端口流量"
+    }
+
+    chain tp_pre {
+        type filter hook prerouting priority filter; policy accept;
+
+        fib daddr type local meta l4proto { $TPROXY_L4PROTO } th dport $TPROXY_PORT reject with icmpx type host-unreachable comment "直接访问tproxy端口拒绝, 防止回环"
+
+        jump tp_rule
+
+        meta l4proto { $TPROXY_L4PROTO } socket transparent 1 mark set $TPROXY_MARK
+        socket transparent 0 socket wildcard 0 return comment "跳过已经由TProxy接管的流量"
+
+        meta l4proto { $TPROXY_L4PROTO } meta mark set $TPROXY_MARK tproxy ip to 127.0.0.1:$TPROXY_PORT accept comment "转发给sing-box"
+        meta l4proto { $TPROXY_L4PROTO } meta mark set $TPROXY_MARK tproxy ip6 to [::1]:$TPROXY_PORT accept comment "转发给sing-box"
+    }
+
+    chain tp_out {
+        type route hook output priority filter; policy accept;
+
+        meta skuid { $BYPASS_USERS } accept comment "绕开naive和sing-box发出的连接"
+
+        jump tp_rule
+
+        meta l4proto { $TPROXY_L4PROTO } meta mark set $TPROXY_MARK accept comment "重路由到prerouting"
+    }
+}
+EOF
+
+    update_public_ipv6
+}
+
+case "$1" in
+    "start"|"restart")
+        clear_firewall_rules
+        wait_online
+        start_proxy
+        set_firewall_rules
+        ;;
+    "stop")
+        clear_firewall_rules
+        ;;
+    *) echo "Usage: singbox-tproxy start|restart|stop"; exit 1 ;;
+esac
+
+exit 0
