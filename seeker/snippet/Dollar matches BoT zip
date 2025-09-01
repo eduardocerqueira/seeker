@@ -1,0 +1,239 @@
+#date: 2025-09-01T17:08:04Z
+#url: https://api.github.com/gists/ada3a52693249113ad6c29c29570feba
+#owner: https://api.github.com/users/G-7575
+
+#!/bin/bash
+
+# Create folder structure
+mkdir -p DollarMatches/logs
+touch DollarMatches/dollar_matches.xml
+
+# Create Python bot script
+cat << 'EOF' > DollarMatches/dollar_matches_vps_http.py
+# ======================== Imports ========================
+import json
+import threading
+import time
+import numpy as np
+import pandas as pd
+import ta
+from websocket import create_connection
+import xml.etree.ElementTree as ET
+import logging
+import os
+import glob
+import shutil
+from http.server import HTTPServer, SimpleHTTPRequestHandler
+
+# ======================== CONFIG ========================
+API_TOKEN = "**********"
+SYMBOL = 'R_50'
+TOP_N_TICKS = 50
+STAKE = 1
+TICKS = 10
+TAKE_PROFIT = 50
+STOP_LOSS = 20
+CONFIDENCE_THRESHOLD = 60
+HTTP_PORT = 8000
+MAX_LOG_FILES = 10
+MAX_XML_FILES = 5
+CLEANUP_INTERVAL = 3600
+
+# ======================== GLOBAL VARIABLES ========================
+prices_list = []
+top_digits = []
+ws = None
+authorized = False
+
+# ======================== Logging Setup ========================
+if not os.path.exists('logs'):
+    os.mkdir('logs')
+logging.basicConfig(filename='logs/dollar_matches.log',
+                    level=logging.INFO,
+                    format='%(asctime)s %(levelname)s:%(message)s')
+
+# ======================== WebSocket Functions ========================
+def connect_ws():
+    global ws
+    ws = create_connection("wss://ws.binaryws.com/websockets/v3?app_id=1089")
+    logging.info("WebSocket connected")
+
+def authorize():
+    global ws, authorized
+    auth_msg = {
+        "authorize": "**********"
+        "req_id": int(time.time())
+    }
+    ws.send(json.dumps(auth_msg))
+    result = json.loads(ws.recv())
+    if 'error' in result:
+        logging.error(f"Authorization failed: {result['error']}")
+        authorized = False
+    else:
+        logging.info("Authorized successfully")
+        authorized = True
+
+def subscribe_ticks():
+    global ws
+    tick_msg = {
+        "ticks": SYMBOL,
+        "subscribe": 1
+    }
+    ws.send(json.dumps(tick_msg))
+    logging.info("Subscribed to ticks")
+
+def receive_ticks():
+    global prices_list, top_digits, ws
+    while True:
+        try:
+            result = json.loads(ws.recv())
+            if 'tick' in result:
+                price = result['tick']['quote']
+                prices_list.append(price)
+                if len(prices_list) > TOP_N_TICKS:
+                    prices_list.pop(0)
+                freq = [0]*10
+                for p in prices_list:
+                    freq[int(str(p)[-1])] += 1
+                top_digits = sorted(range(10), key=lambda i: freq[i], reverse=True)[:2]
+        except Exception as e:
+            logging.error(f"WebSocket Error: {e}")
+            time.sleep(1)
+            try:
+                connect_ws()
+                authorize()
+                subscribe_ticks()
+            except Exception as e2:
+                logging.error(f"Reconnect failed: {e2}")
+
+# ======================== Trade Functions ========================
+def place_trade(trade_type, number):
+    global ws, authorized
+    if ws and authorized:
+        buy_msg = {
+            "buy": 1,
+            "price": STAKE,
+            "parameters": {
+                "amount": STAKE,
+                "contract_type": trade_type,
+                "symbol": SYMBOL,
+                "duration": TICKS,
+                "duration_unit": "t",
+                "basis": "stake",
+                "barrier": str(number)
+            },
+            "req_id": int(time.time())
+        }
+        try:
+            ws.send(json.dumps(buy_msg))
+            logging.info(f"{trade_type} trade sent for number {number} with stake {STAKE}")
+        except Exception as e:
+            logging.error(f"Trade Error: {e}")
+    else:
+        logging.warning("Not authorized. Trade not sent.")
+
+# ======================== Indicator Functions ========================
+def calculate_indicators(prices):
+    df = pd.DataFrame(prices, columns=['price'])
+    df['ema_fast'] = ta.trend.EMAIndicator(close=df['price'], window=5).ema_indicator()
+    df['ema_slow'] = ta.trend.EMAIndicator(close=df['price'], window=20).ema_indicator()
+    df['rsi'] = ta.momentum.RSIIndicator(close=df['price'], window=14).rsi()
+    df['momentum'] = df['price'].diff(5)
+    df['sar'] = df['price'].rolling(2).mean()
+    return df['ema_fast'].iloc[-1], df['ema_slow'].iloc[-1], df['rsi'].iloc[-1], df['momentum'].iloc[-1], df['sar'].iloc[-1]
+
+def calculate_confidence(ema_f, ema_s, rsi, mom, sar):
+    score = 0
+    if ema_f > ema_s: score += 20
+    if rsi < 70: score += 20
+    if mom > 0: score += 20
+    if sar < ema_f: score += 20
+    score += 20
+    return score
+
+# ======================== XML Export ========================
+def export_xml():
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    filename = f"dollar_matches_{timestamp}.xml"
+    root_el = ET.Element("DollarMatchesBot")
+    ET.SubElement(root_el, "Stake").text = str(STAKE)
+    ET.SubElement(root_el, "Ticks").text = str(TICKS)
+    ET.SubElement(root_el, "TakeProfit").text = str(TAKE_PROFIT)
+    ET.SubElement(root_el, "StopLoss").text = str(STOP_LOSS)
+    ET.SubElement(root_el, "TopDigits").text = str(top_digits)
+    tree = ET.ElementTree(root_el)
+    tree.write(filename)
+    shutil.copy(filename, "dollar_matches.xml")
+    logging.info(f"XML exported: {filename}")
+
+# ======================== Cleanup Function ========================
+def cleanup_files():
+    while True:
+        try:
+            log_files = sorted(glob.glob('logs/*.log'), key=os.path.getmtime)
+            while len(log_files) > 10:
+                old_log = log_files.pop(0)
+                os.remove(old_log)
+                logging.info(f"Deleted old log file: {old_log}")
+            xml_files = sorted(glob.glob('dollar_matches_*.xml'), key=os.path.getmtime)
+            while len(xml_files) > 5:
+                old_xml = xml_files.pop(0)
+                os.remove(old_xml)
+                logging.info(f"Deleted old XML file: {old_xml}")
+        except Exception as e:
+            logging.error(f"Cleanup error: {e}")
+        time.sleep(3600)
+
+# ======================== Trading Loop ========================
+def trading_loop():
+    while True:
+        if not prices_list:
+            time.sleep(1)
+            continue
+        try:
+            ema_f, ema_s, rsi, mom, sar = calculate_indicators(prices_list)
+            confidence = calculate_confidence(ema_f, ema_s, rsi, mom, sar)
+            logging.info(f"Top digits: {top_digits} | Confidence: {confidence}%")
+            if confidence >= 60 and len(top_digits) >= 2:
+                place_trade('DIGITMATCH', top_digits[0])
+                place_trade('DIGITDIFF', top_digits[1])
+                export_xml()
+            time.sleep(1)
+        except Exception as e:
+            logging.error(f"Trading loop error: {e}")
+            time.sleep(1)
+
+# ======================== HTTP Server ========================
+def start_http_server():
+    os.chdir('.')  # Serve current directory
+    server_address = ('', 8000)
+    httpd = HTTPServer(server_address, SimpleHTTPRequestHandler)
+    logging.info(f"HTTP server running on port 8000")
+    httpd.serve_forever()
+
+# ======================== Main ========================
+if __name__ == "__main__":
+    connect_ws()
+    authorize()
+    subscribe_ticks()
+    threading.Thread(target=receive_ticks, daemon=True).start()
+    threading.Thread(target=start_http_server, daemon=True).start()
+    threading.Thread(target=cleanup_files, daemon=True).start()
+    trading_loop()
+EOF
+
+# Create startup script
+cat << 'EOF' > DollarMatches/start_dollar_matches.sh
+#!/bin/bash
+cd "$(dirname "$0")"
+nohup python3 dollar_matches_vps_http.py > logs/bot_output.log 2>&1 &
+echo "Dollar Matches bot started in background. Logs: logs/bot_output.log"
+EOF
+
+chmod +x DollarMatches/start_dollar_matches.sh
+
+# Zip folder
+zip -r DollarMatches.zip DollarMatches/
+
+echo "DollarMatches.zip created successfully!"
+echo "Remember to edit dollar_matches_vps_http.py and set your API token before running."tp.py and set your API token before running."

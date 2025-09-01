@@ -1,6 +1,33 @@
-#date: 2025-08-29T16:49:16Z
-#url: https://api.github.com/gists/d18e874b3c2fca453d473dbd72a6cbf2
-#owner: https://api.github.com/users/mypy-play
+#date: 2025-09-01T17:09:08Z
+#url: https://api.github.com/gists/bccc52439cea57e1a4369a8c1b4bbc04
+#owner: https://api.github.com/users/ubiquitousfire
 
-a: str
-a.startswith("f")
+from flask import Flask, render_template
+from post import Post
+import requests
+
+posts = requests.get("https://api.npoint.io/c790b4d5cab58020d391").json()
+post_objects = []
+for post in posts:
+    post_obj = Post(post["id"], post["title"], post["subtitle"], post["body"])
+    post_objects.append(post_obj)
+
+app = Flask(__name__)
+
+
+@app.route('/')
+def get_all_posts():
+    return render_template("index.html", all_posts=post_objects)
+
+
+@app.route("/post/<int:index>")
+def show_post(index):
+    requested_post = None
+    for blog_post in post_objects:
+        if blog_post.id == index:
+            requested_post = blog_post
+    return render_template("post.html", post=requested_post)
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
