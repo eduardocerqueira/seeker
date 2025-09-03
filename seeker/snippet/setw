@@ -1,0 +1,186 @@
+#date: 2025-09-03T16:54:48Z
+#url: https://api.github.com/gists/cb3dc7bf0e5fa4ef7f86aafaf20e73e1
+#owner: https://api.github.com/users/mlauronen
+
+#!/bin/bash
+# This is free and unencumbered software released into the public domain.
+#
+# Anyone is free to copy, modify, publish, use, compile, sell, or
+# distribute this software, either in source code form or as a compiled
+# binary, for any purpose, commercial or non-commercial, and by any
+# means.
+#
+# In jurisdictions that recognize copyright laws, the author or authors
+# of this software dedicate any and all copyright interest in the
+# software to the public domain. We make this dedication for the benefit
+# of the public at large and to the detriment of our heirs and
+# successors. We intend this dedication to be an overt act of
+# relinquishment in perpetuity of all present and future rights to this
+# software under copyright law.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+#
+# For more information, please refer to <http://unlicense.org/>
+
+if [ $# -ne 2 ]; then
+    echo "Usage: $0 <window_id> <command>"
+    echo "<window_id> can be:"
+    echo "  number      Window ID (e.g., 0x1a0000 or 123456)"
+    echo "  '.'         Current active window"
+    echo "  name        Partial window name (e.g., 'firefox')"
+    echo "Commands:"
+    echo "  -1          lower left corner"
+    echo "  -2          bottom side"
+    echo "  -3          lower right corner"
+    echo "  -4          left side"
+    echo "  -5          full screen"
+    echo "  -6          right side"
+    echo "  -7          upper left corner"
+    echo "  -8          top side"
+    echo "  -9          upper right corner"
+    echo "  -gX,Y,W,H   move and resize"
+    echo "  -sW,H       resize"
+    exit 1
+fi
+
+WINDOW_ID="$1"
+COMMAND="$2"
+
+# Handle WINDOW_ID input
+if [ "$WINDOW_ID" = "." ]; then
+    # Get active window ID
+    WINDOW_ID=$(xdotool getactivewindow)
+    if [ -z "$WINDOW_ID" ]; then
+        echo "Error: No active window found"
+        exit 1
+    fi
+elif [[ ! "$WINDOW_ID" =~ ^[0-9]+$ ]]; then
+    # Treat as partial window name if not a number
+    WINDOW_ID=$(wmctrl -l | grep -i "$WINDOW_ID" | head -n 1 | awk '{print $1}')
+    if [ -z "$WINDOW_ID" ]; then
+        echo "Error: No window found matching partial name: $1"
+        exit 1
+    fi
+fi
+
+# Verify window ID is valid
+if ! xwininfo -id "$WINDOW_ID" >/dev/null 2>&1; then
+    echo "Error: Invalid window ID: $WINDOW_ID"
+    exit 1
+fi
+
+wmctrl -ir "$WINDOW_ID" -b remove,maximized_vert,maximized_horz
+
+ABSOLUTE_X=$(xwininfo -id "$WINDOW_ID" | grep "Absolute upper-left X:" | awk '{print $4}')
+ABSOLUTE_Y=$(xwininfo -id "$WINDOW_ID" | grep "Absolute upper-left Y:" | awk '{print $4}')
+
+if [ "$ABSOLUTE_X" -lt 0 ]; then
+    ABSOLUTE_X=0
+fi
+if [ "$ABSOLUTE_Y" -lt 0 ]; then
+    ABSOLUTE_Y=0
+fi
+
+RELATIVE_X=$(xwininfo -id "$WINDOW_ID" | grep "Relative upper-left X:" | awk '{print $4}')
+RELATIVE_Y=$(xwininfo -id "$WINDOW_ID" | grep "Relative upper-left Y:" | awk '{print $4}')
+
+WIDTH_FIX=$((-(RELATIVE_X * 2)))
+HEIGHT_FIX=$((-(RELATIVE_Y + RELATIVE_X)))
+
+MONITOR_INFO=$(xrandr --current)
+MONITOR_X=0
+MONITOR_Y=0
+MONITOR_WIDTH=1920
+MONITOR_HEIGHT=1080
+
+# Loop through xrandr output to find the correct monitor based on window position
+while read -r line; do
+    if [[ $line =~ ([0-9]+)x([0-9]+)\+([0-9]+)\+([0-9]+) ]]; then
+        MON_W=${BASH_REMATCH[1]}
+        MON_H=${BASH_REMATCH[2]}
+        MON_X=${BASH_REMATCH[3]}
+        MON_Y=${BASH_REMATCH[4]}
+        
+        # Check if the window is within this monitor's coordinates
+        if (( ABSOLUTE_X >= MON_X && ABSOLUTE_X < MON_X + MON_W && ABSOLUTE_Y >= MON_Y && ABSOLUTE_Y < MON_Y + MON_H )); then
+            MONITOR_WIDTH=$MON_W
+            MONITOR_HEIGHT=$MON_H
+            MONITOR_X=$MON_X
+            MONITOR_Y=$MON_Y
+            break
+        fi
+    fi
+done <<< "$MONITOR_INFO"
+
+HALF_WIDTH=$((MONITOR_WIDTH / 2))
+HALF_HEIGHT=$((MONITOR_HEIGHT / 2))
+
+case $COMMAND in
+    -1)
+        xdotool windowmove "$WINDOW_ID" $MONITOR_X $((MONITOR_Y + HALF_HEIGHT))
+        xdotool windowsize "$WINDOW_ID" $((HALF_WIDTH + WIDTH_FIX)) $((HALF_HEIGHT + HEIGHT_FIX))
+        ;;
+    -2)
+        xdotool windowmove "$WINDOW_ID" $MONITOR_X $((MONITOR_Y + HALF_HEIGHT))
+        xdotool windowsize "$WINDOW_ID" $((MONITOR_WIDTH + WIDTH_FIX)) $((HALF_HEIGHT + HEIGHT_FIX))
+        ;;
+    -3)
+        xdotool windowmove "$WINDOW_ID" $((MONITOR_X + HALF_WIDTH)) $((MONITOR_Y + HALF_HEIGHT))
+        xdotool windowsize "$WINDOW_ID" $((HALF_WIDTH + WIDTH_FIX)) $((HALF_HEIGHT + HEIGHT_FIX))
+        ;;
+    -4)
+        xdotool windowmove "$WINDOW_ID" $MONITOR_X $MONITOR_Y
+        xdotool windowsize "$WINDOW_ID" $((HALF_WIDTH + WIDTH_FIX)) $((MONITOR_HEIGHT + HEIGHT_FIX))
+        ;;
+    -5)
+        xdotool windowmove "$WINDOW_ID" $MONITOR_X $MONITOR_Y
+        xdotool windowsize "$WINDOW_ID" $((MONITOR_WIDTH + WIDTH_FIX)) $((MONITOR_HEIGHT + HEIGHT_FIX))
+        ;;
+    -6)
+        xdotool windowmove "$WINDOW_ID" $((MONITOR_X + HALF_WIDTH)) $MONITOR_Y
+        xdotool windowsize "$WINDOW_ID" $((HALF_WIDTH + WIDTH_FIX)) $((MONITOR_HEIGHT + HEIGHT_FIX))
+        ;;
+    -7)
+        xdotool windowmove "$WINDOW_ID" $MONITOR_X $MONITOR_Y
+        xdotool windowsize "$WINDOW_ID" $((HALF_WIDTH + WIDTH_FIX)) $((HALF_HEIGHT + HEIGHT_FIX))
+        ;;
+    -8)
+        xdotool windowmove "$WINDOW_ID" $MONITOR_X $MONITOR_Y
+        xdotool windowsize "$WINDOW_ID" $((MONITOR_WIDTH + WIDTH_FIX)) $((HALF_HEIGHT + HEIGHT_FIX))
+        ;;
+    -9)
+        xdotool windowmove "$WINDOW_ID" $((MONITOR_X + HALF_WIDTH)) $MONITOR_Y
+        xdotool windowsize "$WINDOW_ID" $((HALF_WIDTH + WIDTH_FIX)) $((HALF_HEIGHT + HEIGHT_FIX))
+        ;;
+    -g*)
+        GEOM="${COMMAND:2}" # strip "-g"
+        IFS=',' read -r GX GY GW GH <<< "$GEOM"
+        if [[ -n $GX && -n $GY && -n $GW && -n $GH ]]; then
+            xdotool windowmove "$WINDOW_ID" "$GX" "$GY"
+            xdotool windowsize "$WINDOW_ID" "$((GW + WIDTH_FIX))" "$((GH + HEIGHT_FIX))"
+        else
+            echo "Error: invalid geometry format. Use -gX,Y,W,H"
+            exit 1
+        fi
+        ;;
+    -s*)
+        GEOM="${COMMAND:2}" # strip "-s"
+        IFS=',' read -r GW GH <<< "$GEOM"
+        if [[ -n $GW && -n $GH ]]; then
+            xdotool windowsize "$WINDOW_ID" "$GW" "$GH"
+        else
+            echo "Error: invalid geometry format. Use -sW,H"
+            exit 1
+        fi
+        ;;
+    *)
+        echo "Error: Unknown command: $COMMAND"
+        exit 1
+        ;;
+esac
