@@ -1,4 +1,42 @@
 --------------------------------------------------------------------------------
+ 2025-09-05 17:13:31.347426
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/algocode8.py
+	deleted:    snippet/bar-__init__.py
+	deleted:    snippet/bar-jim.py
+	deleted:    snippet/bar-types.py
+	deleted:    snippet/heate?.py
+	deleted:    snippet/invoice_automation.py
+	deleted:    snippet/main.py
+	deleted:    snippet/nextGreaterElement.py
+	deleted:    snippet/run_glomap.sh
+	deleted:    snippet/setup.sh
+	deleted:    snippet/setw
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/3.java
+	snippet/4.java
+	snippet/5.java
+	snippet/Person.java
+	snippet/Pm.py
+	snippet/embed.py
+	snippet/ia
+	snippet/install_injector.sh
+	snippet/main.go
+	snippet/office2john.py
+	snippet/puh_v6_hopf.py
+	snippet/streamer.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2025-09-04 17:13:24.108256
 --------------------------------------------------------------------------------
   On branch main

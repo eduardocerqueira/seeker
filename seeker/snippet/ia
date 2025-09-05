@@ -1,0 +1,47 @@
+#date: 2025-09-05T16:41:10Z
+#url: https://api.github.com/gists/64e4da31d80e456f28889a8e38611a9d
+#owner: https://api.github.com/users/dansteingart
+
+#!/usr/bin/env python3
+
+import sys
+import os
+import subprocess
+import argparse
+
+def main():
+    parser = argparse.ArgumentParser(description='Open files in iA Writer')
+    parser.add_argument('files', nargs='+', help='Files to open in iA Writer')
+    parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose output')
+    
+    args = parser.parse_args()
+    
+    for file_path in args.files:
+        # Convert to absolute path if relative
+        if not os.path.isabs(file_path):
+            file_path = os.path.join(os.getcwd(), file_path)
+        
+        # Check if file exists, create if it doesn't
+        if not os.path.exists(file_path):
+            # Create parent directories if needed
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            # Create empty file
+            with open(file_path, 'w') as f:
+                pass
+            if args.verbose:
+                print(f"Created new file: {file_path}")
+        
+        # Open file in iA Writer
+        try:
+            subprocess.run(['open', '-a', 'iA Writer', file_path], check=True)
+            if args.verbose:
+                print(f"Opened {file_path} in iA Writer")
+        except subprocess.CalledProcessError:
+            print(f"Error: Could not open {file_path} in iA Writer. Is iA Writer installed?")
+            sys.exit(1)
+        except FileNotFoundError:
+            print("Error: 'open' command not found. This script requires macOS.")
+            sys.exit(1)
+
+if __name__ == '__main__':
+    main()
