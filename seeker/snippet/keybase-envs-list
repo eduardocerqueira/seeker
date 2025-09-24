@@ -1,0 +1,18 @@
+#date: 2025-09-24T17:05:44Z
+#url: https://api.github.com/gists/074c243b9e2f9a797a03ef263e704d7f
+#owner: https://api.github.com/users/EthanThePhoenix38
+
+#!/bin/bash
+# This bash script pulls the latest version of the keybase client source code from github,
+#   parses out the available env vars and prints them (commented out and with type indicators) to
+#   in a format that can be piped directly into ~/.config/keybase/keybase.env
+
+echo "# Downloading keybase client source..." &>/dev/stderr
+tmpd="$(mktemp -d)"
+wget 'https://github.com/keybase/client/archive/refs/heads/master.zip' -O "$tmpd/master.zip" -q
+cd "$tmpd"
+unzip -q "$tmpd/master.zip" -d "$tmpd"
+rm -f "$tmpd/master.zip" &>/dev/null
+grep -hERos '(KEYBASE)_[A-Z_]+' "$tmpd" |sort -u| sed -E 's/^(.*)$/#\1=/g'
+cd /tmp
+rm -f -r "$tmpd" &>/dev/null
