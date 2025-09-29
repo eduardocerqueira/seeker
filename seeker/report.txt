@@ -1,4 +1,39 @@
 --------------------------------------------------------------------------------
+ 2025-09-29 17:14:22.335056
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/V8
+	deleted:    snippet/demn.py
+	deleted:    snippet/get-all-files-under-specific-folder.sh
+	deleted:    snippet/get-index-mapping-and-all-fields.sh
+	deleted:    snippet/get-specific-files-under-specific-folder.sh
+	deleted:    snippet/git-cherrypick
+	deleted:    snippet/gpx_stryd_fixer.py
+	deleted:    snippet/great.sh
+	deleted:    snippet/httpmetrics.go
+	deleted:    snippet/install.sh
+	deleted:    snippet/interior point economic dispatch.py
+	deleted:    snippet/metric_table.py
+	deleted:    snippet/recover-deleted-branch.sh
+	deleted:    snippet/slide_gif_maker.py
+	deleted:    snippet/user_agent.py
+	deleted:    snippet/v2.py
+	deleted:    "snippet/\320\222\321\213\321\201\321\210\320\260\321\217 \320\274\320\260\321\202\320\265\320\274\320\260\321\202\320\270\320\272\320\260.py"
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/mineru25vllm.py
+	snippet/setup.sh
+	"snippet/\320\257\320\274\321\213 \320\275\320\260 \320\264\320\276\321\200\320\276\320\263\320\265.py"
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2025-09-26 17:13:17.817273
 --------------------------------------------------------------------------------
   On branch main
