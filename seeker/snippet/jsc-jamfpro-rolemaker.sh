@@ -137,7 +137,7 @@ function main() {
 	# Cleanup
 	invalidate_token
 }	
-main "$@"$bearerToken" -H "Content-type: application/json" -X POST "$url/api/v1/api-integrations" -d $clientDeployJSON --fail-with-body
+main "$@"$bearerToken" -H "Content-type: "**********"
 	echo
 }
 
@@ -150,6 +150,12 @@ function main() {
 	create_device_lifecycle 
 	create_config_deploy
 	create_device_risk
+	# Create Client
+	create_client
+	# Cleanup
+	invalidate_token
+}	
+main "$@"ice_risk
 	# Create Client
 	create_client
 	# Cleanup

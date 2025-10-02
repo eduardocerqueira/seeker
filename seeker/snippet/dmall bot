@@ -1,0 +1,285 @@
+#date: 2025-10-02T17:06:48Z
+#url: https://api.github.com/gists/5ca2fb31870695c2f7ba3a5bbd6af975
+#owner: https://api.github.com/users/UniversPlayer
+
+#!/bin/bash
+
+set -e
+
+echo "=== Discord Notify-Role DM Bot Setup ==="
+
+# ask for token (hidden)
+
+read -s -p "Enter your Discord Bot Token: "**********"
+
+echo
+
+NAME="discord_notify_dmall"
+
+mkdir -p "${NAME}"
+
+cd "${NAME}"
+
+# requirements
+
+cat > requirements.txt <<'EOF'
+
+discord.py>=2.2.2
+
+python-dotenv
+
+EOF
+
+# .env
+
+cat > .env <<EOF
+
+DISCORD_TOKEN= "**********"
+
+PREFIX=.
+
+DM_DELAY=1.5
+
+ROLE_NAME=Notify
+
+EOF
+
+# bot.py
+
+cat > bot.py <<'EOF'
+
+import os
+
+import asyncio
+
+from dotenv import load_dotenv
+
+import discord
+
+from discord.ext import commands
+
+load_dotenv()
+
+TOKEN = "**********"
+
+PREFIX = os.getenv("PREFIX", ".")
+
+try:
+
+    DM_DELAY = float(os.getenv("DM_DELAY", "1.5"))
+
+except:
+
+    DM_DELAY = 1.5
+
+ROLE_NAME = os.getenv("ROLE_NAME", "Notify")
+
+intents = discord.Intents.default()
+
+intents.members = True
+
+intents.message_content = True
+
+bot = commands.Bot(command_prefix=PREFIX, intents=intents, help_command=None)
+
+def is_guild_admin():
+
+    async def pred(ctx):
+
+        if isinstance(ctx.channel, discord.DMChannel):
+
+            await ctx.reply("❌ This command must be used in a server.")
+
+            return False
+
+        perms = ctx.author.guild_permissions
+
+        if perms.administrator or perms.manage_guild:
+
+            return True
+
+        await ctx.reply("❌ You need Administrator or Manage Server permission to use this command.")
+
+        return False
+
+    return commands.check(pred)
+
+@bot.event
+
+async def on_ready():
+
+    print(f"✅ Logged in as {bot.user} (id: {bot.user.id})")
+
+    print("Reminder: Enable 'Server Members Intent' and 'Message Content Intent' in Discord developer portal.")
+
+@bot.command(name='help')
+
+async def _help(ctx):
+
+    msg = (
+
+        "📬 **Notify-Role DM Bot — Commands**\n"
+
+        f"`{PREFIX}dmall <message>` — Admin-only. Sends DM to all members with the `{ROLE_NAME}` role.\n"
+
+        f"`{PREFIX}subscribers` — Admin-only. Shows how many members currently have the `{ROLE_NAME}` role.\n"
+
+    )
+
+    await ctx.reply(msg)
+
+@bot.command(name='subscribers')
+
+@is_guild_admin()
+
+async def subscribers(ctx):
+
+    role = discord.utils.get(ctx.guild.roles, name=ROLE_NAME)
+
+    count = 0
+
+    if role:
+
+        count = len([m for m in ctx.guild.members if role in m.roles and not m.bot])
+
+    await ctx.reply(f"📊 Members with `{ROLE_NAME}`: {count}")
+
+@bot.command(name='dmall')
+
+@is_guild_admin()
+
+async def dmall(ctx, *, message: str):
+
+    if not ctx.guild:
+
+        await ctx.reply("⚠️ Use this command in a server.")
+
+        return
+
+    role = discord.utils.get(ctx.guild.roles, name=ROLE_NAME)
+
+    if role is None:
+
+        await ctx.reply(f"⚠️ No role named `{ROLE_NAME}` found. Staff need to assign it manually.")
+
+        return
+
+    targets = [m for m in ctx.guild.members if (role in m.roles) and (not m.bot)]
+
+    if not targets:
+
+        await ctx.reply(f"ℹ️ No members with the `{ROLE_NAME}` role to message.")
+
+        return
+
+    confirm_msg = await ctx.reply(
+
+        f"⚠️ You are about to DM **{len(targets)}** member(s) who have the `{ROLE_NAME}` role. "
+
+        "React with ✅ to confirm within 30s."
+
+    )
+
+    try:
+
+        await confirm_msg.add_reaction("✅")
+
+    except Exception:
+
+        pass
+
+    def check(reaction, user):
+
+        return user == ctx.author and str(reaction.emoji) == "✅" and reaction.message.id == confirm_msg.id
+
+    try:
+
+        await bot.wait_for("reaction_add", timeout=30.0, check=check)
+
+    except asyncio.TimeoutError:
+
+        await ctx.reply("⏳ Cancelled (no confirmation).")
+
+        return
+
+    progress_msg = await ctx.reply(f"🚀 Starting broadcast: 0/{len(targets)} sent...")
+
+    sent = 0
+
+    failed = 0
+
+    for idx, member in enumerate(targets, start=1):
+
+        try:
+
+            try:
+
+                await member.send(f"📣 Announcement from **{ctx.guild.name}**:\n\n{message}")
+
+                sent += 1
+
+            except discord.Forbidden:
+
+                failed += 1
+
+            except discord.HTTPException:
+
+                failed += 1
+
+        except Exception:
+
+            failed += 1
+
+        # update progress message every few DMs
+
+        if idx % 5 == 0 or idx == len(targets):
+
+            await progress_msg.edit(content=f"🚀 Sending broadcast: {idx}/{len(targets)} sent...")
+
+        await asyncio.sleep(DM_DELAY)
+
+    await progress_msg.edit(content=f"✅ Broadcast completed. Sent: {sent}. Failed: {failed}.")
+
+if __name__ == "__main__":
+
+ "**********"  "**********"  "**********"  "**********"  "**********"i "**********"f "**********"  "**********"T "**********"O "**********"K "**********"E "**********"N "**********"  "**********"i "**********"s "**********"  "**********"N "**********"o "**********"n "**********"e "**********": "**********"
+
+        print("No DISCORD_TOKEN set in .env")
+
+        exit(1)
+
+    bot.run(TOKEN)
+
+EOF
+
+echo
+
+echo "==> Installing Python dependencies..."
+
+pip3 install -r requirements.txt
+
+echo
+
+echo "Setup finished."
+
+echo "To run the bot now, execute:"
+
+echo "  python3 bot.py"
+
+echo
+
+echo "Reminders:"
+
+echo "- Enable 'Server Members Intent' and 'Message Content Intent' in Discord developer portal."
+
+echo "- Invite the bot with 'bot' scope and give it permission to Read Messages, Send Messages, and Manage Roles if needed."
+
+echo "- Assign the 'Notify' role manually to members you want to DM."
+
+echo "- Broadcast with: .dmall Your message here (confirm with ✅ reaction)."
+
+echo "- You will see live progress updates as messages are sent."
+
+echo
+
+echo "You can edit .env to change DM_DELAY or ROLE_NAME before running."
