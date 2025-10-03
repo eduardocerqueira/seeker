@@ -1,42 +1,83 @@
-#date: 2025-10-02T17:08:04Z
-#url: https://api.github.com/gists/fa046299378c58867e9fbc05ec3080a7
-#owner: https://api.github.com/users/fidepus
+#date: 2025-10-03T16:42:28Z
+#url: https://api.github.com/gists/f06ea7d96180e153c54309e3cb27bf9b
+#owner: https://api.github.com/users/xiaozhang5438
 
 #!/usr/bin/env bash
-# Usage:
-#   squarefit.sh input.jpg [output.jpg]
-# Or batch:
-#   squarefit.sh *.jpg
-# Needs imagemagick installed
-
 set -euo pipefail
 
-W=1080
-H=1350
-OUTDIR="IG_Exports"
+# Mailcow 一键安装脚本（Ubuntu 22.x）
+# 使用方法:
+#   bash <(curl -s https://raw.githubusercontent.com/<你的用户名>/<仓库名>/main/install.sh) mail.example.com
 
-# Create output folder if it doesn't exist
-mkdir -p "$OUTDIR"
-
-process_one() {
-  in="$1"
-  base="$(basename "${in%.*}")"
-  out="${OUTDIR}/${base}_IG.jpg"
-
-  magick \
-    \( "$in" -auto-orient -resize ${W}x${H}^ -gravity center -extent ${W}x${H} -blur 0x24 \) \
-    \( "$in" -auto-orient -resize x${H} \) \
-    -gravity center -compose over -composite \
-    -strip -colorspace sRGB -quality 92 "$out"
-
-  echo "Made: $out"
-}
-
-if [[ $# -eq 0 ]]; then
-  echo "Drag files onto this script or run: squarefit.sh input.jpg"
+DOMAIN="${1:-}"
+if [[ -z "$DOMAIN" ]]; then
+  echo "用法: $0 mail.example.com"
   exit 1
 fi
 
-for f in "$@"; do
-  process_one "$f"
-done
+ADMIN_USER="admin"
+ADMIN_PASS="admin"
+TZ="UTC"
+
+echo "准备安装 Mailcow"
+echo "域名: $DOMAIN"
+echo "Admin 用户: $ADMIN_USER / $ADMIN_PASS"
+echo "时区: $TZ"
+
+# 安装依赖
+apt update
+apt -y upgrade
+apt -y install ca-certificates curl gnupg lsb-release git apt-transport-https software-properties-common
+
+# 安装 Docker
+if ! command -v docker >/dev/null 2>&1; then
+  curl -fsSL https://get.docker.com | sh
+fi
+systemctl enable --now docker
+
+# 安装 Docker Compose
+mkdir -p /root/.docker/cli-plugins
+COMPOSE_VER="v2.29.7"
+curl -SL "https://github.com/docker/compose/releases/download/${COMPOSE_VER}/docker-compose-linux-x86_64" \
+  -o /root/.docker/cli-plugins/docker-compose
+chmod +x /root/.docker/cli-plugins/docker-compose
+
+# 克隆 mailcow
+if [[ ! -d /opt/mailcow-dockerized ]]; then
+  git clone https://github.com/mailcow/mailcow-dockerized /opt/mailcow-dockerized
+fi
+cd /opt/mailcow-dockerized
+
+# 生成配置文件
+cat > mailcow.conf <<EOF
+MAILCOW_HOSTNAME=${DOMAIN}
+MAILCOW_TIMEZONE=${TZ}
+MAILCOW_PASS_SCHEME=BLF-CRYPT
+DBNAME=mailcow
+DBUSER=mailcow
+DBPASS=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 24)
+DBROOT=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 24)
+REDISPASS=$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 24)
+HTTP_PORT=80
+HTTPS_PORT=443
+SKIP_LETSENCRYPT=n
+EOF
+
+# 拉取镜像并启动
+docker compose pull
+docker compose up -d
+
+# 等待 mysql 就绪
+sleep 30
+
+# 重置 admin 密码
+DBROOT=$(grep DBROOT mailcow.conf | cut -d= -f2)
+docker compose exec -T mysql-mailcow mysql -u root -p"$DBROOT" -e \
+  "USE mailcow; UPDATE admin SET password= "**********"='${ADMIN_USER}'; FLUSH PRIVILEGES;"
+
+echo "===================================================="
+echo "安装完成！后台地址: https://${DOMAIN}"
+echo "管理员账户: ${ADMIN_USER}"
+echo "管理员密码: ${ADMIN_PASS}"
+echo "===================================================="
+======================"

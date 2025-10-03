@@ -1,0 +1,32 @@
+#date: 2025-10-03T16:46:30Z
+#url: https://api.github.com/gists/6951f364982585fb0a785f49e568ed50
+#owner: https://api.github.com/users/Nachtalb
+
+#!/bin/bash
+# /etc/NetworkManager/dispatcher.d/99-toggle-bluetooth
+set -euo pipefail
+
+IFACE="$1"
+ACTION="$2"
+
+[[ "$ACTION" == "up" ]] || exit 0
+iw dev "$IFACE" info >/dev/null 2>&1 || exit 0
+
+SSID="$(iw dev "${IFACE}" link | awk -F': ' '/SSID/ {print $2}')"
+# echo "SSID: $SSID"
+# echo "IFACE: $IFACE" 
+# echo "ACTION: $ACTION" 
+
+case "$SSID" in
+    "Hidden Network")
+        if [[ -z "$(bluetoothctl devices Connected)" ]]; then
+            bluetoothctl power off
+            notify-send "Bluetooth turned off" -t 5000 --icon /usr/share/icons/BeautyLine/apps/scalable/bluetooth.svg
+        fi
+        ;;
+    "FDF-Strand")
+        bluetoothctl power on
+        notify-send "Bluetooth turned on" -t 5000 --icon /usr/share/icons/BeautyLine/apps/scalable/bluetooth.svg
+        ;;
+esac
+
