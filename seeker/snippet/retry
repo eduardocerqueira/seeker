@@ -1,0 +1,29 @@
+#date: 2025-10-15T16:55:49Z
+#url: https://api.github.com/gists/4dd38adaf046a3e03f46bd565fc5e0d7
+#owner: https://api.github.com/users/luckydye
+
+#!/bin/bash
+
+## https://unix.stackexchange.com/questions/82598/how-do-i-write-a-retry-logic-in-script-to-keep-retrying-to-run-it-upto-5-times#comment432686_82602
+
+function fail {
+  echo $1 >&2
+  exit 1
+}
+
+function retry {
+  local n=1
+  local max=5
+  local delay=15
+  while true; do
+    "$@" && break || {
+      if [[ $n -lt $max ]]; then
+        ((n++))
+        echo "Command failed. Attempt $n/$max:"
+        sleep $delay;
+      else
+        fail "The command has failed after $n attempts."
+      fi
+    }
+  done
+}
