@@ -1,207 +1,89 @@
-#date: 2025-10-17T16:56:30Z
-#url: https://api.github.com/gists/a1f5721a6f7900e4e14d9c076d51b776
-#owner: https://api.github.com/users/mypy-play
+#date: 2025-10-20T17:10:20Z
+#url: https://api.github.com/gists/a3be9d75ab0965ebada24308fdeb792e
+#owner: https://api.github.com/users/ustas-eth
 
-from ib111 import week_04  # noqa
+from transformers import AutoModel, AutoTokenizer
+from PIL import Image, ImageOps
+import torch
+import os
 
-# V této úloze budete pracovat s databázovou tabulkou. Tabulka je
-# dvojice složená z «hlavičky» a seznamu «záznamů». «Hlavička»
-# obsahuje seznam názvů sloupců. Jeden záznam je tvořen seznamem
-# hodnot pro jednotlivé sloupce tabulky (pro jednoduchost uvažujeme
-# jenom hodnoty typu řetězec). Ne všechny hodnoty v záznamech musí
-# být vyplněny – v tom případě mají hodnotu ‹None›.
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+model_name = "deepseek-ai/DeepSeek-OCR"
 
+# --- Load model/tokenizer (no flash attention) ---
+tokenizer = "**********"=True)
+model = AutoModel.from_pretrained(
+    model_name,
+    _attn_implementation="eager",
+    trust_remote_code=True,
+    use_safetensors=True,
+)
+# Cast on CPU first, then move to GPU (avoids fp32 staging on GPU)
+model = model.eval().to(torch.bfloat16).cuda()
 
-# Vaším úkolem bude nyní otypovat a implementovat následující
-# funkce. Funkce ‹get_header› vrátí hlavičku tabulky ‹table›.
-table_ = tuple[list[str | None], list[list[str | None]]]
-listt = list[str | None]
+# --- Force a higher temperature for infer() without editing the repo ---
+orig_generate = model.generate
+def _generate_with_temp(*args, **kwargs):
+    kwargs["do_sample"] = True          # enable sampling
+    kwargs["temperature"] = 0.2         # pick your value, e.g. 0.6–0.7
+    kwargs.setdefault("top_p", 0.95)    # optional but common
+    kwargs.pop("num_beams", None)       # ensure beam params don't conflict
+    return orig_generate(*args, **kwargs)
 
+model.generate = _generate_with_temp
 
-def get_header(table: table_) -> list[str]:
-    list_of_header = []
-    header, _ = table
-    for h in header:
-        list_of_header.append(h)
-    return list_of_header
+# --- Inputs ---
+img_a = "Untitled-2025-10-20-1610-small.png"
+img_b = "Untitled-2025-10-20-1610-small-2.png"
+output_path = "output"
+os.makedirs(output_path, exist_ok=True)
 
-# Funkce ‹get_records› vrátí seznam záznamů z tabulky ‹table›.
+# --- Make a single side-by-side image so infer() can accept it ---
+def open_exif_safe(path: str) -> Image.Image:
+    img = Image.open(path)
+    return ImageOps.exif_transpose(img).convert("RGB")
 
+A = open_exif_safe(img_a)
+B = open_exif_safe(img_b)
 
-def get_records(table: table_) -> list[list[str | None]]:
-    list_of_records = []
-    _, record = table
-    for r in record:
-        list_of_records.append(r)
-    return list_of_records
+# Normalize heights by padding the shorter one
+h = max(A.height, B.height)
+if A.height < h:
+    padded = Image.new("RGB", (A.width, h), (255, 255, 255))
+    padded.paste(A, (0, 0))
+    A = padded
+if B.height < h:
+    padded = Image.new("RGB", (B.width, h), (255, 255, 255))
+    padded.paste(B, (0, 0))
+    B = padded
 
+# Optional: small vertical divider
+divider_w = 8
+divider = Image.new("RGB", (divider_w, h), (255, 255, 255))
 
-# Procedura ‹add_record› přidá záznam ‹record› na konec tabulky
-# ‹table›. Můžete předpokládat, že záznam ‹record› bude mít stejný
-# počet sloupců jako tabulka.
+combined = Image.new("RGB", (A.width + divider_w + B.width, h), (255, 255, 255))
+combined.paste(A, (0, 0))
+combined.paste(divider, (A.width, 0))
+combined.paste(B, (A.width + divider_w, 0))
 
-def add_record(
-                record: listt, table: table_
-                ) -> list[list[str | None]]:
-    _, records = table
-    record_ = []
-    for r in record:
-        record_.append(r)
-    records.append(record_)
-    return records
+combined_path = os.path.join(output_path, "combined_side_by_side.png")
+combined.save(combined_path)
 
+# --- Ask the model about the two diagrams ---
+prompt = "<image>\nWhat's the difference between these two diagrams?"
+# NOTE: Left side is the first image; right side is the second.
 
-# Predikát ‹is_complete› je pravdivý, neobsahuje-li tabulka ‹table›
-# žádnou hodnotu ‹None›.
-
-def is_complete(table: table_) -> bool:
-    head, record = table
-    y_or_n = 0
-    for h in head:
-        if h is None:
-            y_or_n += 1
-    for r in record:
-        for r_ in r:
-            if r_ is None:
-                y_or_n += 1
-    return y_or_n == 0
-
-# Funkce ‹index_of_column› vrátí index sloupce se jménem ‹name›.
-# Můžete předpokládat, že sloupec s jménem ‹name› se v tabulce
-# nachází. První sloupec má index 0.
-
-
-def index_of_column(name: str | None, header: list[str | None]) -> int:
-    index_ = 0
-    for n in header:
-        if n != name:
-            index_ += 1
-        else:
-            break
-    return index_
-
-# Funkce ‹values› vrátí seznam platných hodnot (tzn. takových, které
-# nejsou ‹None›) v sloupci se jménem ‹name›. Můžete předpokládat, že
-# sloupec se jménem ‹name› se v tabulce nachází.
-
-
-def values(name: str, table: table_) -> list[str]:
-    head, record = table
-    index_h = 0
-    list_of_correct_values = []
-    for h in head:
-        if h != name:
-            index_h += 1
-        else:
-            break
-    for r in record:
-        index_r = 0
-        for r_ in r:
-            if index_h == index_r and r_ is not None:
-                list_of_correct_values.append(r_)
-            index_r += 1
-    return list_of_correct_values
-
-
-# Procedura ‹drop_column› smaže sloupec se jménem ‹name› z tabulky
-# ‹table›. Můžete předpokládat, že sloupec se jménem ‹name› se
-# v tabulce nachází.
-
-def drop_column(name: str, table: table_) -> table_:
-    head, record = table
-    cop_head = head.copy()
-    index_h = 0
-    index_head = 0
-    for _ in range(len(head)):
-        head.pop()
-    for h in cop_head:
-        if h != name:
-            head.append(h)
-            index_h += 1
-        else:
-            index_head = index_h
-    for r in record:
-        cop_r = r.copy()
-        for _ in range(len(r)):
-            r.pop()
-        index_r = 0
-        for r_ in cop_r:
-            if index_r != index_head:
-                r.append(r_)
-            index_r += 1
-    return _
-
-# Konečně otypujte následující dvě testovací funkce (jejich
-# implementaci neměňte, pouze přidejte typové anotace).
-
-
-def make_empty() -> tuple[list[str], list[None]]:
-    return ["A", "B", "C", "D"], []
-
-
-def make_table() -> table_:
-    return (["A", "B", "C"],
-            [["a1", "b1", None],
-             ["a2", "b2", "c2"],
-             ["a3", None, "c3"]])
-
-
-def main() -> None:
-
-    # header test
-    assert get_header(make_empty()) == ['A', 'B', 'C', 'D']
-    assert get_header(make_table()) == ['A', 'B', 'C']
-
-    # records test
-    assert get_records(make_empty()) == []
-    assert get_records(make_table()) == [["a1", "b1", None],
-                                         ["a2", "b2", "c2"],
-                                         ["a3", None, "c3"]]
-
-    # add_record test
-    tab_1 = make_empty()
-    add_record(["a", "b", "c", "d"], tab_1)
-    assert tab_1 == (['A', 'B', 'C', 'D'], [['a', 'b', 'c', 'd']])
-
-    tab_2 = make_table()
-    add_record(["a4", None, None], tab_2)
-    assert tab_2 == (['A', 'B', 'C'],
-                     [['a1', 'b1', None], ['a2', 'b2', 'c2'],
-                      ['a3', None, 'c3'], ['a4', None, None]])
-
-    # is_complete test
-    assert is_complete(make_empty())
-    assert not is_complete(make_table())
-    assert is_complete((["A", "B", "C"],
-                        [["a1", "b1", "c1"], ["a2", "b2", "c2"]]))
-
-    # index_of_column test
-    header = ['A', 'C', 'B']
-    assert index_of_column('A', header) == 0
-    assert index_of_column('C', header) == 1
-    assert index_of_column('B', header) == 2
-
-    tab_v = make_table()
-    assert values("A", tab_v) == ["a1", "a2", "a3"]
-    assert values("B", tab_v) == ["b1", "b2"]
-    assert values("C", tab_v) == ["c2", "c3"]
-    assert values("B", make_empty()) == []
-
-    # drop_column test
-    tab_3 = make_table()
-    drop_column("A", tab_3)
-    assert tab_3 == (['B', 'C'],
-                     [['b1', None], ['b2', 'c2'], [None, 'c3']])
-
-    tab_4 = make_table()
-    drop_column("B", tab_4)
-    assert tab_4 == (['A', 'C'],
-                     [['a1', None], ['a2', 'c2'], ['a3', 'c3']])
-
-    tab_5 = make_empty()
-    drop_column("D", tab_5)
-    assert tab_5 == (['A', 'B', 'C'], [])
-
-
-if __name__ == "__main__":
-    main()
+res = model.infer(
+    tokenizer,
+    prompt=prompt,
+    image_file=combined_path,   # single path (combined image)
+    output_path=output_path,
+    base_size=1024,
+    image_size=640,
+    crop_mode=True,
+    save_results=True,
+    test_compress=True,
+)
+  save_results=True,
+    test_compress=True,
+)
