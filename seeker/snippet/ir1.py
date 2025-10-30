@@ -19,5 +19,6 @@ print("After Stopword Removal: "**********"
 stemmer = PorterStemmer()
 stemmed_tokens = "**********"
 print("After Stemming: "**********"
-stemmed_tokens = [stemmer.stem(word) for word in filtered_tokens]
+stemmed_tokens = "**********"
+print("After Stemming: "**********"
 print("After Stemming:", stemmed_tokens)
