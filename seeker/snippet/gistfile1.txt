@@ -1,0 +1,105 @@
+#date: 2025-11-04T17:06:10Z
+#url: https://api.github.com/gists/2cc8aaf860792ed991aa952059521cdd
+#owner: https://api.github.com/users/Michael-Liendo
+
+#!/bin/bash
+set -e
+
+# ================================
+# 🔧 CONFIGURACIÓN
+# ================================
+# --- Datos de la base de datos en AWS RDS (origen)
+RDS_HOST=""
+RDS_PORT="5432"
+RDS_DB=""
+RDS_USER=""
+
+# --- Datos de la base de datos local (destino)
+LOCAL_HOST="localhost"
+LOCAL_PORT="5432"
+LOCAL_DB=""
+LOCAL_USER=""
+
+# --- Archivo temporal del dump
+BACKUP_FILE="rds_backup.dump"
+
+# ================================
+# 🧩 FUNCIONES AUXILIARES
+# ================================
+
+check_pg_tools() {
+  if ! command -v pg_dump &> /dev/null || ! command -v pg_restore &> /dev/null; then
+    echo "🔹 pg_dump o pg_restore no encontrados. Instalando..."
+    sudo apt update -y
+    sudo apt install -y postgresql-client
+    TOOLS_INSTALLED=true
+  else
+    echo "✅ Herramientas pg_dump y pg_restore ya instaladas."
+    TOOLS_INSTALLED=false
+  fi
+}
+
+cleanup_pg_tools() {
+  if [ "$TOOLS_INSTALLED" = true ]; then
+    echo "🧹 Eliminando herramientas de cliente PostgreSQL..."
+    sudo apt remove -y postgresql-client
+    sudo apt autoremove -y
+  fi
+}
+
+# ================================
+# 🚀 INICIO DE MIGRACIÓN
+# ================================
+
+echo "======================================="
+echo "🚀 Iniciando migración desde AWS RDS"
+echo "======================================="
+
+# 1️⃣ Verificar / instalar herramientas
+check_pg_tools
+
+# 2️⃣ Dump desde AWS RDS
+echo "🔹 Exportando base de datos desde AWS RDS ($RDS_DB)..."
+read -s -p "Contraseña del usuario RDS ($RDS_USER): " RDS_PASS
+echo
+export PGPASSWORD= "**********"
+
+pg_dump \
+  -h "$RDS_HOST" \
+  -p "$RDS_PORT" \
+  -U "$RDS_USER" \
+  -d "$RDS_DB" \
+  -Fc \
+  -f "$BACKUP_FILE"
+
+unset PGPASSWORD
+echo "✅ Dump generado: $BACKUP_FILE"
+
+# 3️⃣ Restaurar en base local
+echo "🔹 Restaurando en base local ($LOCAL_DB)..."
+read -s -p "Contraseña del usuario local ($LOCAL_USER): " LOCAL_PASS
+echo
+export PGPASSWORD= "**********"
+
+pg_restore \
+  -h "$LOCAL_HOST" \
+  -p "$LOCAL_PORT" \
+  -U "$LOCAL_USER" \
+  -d "$LOCAL_DB" \
+  --clean --if-exists --no-owner --no-privileges "$BACKUP_FILE"
+
+unset PGPASSWORD
+
+# 4️⃣ Limpieza
+echo "🧹 Eliminando archivo temporal..."
+rm -f "$BACKUP_FILE"
+
+cleanup_pg_tools
+
+echo
+echo "✅ Migración completada con éxito 🎉"
+echo "--------------------------------------"
+echo "Origen (RDS): $RDS_HOST / $RDS_DB"
+echo "Destino (local): $LOCAL_HOST / $LOCAL_DB"
+echo "Archivo dump eliminado: $BACKUP_FILE"
+echo "--------------------------------------"
