@@ -1,0 +1,331 @@
+#date: 2025-11-12T16:57:04Z
+#url: https://api.github.com/gists/ab91e2db68353254d5a6f9357ba588a7
+#owner: https://api.github.com/users/eugene-k-pluto
+
+#!/bin/bash
+
+# Test script for PRO-9746: Add Datadog pod labels
+# This script validates that pod labels are correctly added to deployments and statefulsets
+# in pluto-* namespaces, and that OpenTelemetry resource attributes are correctly set.
+
+# Don't exit on errors in test conditions - we handle them explicitly
+set +e
+set +u  # Allow unbound variables (for optional function parameters)
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Test counters
+TESTS_PASSED=0
+TESTS_FAILED=0
+
+# Helper function to print test results
+print_test() {
+    local test_name="$1"
+    local status="$2"
+    local message="$3"
+    
+    if [ "$status" = "PASS" ]; then
+        echo -e "${GREEN}✓${NC} $test_name"
+        ((TESTS_PASSED++))
+    else
+        echo -e "${RED}✗${NC} $test_name"
+        echo -e "  ${RED}Error:${NC} $message"
+        ((TESTS_FAILED++))
+    fi
+}
+
+# Helper function to check if a label exists in rendered YAML
+check_label_exists() {
+    local yaml="$1"
+    local label_key="$2"
+    local expected_value="$3"
+    
+    if echo "$yaml" | grep -q "$label_key:"; then
+        if [ -n "$expected_value" ]; then
+            if echo "$yaml" | grep -A 1 "$label_key:" | grep -q "$expected_value"; then
+                return 0
+            else
+                return 1
+            fi
+        else
+            return 0
+        fi
+    else
+        return 1
+    fi
+}
+
+# Helper function to check if a label does NOT exist
+check_label_not_exists() {
+    local yaml="$1"
+    local label_key="$2"
+    
+    if echo "$yaml" | grep -q "$label_key:"; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+# Setup test chart directory
+setup_test_chart() {
+    local test_chart_dir="/tmp/test-chart-pr-9746"
+    mkdir -p "$test_chart_dir/templates"
+    
+    # Create Chart.yaml
+    cat > "$test_chart_dir/Chart.yaml" <<EOF
+apiVersion: v2
+name: test-chart
+description: Test chart for validating library chart templates
+type: application
+version: 1.0.0
+appVersion: 1.0.0
+dependencies:
+  - name: common
+    version: "*"
+    repository: "file://$(pwd)"
+EOF
+    
+    # Create template that uses the library
+    cat > "$test_chart_dir/templates/test.yaml" <<EOF
+{{- include "common.all" . }}
+EOF
+    
+    # Update dependencies
+    (cd "$test_chart_dir" && helm dependency update > /dev/null 2>&1)
+    
+    echo "$test_chart_dir"
+}
+
+# Helper function to render helm template
+render_template() {
+    local namespace="$1"
+    local controller_type="${2:-deployment}"
+    local additional_values="${3:-}"
+    
+    # Setup test chart if not already done
+    if [ -z "$TEST_CHART_DIR" ]; then
+        TEST_CHART_DIR=$(setup_test_chart)
+    fi
+    
+    # Note: container.port is required for the templates to work
+    helm template test-release "$TEST_CHART_DIR" \
+        --namespace "$namespace" \
+        --set controllerType="$controller_type" \
+        --set image.repository=gcr.io/test \
+        --set image.tier=test-app \
+        --set image.tag=1.2.3 \
+        --set container.port.port=8080 \
+        --set container.port.name=http \
+        $additional_values 2>/dev/null
+}
+
+# Initialize test chart directory variable
+TEST_CHART_DIR=""
+
+# Cleanup function
+cleanup() {
+    if [ -n "$TEST_CHART_DIR" ] && [ -d "$TEST_CHART_DIR" ]; then
+        rm -rf "$TEST_CHART_DIR"
+    fi
+}
+trap cleanup EXIT
+
+echo "=========================================="
+echo "Testing PRO-9746: Datadog Pod Labels"
+echo "=========================================="
+echo ""
+
+# Test 1: Deployment in pluto-us-stage namespace should have Datadog labels
+echo "Test 1: Deployment in pluto-us-stage namespace"
+YAML=$(render_template "pluto-us-stage" "deployment")
+if check_label_exists "$YAML" "tags.datadoghq.com/service" && \
+   check_label_exists "$YAML" "tags.datadoghq.com/env" "stage" && \
+   check_label_exists "$YAML" "tags.datadoghq.com/version"; then
+    print_test "Deployment in pluto-us-stage has all Datadog labels" "PASS"
+else
+    print_test "Deployment in pluto-us-stage has all Datadog labels" "FAIL" "Missing expected labels"
+fi
+
+# Test 2: Deployment in pluto-us-test-www namespace should have env=test-www
+echo "Test 2: Deployment in pluto-us-test-www namespace"
+YAML=$(render_template "pluto-us-test-www" "deployment")
+if check_label_exists "$YAML" "tags.datadoghq.com/env" "test-www"; then
+    print_test "Deployment in pluto-us-test-www has env=test-www" "PASS"
+else
+    print_test "Deployment in pluto-us-test-www has env=test-www" "FAIL" "env label incorrect or missing"
+fi
+
+# Test 3: StatefulSet in pluto-us-stage namespace should have Datadog labels
+echo "Test 3: StatefulSet in pluto-us-stage namespace"
+YAML=$(render_template "pluto-us-stage" "statefulset")
+if check_label_exists "$YAML" "tags.datadoghq.com/service" && \
+   check_label_exists "$YAML" "tags.datadoghq.com/env" "stage" && \
+   check_label_exists "$YAML" "tags.datadoghq.com/version"; then
+    print_test "StatefulSet in pluto-us-stage has all Datadog labels" "PASS"
+else
+    print_test "StatefulSet in pluto-us-stage has all Datadog labels" "FAIL" "Missing expected labels"
+fi
+
+# Test 4: Deployment in non-pluto namespace should NOT have Datadog labels
+echo "Test 4: Deployment in non-pluto namespace"
+YAML=$(render_template "default" "deployment")
+if check_label_not_exists "$YAML" "tags.datadoghq.com/service" && \
+   check_label_not_exists "$YAML" "tags.datadoghq.com/env" && \
+   check_label_not_exists "$YAML" "tags.datadoghq.com/version"; then
+    print_test "Deployment in non-pluto namespace has no Datadog labels" "PASS"
+else
+    print_test "Deployment in non-pluto namespace has no Datadog labels" "FAIL" "Unexpected labels found"
+fi
+
+# Test 5: User-defined commonLabels should take precedence
+echo "Test 5: User-defined commonLabels precedence"
+# Setup test chart if not already done
+if [ -z "$TEST_CHART_DIR" ]; then
+    TEST_CHART_DIR=$(setup_test_chart)
+fi
+# Create a temporary values file because --set with dots creates nested structure
+# but we need flat keys for tags.datadoghq.com/service
+TEMP_VALUES=$(mktemp)
+cat > "$TEMP_VALUES" <<EOF
+commonLabels:
+  tags.datadoghq.com/service: custom-service
+  tags.datadoghq.com/env: custom-env
+EOF
+YAML=$(helm template test-release "$TEST_CHART_DIR" \
+    --namespace "pluto-us-stage" \
+    --set controllerType=deployment \
+    --set image.repository=gcr.io/test \
+    --set image.tier=test-app \
+    --set image.tag=1.2.3 \
+    --set container.port.port=8080 \
+    --set container.port.name=http \
+    -f "$TEMP_VALUES" 2>/dev/null)
+rm -f "$TEMP_VALUES"
+if check_label_exists "$YAML" "tags.datadoghq.com/service" "custom-service" && \
+   check_label_exists "$YAML" "tags.datadoghq.com/env" "custom-env"; then
+    print_test "User-defined commonLabels take precedence" "PASS"
+else
+    print_test "User-defined commonLabels take precedence" "FAIL" "User labels not applied correctly"
+fi
+
+# Test 6: Service name should be derived from Helm fullname
+echo "Test 6: Service name derivation"
+YAML=$(render_template "pluto-us-stage" "deployment" "--set Chart.Name=test-chart")
+SERVICE_NAME=$(echo "$YAML" | grep "tags.datadoghq.com/service:" | awk '{print $2}')
+if [ "$SERVICE_NAME" = "test-release-test-chart" ]; then
+    print_test "Service name derived from Helm fullname" "PASS"
+else
+    print_test "Service name derived from Helm fullname" "FAIL" "Expected 'test-release-test-chart', got '$SERVICE_NAME'"
+fi
+
+# Test 7: Version should be derived from image.tag or Chart.AppVersion
+echo "Test 7: Version tag derivation"
+YAML=$(render_template "pluto-us-stage" "deployment" "--set image.tag=2.0.0")
+if check_label_exists "$YAML" "tags.datadoghq.com/version" "2.0.0"; then
+    print_test "Version derived from image.tag" "PASS"
+else
+    print_test "Version derived from image.tag" "FAIL" "Version label incorrect"
+fi
+
+# Test 8: Version fallback when image.tag not set
+echo "Test 8: Version fallback when image.tag not set"
+# When image.tag is not set, it should use Chart.AppVersion or "unknown"
+YAML=$(render_template "pluto-us-stage" "deployment" "--set image.tag=")
+if check_label_exists "$YAML" "tags.datadoghq.com/version"; then
+    # Version should exist (either from Chart.AppVersion or "unknown")
+    VERSION_VALUE=$(echo "$YAML" | grep "tags.datadoghq.com/version:" | awk '{print $2}')
+    if [ -n "$VERSION_VALUE" ]; then
+        print_test "Version falls back when image.tag not set" "PASS"
+    else
+        print_test "Version falls back when image.tag not set" "FAIL" "Version label empty"
+    fi
+else
+    print_test "Version falls back when image.tag not set" "FAIL" "Version label missing"
+fi
+
+# Test 9: OpenTelemetry resource attributes with environment
+echo "Test 9: OpenTelemetry resource attributes with environment"
+YAML=$(render_template "pluto-us-stage" "deployment" \
+    "--set opentelemetry.enabled=true \
+     --set opentelemetry.metrics.enabled=true \
+     --set opentelemetry.metrics.port=4317 \
+     --set opentelemetry.metrics.path=/v1/metrics")
+OTEL_VALUE=$(echo "$YAML" | grep -A 1 "OTEL_RESOURCE_ATTRIBUTES" | grep "value:" | awk -F'"' '{print $2}')
+if [ -n "$OTEL_VALUE" ] && echo "$OTEL_VALUE" | grep -q "deployment.environment.name=stage"; then
+    print_test "OpenTelemetry includes deployment.environment.name" "PASS"
+else
+    print_test "OpenTelemetry includes deployment.environment.name" "FAIL" "Missing environment attribute"
+fi
+
+# Test 10: OpenTelemetry without environment (non-pluto namespace)
+echo "Test 10: OpenTelemetry without environment in non-pluto namespace"
+YAML=$(render_template "default" "deployment" \
+    "--set opentelemetry.enabled=true \
+     --set opentelemetry.metrics.enabled=true \
+     --set opentelemetry.metrics.port=4317 \
+     --set opentelemetry.metrics.path=/v1/metrics")
+OTEL_VALUE=$(echo "$YAML" | grep -A 1 "OTEL_RESOURCE_ATTRIBUTES" | grep "value:" | awk -F'"' '{print $2}')
+if [ -n "$OTEL_VALUE" ] && ! echo "$OTEL_VALUE" | grep -q "deployment.environment.name"; then
+    print_test "OpenTelemetry skips environment in non-pluto namespace" "PASS"
+else
+    print_test "OpenTelemetry skips environment in non-pluto namespace" "FAIL" "Unexpected environment attribute"
+fi
+
+# Test 11: OpenTelemetry resource attributes structure
+echo "Test 11: OpenTelemetry resource attributes structure"
+YAML=$(render_template "pluto-us-stage" "deployment" \
+    "--set opentelemetry.enabled=true \
+     --set opentelemetry.metrics.enabled=true \
+     --set opentelemetry.metrics.port=4317 \
+     --set opentelemetry.metrics.path=/v1/metrics \
+     --set image.tag=1.2.3")
+OTEL_ATTRS=$(echo "$YAML" | grep -A 1 "OTEL_RESOURCE_ATTRIBUTES" | grep "value:" | awk -F'"' '{print $2}')
+if [ -n "$OTEL_ATTRS" ] && \
+   echo "$OTEL_ATTRS" | grep -q "metric_protocol=otlp" && \
+   echo "$OTEL_ATTRS" | grep -q "service.name=" && \
+   echo "$OTEL_ATTRS" | grep -q "service.version=" && \
+   echo "$OTEL_ATTRS" | grep -q "deployment.environment.name=stage"; then
+    print_test "OpenTelemetry resource attributes structure is correct" "PASS"
+else
+    print_test "OpenTelemetry resource attributes structure is correct" "FAIL" "Missing or incorrect attributes"
+fi
+
+# Test 12: pluto-us namespace (no environment segment)
+echo "Test 12: pluto-us namespace (no environment segment)"
+YAML=$(render_template "pluto-us" "deployment")
+if check_label_exists "$YAML" "tags.datadoghq.com/env" "us"; then
+    print_test "pluto-us namespace extracts 'us' as environment" "PASS"
+else
+    print_test "pluto-us namespace extracts 'us' as environment" "FAIL" "Environment extraction incorrect"
+fi
+
+# Test 13: Helm lint passes
+echo "Test 13: Helm lint"
+if helm lint . > /dev/null 2>&1; then
+    print_test "Helm lint passes" "PASS"
+else
+    print_test "Helm lint passes" "FAIL" "Helm lint found errors"
+fi
+
+# Summary
+echo ""
+echo "=========================================="
+echo "Test Summary"
+echo "=========================================="
+echo -e "${GREEN}Passed:${NC} $TESTS_PASSED"
+echo -e "${RED}Failed:${NC} $TESTS_FAILED"
+echo ""
+
+if [ $TESTS_FAILED -eq 0 ]; then
+    echo -e "${GREEN}All tests passed! ✓${NC}"
+    exit 0
+else
+    echo -e "${RED}Some tests failed. Please review the output above.${NC}"
+    exit 1
+fi
+
