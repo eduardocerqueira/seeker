@@ -1,4 +1,69 @@
 --------------------------------------------------------------------------------
+ 2025-11-13 17:16:20.163803
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/backup.sh
+	deleted:    snippet/first_occurrence_indices.py
+	deleted:    snippet/make_qwen3-vl-30b-a3b-instruct-torchao.py
+	deleted:    snippet/zsh.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/__init__.py
+	snippet/_test.py
+	snippet/account_state_manager.py
+	snippet/api_server.py
+	snippet/base_strategy.py
+	snippet/config_manager.py
+	snippet/data_formatter.py
+	snippet/data_integrity_checker.py
+	snippet/data_integrity_service.py
+	snippet/data_puller.py
+	snippet/downtrend_strategy.py
+	snippet/env_check.py
+	snippet/func1.py
+	snippet/grpc_trade_client.py
+	snippet/insert.py
+	snippet/kline_builder.py
+	snippet/kline_builder_enhanced.py
+	snippet/kline_service.py
+	snippet/list_dar_dependencies.sh
+	snippet/macro_indicators.py
+	snippet/main.py
+	snippet/market_calendar.py
+	snippet/micro_indicators.py
+	snippet/monitor_service.py
+	snippet/mt5_connection_pool.py
+	snippet/mt5_data_service.py
+	snippet/mt5_error_handler.py
+	snippet/notarize.sh
+	snippet/order_executor.py
+	snippet/order_manager.py
+	snippet/ranging_strategy.py
+	snippet/redis_handler.py
+	snippet/risk_controller.py
+	snippet/script.py
+	snippet/setup-temporary-keychain.sh
+	snippet/sign.sh
+	snippet/signal_generator.py
+	snippet/simulate.py
+	snippet/start_all_backend.sh
+	snippet/start_backend.py
+	snippet/strategy_fsm.py
+	snippet/stringfog_decrypt.py
+	snippet/test1.py
+	snippet/trade_executor_service.py
+	snippet/unified_trade_executor.py
+	snippet/uptrend_strategy.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2025-11-12 17:16:05.914201
 --------------------------------------------------------------------------------
   On branch main
