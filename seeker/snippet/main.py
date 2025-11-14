@@ -1,47 +1,79 @@
-#date: 2025-11-13T17:00:15Z
-#url: https://api.github.com/gists/7e51e494b7eb9cb169d2f35f9d59c8e6
-#owner: https://api.github.com/users/mypy-play
+#date: 2025-11-14T16:51:15Z
+#url: https://api.github.com/gists/e27c3bee8c72bb16bbce11048b659672
+#owner: https://api.github.com/users/ryblogs
 
-from typing import Callable, Generic, Literal, Protocol, Type, overload
-from typing_extensions import ParamSpec
+import panel as pn
+import param
 
-P = ParamSpec('P')
-
-class Shape[**P](Protocol):
-    def __init__(self, *args: P.args, **kwargs: P.kwargs) -> None: ...
-    def area(self) -> float: ...
-    def perimeter(self) -> float: ...
-
-SHAPE_REGISTRY: dict[str, type[Shape]] = {}
-
-def register_shape(name: str, cls: type[Shape]) -> None:
-    SHAPE_REGISTRY[name] = cls
-
-@overload
-def create_shape(kind: Literal["circle"], *, radius: float) -> Circle: ...
-
-@overload
-def create_shape(kind: Literal["square"], *, side: float) -> Square: ...
-
-def create_shape(kind: str, *args: P.args, **kwargs: P.kwargs) -> Shape[P]:
-    cls: Type[Shape[P]] = SHAPE_REGISTRY[kind]
-    return cls(*args, **kwargs)
-    
-class Circle:
-    def __init__(self, radius: float):
-        self.radius = radius
-    def area(self) -> float: return 3.14 * self.radius ** 2
-    def perimeter(self) -> float: return 2 * 3.14 * self.radius
-
-class Square:
-    def __init__(self, side: float):
-        self.side = side
-    def area(self) -> float: return self.side ** 2
-    def perimeter(self) -> float: return 4 * self.side
+pn.extension()
 
 
-register_shape("circle", Circle)
-register_shape("square", Square)
+class Dashboard(param.Parameterized):
+    """Minimal reactive dashboard with status sidebar."""
 
-circle = create_shape("circle", radius=5.0)
-reveal_type(circle)  # note: Revealed type is "__main__.Circle"
+    # Parameters (these automatically become widgets)
+    name = param.String(default="World", doc="Enter your name")
+    count = param.Integer(default=0, bounds=(0, 100), doc="Select a count")
+    color = param.Selector(default="blue", objects=["red", "blue", "green"])
+
+    # Status tracking
+    last_action = param.String(default="Initialized")
+    total_updates = param.Integer(default=0)
+
+    @param.depends("name", "count", "color", watch=True)
+    def _update_status(self):
+        """Reactive callback that fires when any parameter changes."""
+        self.total_updates += 1
+        self.last_action = f"name={self.name}, count={self.count}, color={self.color}"
+
+    @param.depends("name", "count")
+    def main_view(self):
+        """Main content area - updates reactively."""
+        return pn.pane.Markdown(f"""
+        ## Hello, {self.name}! 🎉
+
+        Your count is: **{self.count}**
+
+        Current color: **{self.color}**
+
+        ---
+        *This updates automatically when parameters change!*
+        """)
+
+    @param.depends("last_action", "total_updates")
+    def status_sidebar(self):
+        """Status sidebar - updates reactively."""
+        last_action = self.last_action
+        total_updates = self.total_updates
+        return pn.Column(
+            pn.pane.Markdown("### 📊 Status"),
+            pn.pane.Markdown(f"**Updates:** {total_updates}"),
+            pn.pane.Markdown(f"**Last Action:**"),
+            pn.pane.Markdown(
+                f"```\n{last_action[:80]}...\n```"
+                if len(last_action) > 80
+                else f"```\n{last_action}\n```"
+            ),
+            styles={"background": "#f0f0f0", "padding": "10px", "border-radius": "5px"},
+        )
+
+    def view(self):
+        """Assemble the complete dashboard."""
+        return pn.template.FastListTemplate(
+            title="Reactive Dashboard MVP",
+            sidebar=[
+                pn.pane.Markdown("### ⚙️ Controls"),
+                self.param,  # Auto-generates widgets for all params
+                pn.layout.Divider(),
+                self.status_sidebar,  # Reactive status display
+            ],
+            main=[
+                self.main_view,  # Reactive main content
+            ],
+            accent="#3b82f6",
+        )
+
+
+# Create and serve
+dashboard = Dashboard()
+dashboard.view().servable()
