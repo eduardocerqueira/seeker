@@ -1,4 +1,85 @@
 --------------------------------------------------------------------------------
+ 2025-11-17 17:16:00.042517
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/AprioriAlgorithm.java
+	deleted:    snippet/DecisionTreeClassifier.java
+	deleted:    snippet/FPTreeAlgorithm.java
+	deleted:    snippet/KMeansClustering.java
+	deleted:    snippet/NaiveBayesClassifier.java
+	deleted:    snippet/__init__.py
+	deleted:    snippet/_test.py
+	deleted:    snippet/account_state_manager.py
+	deleted:    snippet/api_server.py
+	deleted:    snippet/app.py
+	deleted:    snippet/base_strategy.py
+	deleted:    snippet/config_manager.py
+	deleted:    snippet/data_formatter.py
+	deleted:    snippet/data_integrity_checker.py
+	deleted:    snippet/data_integrity_service.py
+	deleted:    snippet/data_puller.py
+	deleted:    snippet/downtrend_strategy.py
+	deleted:    snippet/env_check.py
+	deleted:    snippet/func1.py
+	deleted:    snippet/gistfile1.py
+	deleted:    snippet/grpc_trade_client.py
+	deleted:    snippet/implementTrie.java
+	deleted:    snippet/insert.py
+	deleted:    snippet/kline_builder.py
+	deleted:    snippet/kline_builder_enhanced.py
+	deleted:    snippet/kline_service.py
+	deleted:    snippet/list_dar_dependencies.sh
+	deleted:    snippet/macro_indicators.py
+	modified:   snippet/main.py
+	deleted:    snippet/market_calendar.py
+	deleted:    snippet/micro_indicators.py
+	deleted:    snippet/monitor_service.py
+	deleted:    snippet/mt5_connection_pool.py
+	deleted:    snippet/mt5_data_service.py
+	deleted:    snippet/mt5_error_handler.py
+	deleted:    snippet/notarize.sh
+	deleted:    snippet/order_executor.py
+	deleted:    snippet/order_manager.py
+	deleted:    snippet/ranging_strategy.py
+	deleted:    snippet/redis_handler.py
+	deleted:    snippet/risk_controller.py
+	deleted:    snippet/script.py
+	deleted:    snippet/setup-temporary-keychain.sh
+	deleted:    snippet/sign.sh
+	deleted:    snippet/signal_generator.py
+	deleted:    snippet/simulate.py
+	deleted:    snippet/solution.py
+	deleted:    snippet/sort.py
+	deleted:    snippet/start_all_backend.sh
+	deleted:    snippet/start_backend.py
+	deleted:    snippet/strategy_fsm.py
+	deleted:    snippet/stringfog_decrypt.py
+	deleted:    snippet/test1.py
+	deleted:    snippet/trade_executor_service.py
+	deleted:    snippet/unified_trade_executor.py
+	deleted:    snippet/uptrend_strategy.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	"snippet/LESSON_2\\HOMEWORK.PY"
+	snippet/TestCaseJavacNpeCrash.java
+	snippet/__basic_cache__.py
+	snippet/acript.py
+	snippet/add_vmadress.sh
+	snippet/agent.py
+	snippet/demo_model_fallback.py
+	snippet/firstrun.sh
+	snippet/luna-proxmox-installer.sh
+	snippet/postgres.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2025-11-14 17:14:48.365335
 --------------------------------------------------------------------------------
   On branch main
