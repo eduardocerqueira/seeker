@@ -1,0 +1,165 @@
+#date: 2025-11-18T16:56:27Z
+#url: https://api.github.com/gists/8df92c2bf3af5bd9cd6ca40d5bea81c4
+#owner: https://api.github.com/users/vergenzt
+
+#!/usr/bin/env python
+"""
+Manage databricks dashboards with dbt exposure metadata; sync changes up or down.
+"""
+
+from functools import cached_property, lru_cache
+import json
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from dataclasses import dataclass
+from enum import Enum
+from pathlib import Path
+import re
+from subprocess import CalledProcessError, check_output as sh
+from tkinter import W
+from typing import Callable, NamedTuple, Protocol, TypedDict
+
+from ruamel.yaml import YAML
+
+
+@dataclass
+class Args:
+    databricks_folder: str
+    action: "Actions"
+    target: "Targets"
+    exposure_name: str
+
+
+@dataclass
+class Action:
+    desc: str
+    exist_ok: bool
+    notexist_ok: bool
+
+
+class Actions(Action, Enum):
+    """action to perform (see options below)"""
+
+    diff = "See what changes need to be applied to the target without performing them.", True, True
+    upsert = "Create or update the resource in the target.", True, True
+    create = "Only create the resource in the target. Refuse to update if it already exists.", False, True
+    update = "Only update the resource in the target. Refuse to create if it does not exist.", True, False
+
+
+DashboardMeta = dict
+
+class LocalTarget:
+
+    @cached_property  # only parse once
+    def dbt_manifest(self) -> dict:
+        sh(["dbt", "parse", "--quiet"])
+        manifest = json.loads(Path("target/manifest.json").read_text())
+        assert Path(manifest["metadata"]["dbt_schema_version"]).stem == "v12"
+        return manifest
+
+    def get(self, args: Args) -> DashboardMeta:
+        # https://schemas.getdbt.com/dbt/manifest/v12/index.html#exposures_additionalProperties
+        exposure = next(
+            (node
+            for node in self.dbt_manifest["exposures"].values()
+            if args.exposure_name in (node["name"], node.get("label"))),
+            {}
+        )
+        return exposure.get("config", {}).get("meta", {}).get("databricks_dashboard")
+
+
+@dataclass
+class Target[V]:
+    desc: str
+    get: Callable[["Args"], DashboardMeta]
+    update: Callable[["Args", DashboardMeta], ...]
+    create: Callable[["Args", DashboardMeta], ...]
+
+
+class Targets(Target, Enum):
+    """target to modify (see options below)"""
+
+    remote = "the remote databricks dashboard", 
+    local = "the local dbt exposure yaml file"
+
+
+
+def parse_args() -> Args:
+    parser = ArgumentParser(formatter_class=RawDescriptionHelpFormatter)
+    parser.add_argument(
+        "--databricks-folder",
+        help="the databricks workspace folder path at which to find or modify the dashboard (default: /Users/<username>)",
+        metavar="/...",
+    )
+    parser.add_argument(
+        "action",
+        metavar="{action}",
+        type=Actions,
+        choices=Actions._member_names_,
+        help=Actions.__doc__,
+    )
+    parser.add_argument(
+        "target",
+        metavar="{target}",
+        type=Targets,
+        choices=Targets._member_names_,
+        help=Targets.__doc__,
+    )
+    parser.add_argument(
+        "exposure_name",
+        help="name or label of the dbt exposure, or name of the databricks dashboard",
+    )
+    parser.add_argument_group(
+        "{action} options", "\n".join(f"`{val.name}`: {val.value}" for val in Actions)
+    )
+    parser.add_argument_group(
+        "{target} options", "\n".join(f"`{val.name}`: {val.value}" for val in Targets)
+    )
+    args = Args(**parser.parse_args().__dict__)
+
+    args.databricks_folder = args.databricks_folder or (
+        "/Users/" + json.loads(sh(["databricks", "auth", "describe", "--output=json"]))["username"]
+    )
+
+    return args
+
+
+
+def main():
+    args = parse_args()
+
+    try:
+    except CalledProcessError as err:
+        if args.target.name == "remote" or args.action.name == "update":
+
+
+    match args.action.name, args.target.name:
+        case "upsert", "remote":
+
+    databricks_path = f"{databricks_folder}/{dbt_exposure["label"]}.lvdash.json"
+
+        case "diff", _:
+            pass 
+        case "upsert", "remote":
+
+
+
+    dashboard_datasets = [
+        {
+            "name": model["name"],
+            "displayName": model["name"],
+            "queryLines": [f"select * from {model['alias']}"],
+            "catalog": model["database"],
+            "schema": model["schema"],
+        }
+        for model in dbt_exposure_deps
+    ]
+
+dbt_exposure_path = Path(dbt_exposure["original_file_path"])
+dbt_exposure_file_yaml = YAML().load(dbt_exposure_path)
+
+dbt_exposure_inst = next(e for e in dbt_exposure_file_yaml["exposures"] if e["name"] == exp_name)
+dbt_databricks_dashboard_inst = (
+    dbt_exposure_inst.setdefault("config", {})
+    .setdefault("meta", {})
+    .setdefault("databricks_dashboard", {})
+)
