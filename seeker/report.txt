@@ -1,4 +1,34 @@
 --------------------------------------------------------------------------------
+ 2025-11-19 17:15:53.926716
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    "snippet/LESSON_2\\HOMEWORK.PY"
+	deleted:    snippet/TestCaseJavacNpeCrash.java
+	deleted:    snippet/__basic_cache__.py
+	deleted:    snippet/acript.py
+	deleted:    snippet/add_vmadress.sh
+	deleted:    snippet/agent.py
+	deleted:    snippet/demo_model_fallback.py
+	deleted:    snippet/firstrun.sh
+	deleted:    snippet/luna-proxmox-installer.sh
+	deleted:    snippet/postgres.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/PUH_v6_Muon_g2_Anomaly_Sim.py
+	snippet/PUH_v6_Muon_g2_Update_Pivot_Sim.py
+	snippet/fix-jetbrains-font.sh
+	snippet/hilbert_mapped_rgb.py
+	snippet/sync-local-to-remote.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2025-11-18 17:16:30.430326
 --------------------------------------------------------------------------------
   On branch main
