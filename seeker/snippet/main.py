@@ -1,57 +1,132 @@
-#date: 2025-11-21T16:44:16Z
-#url: https://api.github.com/gists/999abbc71c900d814712a0ea8a425eb6
+#date: 2025-11-24T17:04:49Z
+#url: https://api.github.com/gists/d4046bee1113d1293d76142d0830843a
 #owner: https://api.github.com/users/mypy-play
 
-from ib111 import week_09  # noqa
+from typing import Any, Callable, cast, reveal_type, Concatenate
 
 
-# V tomto příkladě budeme opět pracovat s aritmetickými výrazy. Tyto
-# mají následující strukturu:
-#
-#  • konstantu reprezentuje strom, který má oba podstromy prázdné,
-#  • složený výraz je reprezentován stromem, který má v kořenu
-#    uložen operátor (‹+› nebo ‹*›) a jeho neprázdné podstromy
-#    reprezentují operandy.
-#
-# Žádné jiné uzly ve stromě přítomny nebudou.
+# Example for https://github.com/python/cpython/pull/121693
 
-class Tree:
-    def __init__(self, value: str,
-                 left: 'Tree | None',
-                 right: 'Tree | None'):
-        self.value = value
-        self.left = left
-        self.right = right
+def copy_func_params[**Param, RV](
+    source_func: Callable[Param, Any]
+) -> Callable[[Callable[..., RV]], Callable[Param, RV]]:
+    """Cast the decorated function's call signature to the source_func's.
 
+    Use this decorator enhancing an upstream function while keeping its
+    call signature.
+    Returns the original function with the source_func's call signature.
 
-def leaf(value: str) -> Tree:
-    return Tree(value, None, None)
+    Usage::
 
+        from typing import copy_func_params, Any
 
-# Napište čistou funkci, která dostane jako parametr instanci výše
-# uvedeného stromu reprezentující nějaký aritmetický výraz, a vrátí
-# seznam řetězců, ve kterém je tento výraz zapsán v postfixové (rpn)
-# notaci. Každý prvek bude odpovídat právě jednomu uzlu vstupního
-# stromu.
+        def upstream_func(a: int, b: float, *, double: bool = False) -> float:
+            ...
 
-def to_rpn(tree: Tree | None) -> list[str]:
-    if tree.left is None and tree.right is None:
-        return [tree.value]
-    else:
-        return to_rpn(tree.left) + to_rpn(tree.right) + [tree.value]
+        @copy_func_params(upstream_func)
+        def enhanced(
+            a: int, b: float, *args: Any, double: bool = False, **kwargs: Any
+        ) -> str:
+            ...
 
+    .. note::
 
-def main() -> None:
-    t1 = leaf("5")
-    t2 = Tree("+", leaf("2"), leaf("4"))
-    t3 = Tree("*", t1, t2)
-    t4 = Tree("+", t3, leaf("0"))
+       Include ``*args`` and ``**kwargs`` in the signature of the decorated
+       function in order to avoid TypeErrors when the call signature of
+       *source_func* changes.
+    """
 
-    assert to_rpn(t1) == ["5"]
-    assert to_rpn(t2) == ["2", "4", "+"]
-    assert to_rpn(t3) == ["5", "2", "4", "+", "*"]
-    assert to_rpn(t4) == ["5", "2", "4", "+", "*", "0", "+"]
+    def return_func(func: Callable[..., RV]) -> Callable[Param, RV]:
+        return cast(Callable[Param, RV], func)
+
+    return return_func
+    
+    
 
 
-if __name__ == '__main__':
-    main()
+def upstream_func(a: int, b: float, *, double: bool = False) -> float:
+    return 1.0
+
+@copy_func_params(upstream_func)
+def enhanced(
+    *args: Any, double: bool = False, **kwargs: Any
+) -> str:
+    return ""
+    
+number: int
+
+
+# Expected two typing errors, on for the return type, one for a
+number = enhanced(a="1", b=True)
+
+
+def copy_method_params[**Param, Arg1, RV](
+    source_method: Callable[Concatenate[Any, Param], Any]
+) -> Callable[
+    [Callable[Concatenate[Arg1, ...], RV]],
+    Callable[Concatenate[Arg1, Param], RV]
+]:
+    """Cast the decorated method's call signature to the source_method's.
+
+    Same as :func:`copy_func_params` but intended to be used with methods.
+    It keeps the first argument (`self`/`cls`) of the decorated method.
+    """
+
+    def return_func(
+        func: Callable[Concatenate[Arg1, ...], RV]
+    ) -> Callable[Concatenate[Arg1, Param], RV]:
+        return cast(Callable[Concatenate[Arg1, Param], RV], func)
+
+    return return_func
+    
+class A:
+    def __init__(self, val: int) -> None:
+        self.val = val
+        
+class B(A): ...
+
+
+class Orig:
+    def method(self, a: int, b: float, *, double: bool = False) -> A:
+        return A(int(a*b))
+        
+
+class Composition:
+    def __init__(self):
+        self.orig = Orig()
+
+    @copy_method_params(Orig.method)
+    def method(self, a: int|str, b: float|str, **kwargs: Any) -> B:
+        result = self.orig.method(int(a), float(b), **kwargs).val
+        return B(result)
+        
+    # example why `copy_func_params` does not work for methods
+    # at least when using composition.
+    # for Inheritance this could work partly
+    @copy_func_params(Orig.method)
+    def fail(self, a: int|str, b: float|str, **kwargs: Any) -> B:
+        result = self.orig.method(int(a), float(b), **kwargs).val
+        return B(result)
+        
+    def example(self) -> tuple[B, B]:
+        # fail has wrong self argument
+        return self.method(1,1), self.fail(1,1)
+        
+
+reveal_type(Orig.method)
+reveal_type(Composition.method)
+# This shows the wrong type for self
+reveal_type(Composition.fail)
+reveal_type(Orig().method)
+reveal_type(Composition().method)
+# can't call fail because has wrong types
+reveal_type(Composition().fail)
+
+b: B
+
+# for first argument there should be a type error
+# but it should be possible to assign the value
+b = Composition().method("1", 2)
+
+# invalid self argument
+b = Composition().fail("1", 2)
