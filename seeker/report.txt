@@ -1,4 +1,24 @@
 --------------------------------------------------------------------------------
+ 2025-11-25 17:17:12.327962
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/appset-diff.sh
+	snippet/check-pr.sh
+	snippet/copy_manifest_with_blobs.py
+	snippet/curvature.py
+	snippet/docker-cleanup.sh
+	snippet/duckdb_client.py
+	snippet/provisioning.sh
+	snippet/runrecv.sh
+	snippet/runsend.sh
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+--------------------------------------------------------------------------------
  2025-11-24 17:16:34.535232
 --------------------------------------------------------------------------------
   On branch main
