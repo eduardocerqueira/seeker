@@ -1,4 +1,58 @@
 --------------------------------------------------------------------------------
+ 2025-11-26 17:15:35.513091
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/.zshrc
+	deleted:    snippet/benchmark-config-caching-detailed.sh
+	deleted:    snippet/check-affected-packages.sh
+	deleted:    snippet/create-next-js.sh
+	modified:   snippet/gistfile1.txt
+	deleted:    snippet/install-glibc-debug.sh
+	deleted:    snippet/installvpnmods.sh
+	deleted:    snippet/main.py
+	deleted:    snippet/script.sh
+	deleted:    snippet/somespeaker2.py
+	deleted:    snippet/terminal_commands.sh
+	deleted:    snippet/test_repos.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/(models)__init__.py
+	snippet/(wizard)__init__.py
+	snippet/__init__.py
+	snippet/__manifest__.py
+	snippet/addmovies.py
+	snippet/anthropic_oauth.py
+	snippet/app.py
+	snippet/base_import_extend.py
+	snippet/comp-script.py
+	snippet/dashboard.py
+	snippet/direct_import.py
+	snippet/import_history.py
+	snippet/import_schedule.py
+	snippet/logic.py
+	snippet/mandelbrot.py
+	snippet/mandelbrot_pure.py
+	snippet/miner_muloco.py
+	snippet/miner_sparseloco.py
+	snippet/model_3_dit.py
+	snippet/preprocessing.sh
+	snippet/product_supplierinfo.py
+	snippet/product_template.py
+	snippet/scan.sh
+	snippet/scroll_lock.py
+	snippet/scroll_lock_pyautogui.py
+	snippet/smart_import.py
+	snippet/supplier_mapping_template.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2025-11-25 17:17:12.327962
 --------------------------------------------------------------------------------
   On branch main

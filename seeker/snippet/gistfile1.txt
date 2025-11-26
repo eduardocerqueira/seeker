@@ -1,573 +1,477 @@
-#date: 2025-11-24T16:44:18Z
-#url: https://api.github.com/gists/6c406b250a68a1d67fe214c1aff7fcc4
-#owner: https://api.github.com/users/eaglerock1337
+#date: 2025-11-26T16:40:45Z
+#url: https://api.github.com/gists/3025f5ce93f74e53e1a36004f1761f6b
+#owner: https://api.github.com/users/DeathCoreDad86
 
 #!/bin/bash
 
-# Shai-Hulud 2.0 Vulnerability Checker
-# Scans macOS systems for compromised npm packages
-# Last updated: 2024-11-24
-# Source: HelixGuard - https://helixguard.ai/blog/malicious-sha1hulud-2025-11-24
+# ============================================
+# Hyprland Complete Desktop Setup Script
+# CachyOS Edition - AMD X3D + AMD GPU Optimized
+# With HyprPanel, HyprViz, and modern tools
+# ============================================
 
-set -euo pipefail
+set -e
 
-# Color codes for output
-RED='\033[0;31m'
-YELLOW='\033[1;33m'
-GREEN='\033[0;32m'
 BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# Logging functions
-log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+print_header() {
+    echo -e "${BLUE}========================================${NC}"
+    echo -e "${BLUE}$1${NC}"
+    echo -e "${BLUE}========================================${NC}"
 }
 
-log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
+print_success() {
+    echo -e "${GREEN}✓ $1${NC}"
 }
 
-log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+print_warning() {
+    echo -e "${YELLOW}⚠ $1${NC}"
 }
 
-log_success() {
-    echo -e "${GREEN}[OK]${NC} $1"
+print_error() {
+    echo -e "${RED}✗ $1${NC}"
 }
 
-# Script configuration
-RESULTS_FILE="${HOME}/shai-hulud-scan-$(date +%Y%m%d-%H%M%S).log"
-FOUND_VULNERABLE=0
-
-# Search paths (restricted to user's home directory for safety)
-SEARCH_PATHS=(
-    "${HOME}"
-)
-
-# Exclude paths to speed up search
-EXCLUDE_PATHS=(
-    "*/node_modules/*/node_modules/*"  # Skip nested node_modules
-    "*/.git/*"
-    "*/.npm/*"
-    "*/.cache/*"
-    "*/dist/*"
-    "*/build/*"
-    "*/.next/*"
-    "*/coverage/*"
-    "*/.venv/*"
-    "*/venv/*"
-    "/System/*"
-    "/Library/Apple/*"
-    "/Library/Application Support/*"
-    "/private/var/*"
-    "/dev/*"
-    "/proc/*"
-    "/Volumes/*"
-    "/cores/*"
-    "*.app/*"
-)
-
-# Embedded compromised packages database (November 24, 2024 attack)
-get_compromised_packages() {
-    cat <<'EOF'
-[
-  {"name":"@zapier/zapier-sdk","versions":["0.15.5","0.15.7"]},
-  {"name":"@posthog/core","versions":["1.5.6"]},
-  {"name":"posthog-node","versions":["5.11.3","5.13.3","4.18.1"]},
-  {"name":"@asyncapi/specs","versions":["6.10.1","6.8.2","6.9.1","6.8.3"]},
-  {"name":"@postman/tunnel-agent","versions":["0.6.6","0.6.5"]},
-  {"name":"posthog-react-native","versions":["4.12.5","4.11.1"]},
-  {"name":"@asyncapi/parser","versions":["3.4.1","3.4.2"]},
-  {"name":"@asyncapi/openapi-schema-parser","versions":["3.0.25"]},
-  {"name":"@asyncapi/avro-schema-parser","versions":["3.0.25","3.0.26"]},
-  {"name":"@asyncapi/protobuf-schema-parser","versions":["3.6.1","3.5.3"]},
-  {"name":"@asyncapi/react-component","versions":["2.6.6"]},
-  {"name":"@asyncapi/generator","versions":["2.8.5"]},
-  {"name":"@posthog/ai","versions":["7.1.2"]},
-  {"name":"@asyncapi/modelina","versions":["5.10.2","5.10.3"]},
-  {"name":"@asyncapi/generator-react-sdk","versions":["1.1.4","1.1.5"]},
-  {"name":"@postman/csv-parse","versions":["4.0.3","4.0.4","4.0.5"]},
-  {"name":"posthog-react-native-session-replay","versions":["1.2.2"]},
-  {"name":"@asyncapi/converter","versions":["1.6.3"]},
-  {"name":"@asyncapi/multi-parser","versions":["2.2.1","2.2.2"]},
-  {"name":"@posthog/cli","versions":["0.5.15"]},
-  {"name": "**********":["1.1.3","1.1.4","1.1.5"]},
-  {"name":"zapier-platform-schema","versions":["18.0.2"]},
-  {"name":"zapier-platform-core","versions":["18.0.2","18.0.3"]},
-  {"name":"@ensdomains/address-encoder","versions":["1.1.5"]},
-  {"name":"@ensdomains/content-hash","versions":["3.0.1"]},
-  {"name":"crypto-addr-codec","versions":["0.1.9"]},
-  {"name":"@asyncapi/nunjucks-filters","versions":["2.1.1","2.1.2"]},
-  {"name":"@asyncapi/bundler","versions":["0.6.5","0.6.6"]},
-  {"name":"@posthog/nextjs-config","versions":["1.5.1"]},
-  {"name":"@asyncapi/html-template","versions":["3.3.2","3.3.3"]},
-  {"name":"@asyncapi/diff","versions":["0.5.1","0.5.2"]},
-  {"name":"@asyncapi/cli","versions":["4.1.2"]},
-  {"name":"@asyncapi/optimizer","versions":["1.0.5","1.0.6"]},
-  {"name":"@asyncapi/modelina-cli","versions":["5.10.2","5.10.3"]},
-  {"name":"@postman/aether-icons","versions":["2.23.2","2.23.4"]},
-  {"name":"@asyncapi/generator-components","versions":["0.3.2"]},
-  {"name":"@asyncapi/generator-helpers","versions":["0.2.1","0.2.2"]},
-  {"name":"zapier-platform-cli","versions":["18.0.3"]},
-  {"name":"@posthog/rrweb","versions":["0.0.31"]},
-  {"name":"ethereum-ens","versions":["0.8.1"]},
-  {"name":"@posthog/rrweb-utils","versions":["0.0.31"]},
-  {"name":"@posthog/rrweb-snapshot","versions":["0.0.31"]},
-  {"name":"@posthog/rrdom","versions":["0.0.31"]},
-  {"name":"@asyncapi/problem","versions":["1.0.1","1.0.2"]},
-  {"name": "**********":["2.1.3","2.1.2","2.1.4"]},
-  {"name":"@ensdomains/eth-ens-namehash","versions":["2.0.16"]},
-  {"name":"posthog-docusaurus","versions":["2.0.6"]},
-  {"name":"@postman/pretty-ms","versions":["6.1.1","6.1.3","6.1.2"]},
-  {"name":"web-types-lit","versions":["0.1.1"]},
-  {"name":"mcp-use","versions":["1.4.2","1.4.3"]},
-  {"name":"@posthog/react-rrweb-player","versions":["1.1.4"]},
-  {"name":"@asyncapi/markdown-template","versions":["1.6.8","1.6.9"]},
-  {"name":"@ensdomains/buffer","versions":["0.1.2"]},
-  {"name":"@postman/node-keytar","versions":["7.9.4","7.9.5","7.9.6"]},
-  {"name":"@mcp-use/inspector","versions":["0.6.2","0.6.3"]},
-  {"name":"@mcp-use/cli","versions":["2.2.6"]},
-  {"name":"@zapier/spectral-api-ruleset","versions":["1.9.1","1.9.2","1.9.3"]},
-  {"name":"@posthog/geoip-plugin","versions":["0.0.8"]},
-  {"name":"@ensdomains/dnsprovejs","versions":["0.5.3"]},
-  {"name":"@ensdomains/solsha1","versions":["0.0.4"]},
-  {"name":"@asyncapi/web-component","versions":["2.6.6","2.6.7"]},
-  {"name":"@posthog/nuxt","versions":["1.2.9"]},
-  {"name":"@zapier/browserslist-config-zapier","versions":["1.0.3","1.0.5"]},
-  {"name":"@posthog/wizard","versions":["1.18.1"]},
-  {"name":"react-native-use-modal","versions":["1.0.3"]},
-  {"name":"@asyncapi/java-spring-template","versions":["1.6.1","1.6.2"]},
-  {"name":"@posthog/rrweb-record","versions":["0.0.31"]},
-  {"name":"@posthog/siphash","versions":["1.1.2"]},
-  {"name":"@posthog/piscina","versions":["3.2.1"]},
-  {"name":"@ensdomains/ens-validation","versions":["0.1.1"]},
-  {"name":"@posthog/plugin-contrib","versions":["0.0.6"]},
-  {"name":"@posthog/agent","versions":["1.24.1"]},
-  {"name":"@postman/postman-mcp-server","versions":["2.4.11","2.4.10"]},
-  {"name":"@asyncapi/nodejs-ws-template","versions":["0.10.1","0.10.2"]},
-  {"name":"@actbase/react-daum-postcode","versions":["1.0.5"]},
-  {"name": "**********":["0.7.32"]},
-  {"name":"@postman/pm-bin-windows-x64","versions":["1.24.5","1.24.4"]},
-  {"name":"@ensdomains/ens-avatar","versions":["1.0.4"]},
-  {"name":"@postman/pm-bin-linux-x64","versions":["1.24.3","1.24.4","1.24.5"]},
-  {"name":"@posthog/hedgehog-mode","versions":["0.0.42"]},
-  {"name":"create-mcp-use-app","versions":["0.5.3","0.5.4"]},
-  {"name":"@postman/pm-bin-macos-arm64","versions":["1.24.5","1.24.3","1.24.4"]},
-  {"name":"@posthog/nextjs","versions":["0.0.3"]},
-  {"name":"@postman/pm-bin-macos-x64","versions":["1.24.3","1.24.5"]},
-  {"name":"redux-router-kit","versions":["1.2.2","1.2.3","1.2.4"]},
-  {"name":"@ensdomains/dnssecoraclejs","versions":["0.2.9"]},
-  {"name":"@postman/mcp-ui-client","versions":["5.5.1","5.5.2"]},
-  {"name":"@postman/postman-mcp-cli","versions":["1.0.5","1.0.4"]},
-  {"name":"@zapier/babel-preset-zapier","versions":["6.4.1","6.4.3"]},
-  {"name":"@ensdomains/thorin","versions":["0.6.51"]},
-  {"name":"@postman/postman-collection-fork","versions":["4.3.3","4.3.4","4.3.5"]},
-  {"name":"@asyncapi/nodejs-template","versions":["3.0.5"]},
-  {"name":"@postman/wdio-allure-reporter","versions":["0.0.9"]},
-  {"name":"@postman/wdio-junit-reporter","versions":["0.0.4","0.0.6"]},
-  {"name":"@postman/final-node-keytar","versions":["7.9.1","7.9.2"]},
-  {"name":"zapier-async-storage","versions":["1.0.1","1.0.2","1.0.3"]},
-  {"name":"@ensdomains/test-utils","versions":["1.3.1"]},
-  {"name":"@ensdomains/hardhat-chai-matchers-viem","versions":["0.1.15"]},
-  {"name":"@asyncapi/java-spring-cloud-stream-template","versions":["0.13.5","0.13.6"]},
-  {"name":"@zapier/eslint-plugin-zapier","versions":["11.0.3","11.0.4","11.0.5"]},
-  {"name":"devstart-cli","versions":["1.0.6"]},
-  {"name":"@asyncapi/java-template","versions":["0.3.5","0.3.6"]},
-  {"name":"@asyncapi/go-watermill-template","versions":["0.2.76","0.2.77"]},
-  {"name":"@asyncapi/python-paho-template","versions":["0.2.14","0.2.15"]},
-  {"name":"zapier-platform-legacy-scripting-runner","versions":["4.0.3","4.0.4"]},
-  {"name":"@ensdomains/hardhat-toolbox-viem-extended","versions":["0.0.6"]},
-  {"name":"@ensdomains/vite-plugin-i18next-loader","versions":["4.0.4"]},
-  {"name":"@asyncapi/server-api","versions":["0.16.25"]},
-  {"name":"@ensdomains/offchain-resolver-contracts","versions":["0.2.2"]},
-  {"name":"@zapier/ai-actions","versions":["0.1.18","0.1.19","0.1.20"]},
-  {"name":"@zapier/mcp-integration","versions":["3.0.1","3.0.3"]},
-  {"name":"@ensdomains/ens-archived-contracts","versions":["0.0.3"]},
-  {"name":"@ensdomains/dnssec-oracle-anchors","versions":["0.0.2"]},
-  {"name":"@ensdomains/mock","versions":["2.1.52"]},
-  {"name":"zapier-scripts","versions":["7.8.3","7.8.4"]},
-  {"name":"@quick-start-soft/quick-task-refine","versions":["1.4.2511142126"]},
-  {"name":"@zapier/ai-actions-react","versions":["0.1.13","0.1.14"]},
-  {"name":"@quick-start-soft/quick-git-clean-markdown","versions":["1.4.2511142126"]},
-  {"name":"@ensdomains/ui","versions":["3.4.6"]},
-  {"name":"@quick-start-soft/quick-markdown","versions":["1.4.2511142126"]},
-  {"name":"@zapier/stubtree","versions":["0.1.3"]},
-  {"name":"@ensdomains/unruggable-gateways","versions":["0.0.3"]},
-  {"name":"@asyncapi/dotnet-rabbitmq-template","versions":["1.0.1","1.0.2"]},
-  {"name":"@ensdomains/react-ens-address","versions":["0.0.32"]},
-  {"name":"@asyncapi/php-template","versions":["0.1.1"]},
-  {"name":"@quick-start-soft/quick-document-translator","versions":["1.4.2511142126"]},
-  {"name":"@quick-start-soft/quick-markdown-image","versions":["1.4.2511142126"]},
-  {"name":"@strapbuild/react-native-date-time-picker","versions":["2.0.4"]},
-  {"name":"github-action-for-generator","versions":["2.1.28"]},
-  {"name":"@actbase/react-kakaosdk","versions":["0.9.27"]},
-  {"name":"bytecode-checker-cli","versions":["1.0.8","1.0.9","1.0.10"]},
-  {"name":"@markvivanco/app-version-checker","versions":["1.0.1","1.0.2"]},
-  {"name":"@louisle2/cortex-js","versions":["0.1.6"]},
-  {"name":"orbit-boxicons","versions":["2.1.3"]},
-  {"name":"react-native-worklet-functions","versions":["3.3.3"]},
-  {"name":"poper-react-sdk","versions":["0.1.2"]},
-  {"name":"@ensdomains/web3modal","versions":["1.10.2"]},
-  {"name":"gate-evm-tools-test","versions":["1.0.5","1.0.6","1.0.7"]},
-  {"name":"n8n-nodes-tmdb","versions":["0.5.1"]},
-  {"name":"capacitor-plugin-purchase","versions":["0.1.1"]},
-  {"name":"expo-audio-session","versions":["0.2.1"]},
-  {"name":"capacitor-plugin-apptrackingios","versions":["0.0.21"]},
-  {"name":"asyncapi-preview","versions":["1.0.1","1.0.2"]},
-  {"name":"@actbase/react-absolute","versions":["0.8.3"]},
-  {"name":"@actbase/react-native-devtools","versions":["0.1.3"]},
-  {"name":"@posthog/variance-plugin","versions":["0.0.8"]},
-  {"name":"@posthog/twitter-followers-plugin","versions":["0.0.8"]},
-  {"name":"medusa-plugin-momo","versions":["0.0.68"]},
-  {"name":"scgs-capacitor-subscribe","versions":["1.0.11"]},
-  {"name":"gate-evm-check-code2","versions":["2.0.3","2.0.4","2.0.5"]},
-  {"name":"lite-serper-mcp-server","versions":["0.2.2"]},
-  {"name":"@asyncapi/edavisualiser","versions":["1.2.1","1.2.2"]},
-  {"name":"esbuild-plugin-eta","versions":["0.1.1"]},
-  {"name":"@ensdomains/server-analytics","versions":["0.0.2"]},
-  {"name":"zuper-stream","versions":["2.0.9"]},
-  {"name":"@quick-start-soft/quick-markdown-compose","versions":["1.4.2506300029"]},
-  {"name":"@posthog/snowflake-export-plugin","versions":["0.0.8"]},
-  {"name":"@actbase/react-native-kakao-channel","versions":["1.0.2"]},
-  {"name":"@posthog/sendgrid-plugin","versions":["0.0.8"]},
-  {"name":"evm-checkcode-cli","versions":["1.0.12","1.0.13","1.0.14"]},
-  {"name":"@ensdomains/subdomain-registrar","versions":["0.2.4"]},
-  {"name": "**********":["1.0.3"]},
-  {"name":"@trigo/atrix-pubsub","versions":["4.0.3"]},
-  {"name":"@trigo/hapi-auth-signedlink","versions":["1.3.1"]},
-  {"name":"@strapbuild/react-native-perspective-image-cropper-poojan31","versions":["0.4.6"]},
-  {"name":"axios-builder","versions":["1.2.1"]},
-  {"name":"calc-loan-interest","versions":["1.0.4"]},
-  {"name":"medusa-plugin-announcement","versions":["0.0.3"]},
-  {"name":"open2internet","versions":["0.1.1"]},
-  {"name":"@ensdomains/cypress-metamask","versions":["1.2.1"]},
-  {"name":"@ensdomains/renewal","versions":["0.0.13"]},
-  {"name":"cpu-instructions","versions":["0.0.14"]},
-  {"name":"orbit-soap","versions":["0.43.13"]},
-  {"name":"@asyncapi/keeper","versions":["0.0.2","0.0.3"]},
-  {"name":"@strapbuild/react-native-perspective-image-cropper-2","versions":["0.4.7"]},
-  {"name":"@actbase/react-native-actionsheet","versions":["1.0.3"]},
-  {"name":"@posthog/ingestion-alert-plugin","versions":["0.0.8"]},
-  {"name":"@actbase/react-native-simple-video","versions":["1.0.13"]},
-  {"name":"@actbase/react-native-kakao-navi","versions":["2.0.4"]},
-  {"name":"medusa-plugin-zalopay","versions":["0.0.40"]},
-  {"name":"@kvytech/medusa-plugin-newsletter","versions":["0.0.5"]},
-  {"name":"@posthog/databricks-plugin","versions":["0.0.8"]},
-  {"name":"capacitor-voice-recorder-wav","versions":["6.0.3"]},
-  {"name":"create-hardhat3-app","versions":["1.1.1","1.1.2"]},
-  {"name":"rollup-plugin-httpfile","versions":["0.2.1"]},
-  {"name":"@ensdomains/name-wrapper","versions":["1.0.1"]},
-  {"name":"test-foundry-app","versions":["1.0.3"]},
-  {"name":"jan-browser","versions":["0.13.1"]},
-  {"name":"@mparpaillon/page","versions":["1.0.1"]},
-  {"name":"go-template","versions":["0.1.8"]},
-  {"name":"@strapbuild/react-native-perspective-image-cropper","versions":["0.4.15"]},
-  {"name":"manual-billing-system-miniapp-api","versions":["1.3.1"]},
-  {"name":"korea-administrative-area-geo-json-util","versions":["1.0.7"]},
-  {"name":"@posthog/currency-normalization-plugin","versions":["0.0.8"]},
-  {"name":"@posthog/web-dev-server","versions":["1.0.5"]},
-  {"name":"@posthog/pagerduty-plugin","versions":["0.0.8"]},
-  {"name":"@posthog/event-sequence-timer-plugin","versions":["0.0.8"]},
-  {"name":"@posthog/automatic-cohorts-plugin","versions":["0.0.8"]},
-  {"name":"@posthog/first-time-event-tracker","versions":["0.0.8"]},
-  {"name":"@actbase/css-to-react-native-transform","versions":["1.0.3"]},
-  {"name":"@posthog/url-normalizer-plugin","versions":["0.0.8"]},
-  {"name":"@posthog/twilio-plugin","versions":["0.0.8"]},
-  {"name":"@actbase/node-server","versions":["1.1.19"]},
-  {"name":"@posthog/gitub-star-sync-plugin","versions":["0.0.8"]},
-  {"name":"@seung-ju/react-native-action-sheet","versions":["0.2.1"]},
-  {"name":"@posthog/maxmind-plugin","versions":["0.1.6"]},
-  {"name":"@posthog/github-release-tracking-plugin","versions":["0.0.8"]},
-  {"name":"@actbase/react-native-fast-image","versions":["8.5.13"]},
-  {"name":"@posthog/customerio-plugin","versions":["0.0.8"]},
-  {"name":"@posthog/kinesis-plugin","versions":["0.0.8"]},
-  {"name":"@actbase/react-native-less-transformer","versions":["1.0.6"]},
-  {"name":"@posthog/taxonomy-plugin","versions":["0.0.8"]},
-  {"name":"medusa-plugin-product-reviews-kvy","versions":["0.0.4"]},
-  {"name":"@aryanhussain/my-angular-lib","versions":["0.0.23"]},
-  {"name":"dotnet-template","versions":["0.0.4"]},
-  {"name":"capacitor-plugin-scgssigninwithgoogle","versions":["0.0.5"]},
-  {"name":"capacitor-purchase-history","versions":["0.0.10"]},
-  {"name":"@posthog/plugin-unduplicates","versions":["0.0.8"]},
-  {"name":"posthog-plugin-hello-world","versions":["1.0.1"]},
-  {"name":"esbuild-plugin-httpfile","versions":["0.4.1"]},
-  {"name":"@ensdomains/blacklist","versions":["1.0.1"]},
-  {"name":"@ensdomains/renewal-widget","versions":["0.1.10"]},
-  {"name":"@ensdomains/hackathon-registrar","versions":["1.0.5"]},
-  {"name":"@ensdomains/ccip-read-router","versions":["0.0.7"]},
-  {"name":"@mcp-use/mcp-use","versions":["1.0.1"]},
-  {"name":"test-hardhat-app","versions":["1.0.3"]},
-  {"name":"zuper-cli","versions":["1.0.1"]},
-  {"name":"skills-use","versions":["0.1.2"]},
-  {"name":"typeorm-orbit","versions":["0.2.27"]},
-  {"name":"orbit-nebula-editor","versions":["1.0.2"]},
-  {"name":"@trigo/atrix-elasticsearch","versions":["2.0.1"]},
-  {"name":"@trigo/atrix-soap","versions":["1.0.2"]},
-  {"name":"eslint-config-zeallat-base","versions":["1.0.4"]},
-  {"name":"iron-shield-miniapp","versions":["0.0.2"]},
-  {"name":"shinhan-limit-scrap","versions":["1.0.3"]},
-  {"name":"create-glee-app","versions":["0.2.3"]},
-  {"name":"@actbase/react-native-tiktok","versions":["1.1.3"]},
-  {"name":"discord-bot-server","versions":["0.1.2"]},
-  {"name":"@seung-ju/next","versions":["0.0.2"]},
-  {"name":"@seung-ju/openapi-generator","versions":["0.0.4"]},
-  {"name":"@seung-ju/react-hooks","versions":["0.0.2"]},
-  {"name":"@actbase/react-native-naver-login","versions":["1.0.1"]},
-  {"name":"@kvytech/components","versions":["0.0.2"]},
-  {"name":"@kvytech/cli","versions":["0.0.7"]},
-  {"name":"@kvytech/medusa-plugin-management","versions":["0.0.5"]},
-  {"name":"@kvytech/medusa-plugin-product-reviews","versions":["0.0.9"]},
-  {"name":"@kvytech/web","versions":["0.0.2"]},
-  {"name":"scgsffcreator","versions":["1.0.5"]},
-  {"name":"vite-plugin-httpfile","versions":["0.2.1"]},
-  {"name":"@ensdomains/curvearithmetics","versions":["1.0.1"]},
-  {"name":"@ensdomains/reverse-records","versions":["1.0.1"]},
-  {"name":"@ensdomains/ccip-read-dns-gateway","versions":["0.1.1"]},
-  {"name":"@ensdomains/unicode-confusables","versions":["0.1.1"]},
-  {"name":"@ensdomains/durin-middleware","versions":["0.0.2"]},
-  {"name":"@ensdomains/ccip-read-worker-viem","versions":["0.0.4"]},
-  {"name":"atrix","versions":["1.0.1"]},
-  {"name":"@kvytech/medusa-plugin-announcement","versions":["0.0.8"]},
-  {"name":"@caretive/caret-cli","versions":["0.0.2"]},
-  {"name":"exact-ticker","versions":["0.3.5"]},
-  {"name":"@orbitgtbelgium/orbit-components","versions":["1.2.9"]},
-  {"name":"react-library-setup","versions":["0.0.6"]},
-  {"name":"@orbitgtbelgium/mapbox-gl-draw-scale-rotate-mode","versions":["1.1.1"]},
-  {"name":"orbit-nebula-draw-tools","versions":["1.0.10"]},
-  {"name":"@orbitgtbelgium/time-slider","versions":["1.0.187"]},
-  {"name":"react-element-prompt-inspector","versions":["0.1.18"]},
-  {"name":"@trigo/pathfinder-ui-css","versions":["0.1.1"]},
-  {"name":"eslint-config-trigo","versions":["22.0.2"]},
-  {"name":"@trigo/fsm","versions":["3.4.2"]},
-  {"name":"@trigo/atrix","versions":["7.0.1"]},
-  {"name":"@trigo/atrix-postgres","versions":["1.0.3"]},
-  {"name":"trigo-react-app","versions":["4.1.2"]},
-  {"name":"@trigo/eslint-config-trigo","versions":["3.3.1"]},
-  {"name":"@trigo/bool-expressions","versions":["4.1.3"]},
-  {"name":"@trigo/trigo-hapijs","versions":["5.0.1"]},
-  {"name":"@trigo/node-soap","versions":["0.5.4"]},
-  {"name":"@trigo/jsdt","versions":["0.2.1"]},
-  {"name":"bool-expressions","versions":["0.1.2"]},
-  {"name":"@trigo/atrix-redis","versions":["1.0.2"]},
-  {"name":"@trigo/atrix-acl","versions":["4.0.2"]},
-  {"name":"@trigo/atrix-orientdb","versions":["1.0.2"]},
-  {"name":"@trigo/atrix-mongoose","versions":["1.0.2"]},
-  {"name":"atrix-mongoose","versions":["1.0.1"]},
-  {"name":"redux-forge","versions":["2.5.3"]},
-  {"name":"@trigo/keycloak-api","versions":["1.3.1"]},
-  {"name":"@mparpaillon/connector-parse","versions":["1.0.1"]},
-  {"name":"@mparpaillon/imagesloaded","versions":["4.1.2"]},
-  {"name":"@posthog/rrweb-player","versions":["0.0.31"]},
-  {"name":"@alaan/s2s-auth","versions":["2.0.3"]}
-]
-EOF
+print_info() {
+    echo -e "${BLUE}→ $1${NC}"
 }
 
-echo "=============================================="
-echo "  Shai-Hulud 2.0 Vulnerability Scanner"
-echo "  Checking for compromised npm packages"
-echo "=============================================="
-echo ""
-echo "Scan started at: $(date)"
-echo "Results will be saved to: ${RESULTS_FILE}"
-echo ""
-
-# Initialize results file with header
-{
-    echo "=============================================="
-    echo "  Shai-Hulud 2.0 Vulnerability Scan Results"
-    echo "=============================================="
-    echo ""
-    echo "Scan started: $(date)"
-    echo "Hostname: $(hostname)"
-    echo "User: $(whoami)"
-    echo ""
-    echo "=============================================="
-    echo ""
-} > "${RESULTS_FILE}"
-
-# Check for jq
-if ! command -v jq &> /dev/null; then
-    log_warn "jq is not installed. Installing via Homebrew..."
-    if command -v brew &> /dev/null; then
-        brew install jq
-    else
-        log_error "jq is required but not installed. Please install it manually:"
-        log_error "  brew install jq"
-        exit 1
-    fi
+# Check if running on CachyOS
+if ! grep -q "CachyOS" /etc/os-release 2>/dev/null; then
+    print_warning "This script is optimized for CachyOS but will work on Arch-based distros"
 fi
 
-# Store compromised packages in memory
-COMPROMISED_PACKAGES_DATA=$(get_compromised_packages)
-PACKAGE_COUNT=$(echo "${COMPROMISED_PACKAGES_DATA}" | jq 'length')
-
-log_info "Loaded ${PACKAGE_COUNT} compromised packages from database"
-
-# Build a simple newline-delimited list for grep lookups
-VULN_PACKAGES_LIST=$(echo "${COMPROMISED_PACKAGES_DATA}" | jq -r '.[] | .name as $name | .versions[] | "\($name)@\(.)"')
-VULN_COUNT=$(echo "${VULN_PACKAGES_LIST}" | wc -l | tr -d ' ')
-
-log_info "Built lookup list with ${VULN_COUNT} vulnerable package@version combinations"
+print_header "Hyprland Desktop Setup - CachyOS Gaming Edition v2"
 echo ""
+echo "New features in this version:"
+echo "  • HyprPanel (modern status bar)"
+echo "  • HyprViz (GUI configuration tool)"
+echo "  • Hyprlock + Hypridle (screen locking)"
+echo "  • Starship prompt"
+echo "  • Zen Browser"
+echo "  • DCLI (Discord CLI)"
+echo ""
+read -p "Continue? (y/n) " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    print_info "Installation cancelled."
+    exit 0
+fi
 
-# Function to check if a package version is vulnerable
-is_version_vulnerable() {
-    local package_name="$1"
-    local installed_version="$2"
+# ============================================
+# 1. INSTALL PACKAGES
+# ============================================
 
-    # Query the embedded JSON data for this package
-    local vulnerable_versions=$(echo "${COMPROMISED_PACKAGES_DATA}" | jq -r ".[] | select(.name == \"${package_name}\") | .versions[]?" 2>/dev/null)
+print_header "Installing Packages"
 
-    if [[ -z "${vulnerable_versions}" ]]; then
-        return 1  # Package not in compromised list
+# Core packages
+PACMAN_PACKAGES=(
+    rofi
+    wlogout
+    polkit-gnome
+    wl-clipboard
+    grim
+    slurp
+    brightnessctl
+    playerctl
+    pavucontrol
+    blueman
+    network-manager-applet
+    dolphin
+    ghostty
+    nwg-look
+    qt5ct
+    qt6ct
+    xdg-desktop-portal-hyprland
+    xdg-desktop-portal-gtk
+    hyprpaper
+    wdisplays
+    baobab
+    gnome-logs
+    neovim
+    discord
+    steam
+    gamemode
+    lib32-gamemode
+    mangohud
+    lib32-mangohud
+    goverlay
+    protonup-qt
+    wine-staging
+    winetricks
+    dxvk
+    vkd3d
+    lib32-vkd3d
+    starship
+    git
+    base-devel
+    python
+    python-pip
+)
+
+# CachyOS specific packages
+CACHYOS_PACKAGES=(
+    cachyos-hello
+    cachyos-kernel-manager
+    octopi
+    hyprland
+)
+
+# AUR packages
+AUR_PACKAGES=(
+    nwg-dock-hyprland
+    grimblast-git
+    cliphist
+    swaync
+    hyprlock
+    hypridle
+    heroic-games-launcher-bin
+    zen-browser-bin
+    hyprpanel-git
+)
+
+print_info "Updating system..."
+sudo pacman -Syu --noconfirm
+
+print_info "Installing core packages..."
+for pkg in "${PACMAN_PACKAGES[@]}"; do
+    if pacman -Qi "$pkg" &> /dev/null; then
+        print_success "$pkg already installed"
+    else
+        print_info "Installing $pkg..."
+        sudo pacman -S --noconfirm "$pkg" 2>/dev/null || print_warning "Failed to install $pkg (may not be available)"
     fi
-
-    # Check if installed version matches any vulnerable version
-    while IFS= read -r vuln_ver; do
-        if [[ "${installed_version}" == "${vuln_ver}" ]]; then
-            return 0  # Specific version match - vulnerable!
-        fi
-    done <<< "${vulnerable_versions}"
-
-    return 1  # Not vulnerable
-}
-
-# Function to scan a node_modules directory (optimized)
-scan_node_modules() {
-    local node_modules_path="$1"
-    local project_root=$(dirname "${node_modules_path}")
-
-    # Find all package.json files in this node_modules (only direct children, not nested)
-    # This is MUCH faster than checking each of 348 packages individually
-    while IFS= read -r package_json; do
-        if [[ -f "${package_json}" ]]; then
-            local package_path=$(dirname "${package_json}")
-
-            # Extract name and version in one jq call
-            local pkg_info=$(jq -r '"\(.name)@\(.version)"' "${package_json}" 2>/dev/null)
-
-            # Check if this package@version combo is in our vulnerable list using grep
-            if echo "${VULN_PACKAGES_LIST}" | grep -Fxq "${pkg_info}"; then
-                FOUND_VULNERABLE=$((FOUND_VULNERABLE + 1))
-                local package_name=$(echo "${pkg_info}" | cut -d'@' -f1)
-                local installed_version=$(echo "${pkg_info}" | cut -d'@' -f2-)
-
-                log_error "VULNERABLE PACKAGE FOUND!"
-                echo "  Package: ${pkg_info}"
-                echo "  Location: ${package_path}"
-                echo "  Project: ${project_root}"
-                echo ""
-
-                # Log to results file
-                {
-                    echo "VULNERABLE: ${pkg_info}"
-                    echo "  Path: ${package_path}"
-                    echo "  Project: ${project_root}"
-                    echo ""
-                } >> "${RESULTS_FILE}"
-            fi
-        fi
-    done < <(find "${node_modules_path}" -maxdepth 2 -name "package.json" -path "*/node_modules/*/*" 2>/dev/null)
-}
-
-# Find all node_modules directories
-log_info "Searching for node_modules directories..."
-log_info "This may take several minutes depending on your system..."
-echo ""
-
-# Build exclude arguments for find
-EXCLUDE_ARGS=()
-for exclude_path in "${EXCLUDE_PATHS[@]}"; do
-    EXCLUDE_ARGS+=(-path "${exclude_path}" -prune -o)
 done
 
-# Find node_modules directories
-NODE_MODULES_DIRS=()
-while IFS= read -r -d '' dir; do
-    NODE_MODULES_DIRS+=("$dir")
-done < <(find "${SEARCH_PATHS[@]}" \
-    "${EXCLUDE_ARGS[@]}" \
-    -type d -name "node_modules" \
-    -print0 2>/dev/null)
-
-TOTAL_DIRS=${#NODE_MODULES_DIRS[@]}
-log_info "Found ${TOTAL_DIRS} node_modules directories to scan"
-echo ""
-
-# Scan each node_modules directory
-CURRENT=0
-for node_modules_dir in "${NODE_MODULES_DIRS[@]}"; do
-    CURRENT=$((CURRENT + 1))
-    echo -ne "\rProgress: ${CURRENT}/${TOTAL_DIRS} directories scanned..."
-    scan_node_modules "${node_modules_dir}"
+print_info "Installing CachyOS packages..."
+for pkg in "${CACHYOS_PACKAGES[@]}"; do
+    if pacman -Qi "$pkg" &> /dev/null; then
+        print_success "$pkg already installed"
+    else
+        print_info "Installing $pkg..."
+        sudo pacman -S --noconfirm "$pkg" 2>/dev/null || print_warning "Failed to install $pkg"
+    fi
 done
-echo ""
-echo ""
 
-# Summary
-echo "=============================================="
-echo "  Scan Complete"
-echo "=============================================="
-echo ""
-echo "Scan finished at: $(date)"
-echo "Directories scanned: ${TOTAL_DIRS}"
-echo ""
-
-if [[ ${FOUND_VULNERABLE} -eq 0 ]]; then
-    log_success "No vulnerable packages found!"
+# Check for AUR helper
+AUR_HELPER=""
+if command -v yay &> /dev/null; then
+    AUR_HELPER="yay"
+elif command -v paru &> /dev/null; then
+    AUR_HELPER="paru"
 else
-    log_error "Found ${FOUND_VULNERABLE} vulnerable package(s)!"
-    echo ""
-    log_warn "RECOMMENDED ACTIONS:"
-    echo "  1. Review the results file: ${RESULTS_FILE}"
-    echo "  2. Delete affected node_modules and reinstall dependencies"
-    echo "  3. Check package-lock.json/yarn.lock for pinned malicious versions"
-    echo "  4. Revoke and regenerate all credentials:"
-    echo "     - npm tokens"
-    echo "     - GitHub Personal Access Tokens"
-    echo "     - SSH keys"
-    echo "     - AWS/GCP/Azure credentials"
-    echo "  5. Enable MFA on all developer accounts"
-    echo "  6. Scan for self-hosted GitHub runners named 'SHA1HULUD'"
-    echo "  7. Check for .github/workflows/discussion.yaml files"
-    echo ""
+    print_warning "No AUR helper found. Install yay or paru for AUR packages."
 fi
 
-# Write summary to results file
-{
-    echo ""
-    echo "=============================================="
-    echo "  Scan Summary"
-    echo "=============================================="
-    echo "Scan finished: $(date)"
-    echo "Directories scanned: ${TOTAL_DIRS}"
-    echo "Total vulnerabilities found: ${FOUND_VULNERABLE}"
-    echo ""
-    if [[ ${FOUND_VULNERABLE} -eq 0 ]]; then
-        echo "Status: No vulnerable packages detected"
-    else
-        echo "Status: VULNERABLE PACKAGES DETECTED"
-        echo ""
-        echo "RECOMMENDED ACTIONS:"
-        echo "  1. Delete affected node_modules and reinstall dependencies"
-        echo "  2. Check package-lock.json/yarn.lock for pinned malicious versions"
-        echo "  3. Revoke and regenerate all credentials:"
-        echo "     - npm tokens"
-        echo "     - GitHub Personal Access Tokens"
-        echo "     - SSH keys"
-        echo "     - AWS/GCP/Azure credentials"
-        echo "  4. Enable MFA on all developer accounts"
-        echo "  5. Scan for self-hosted GitHub runners named 'SHA1HULUD'"
-        echo "  6. Check for .github/workflows/discussion.yaml files"
+if [ -n "$AUR_HELPER" ]; then
+    print_info "Installing AUR packages with $AUR_HELPER..."
+    for pkg in "${AUR_PACKAGES[@]}"; do
+        if pacman -Qi "${pkg%-bin}" &> /dev/null || pacman -Qi "${pkg%-git}" &> /dev/null || pacman -Qi "$pkg" &> /dev/null; then
+            print_success "$pkg already installed"
+        else
+            print_info "Installing $pkg..."
+            $AUR_HELPER -S --noconfirm "$pkg" 2>/dev/null || print_warning "Failed to install $pkg"
+        fi
+    done
+fi
+
+# ============================================
+# 2. INSTALL HYPRVIZ
+# ============================================
+
+print_header "Installing HyprViz"
+
+if [ ! -d "$HOME/.local/share/hyprviz" ]; then
+    print_info "Cloning HyprViz from GitHub..."
+    git clone https://github.com/hyprutils/hyprviz "$HOME/.local/share/hyprviz"
+    
+    print_info "Setting up HyprViz..."
+    cd "$HOME/.local/share/hyprviz"
+    
+    # Install dependencies if needed
+    if [ -f "requirements.txt" ]; then
+        pip install --user -r requirements.txt 2>/dev/null || print_warning "Failed to install Python dependencies"
     fi
-    echo ""
-    echo "=============================================="
-} >> "${RESULTS_FILE}"
+    
+    # Create launcher script
+    cat > "$HOME/.local/bin/hyprviz" <<'EOF'
+#!/bin/bash
+cd "$HOME/.local/share/hyprviz"
+python main.py "$@"
+EOF
+    chmod +x "$HOME/.local/bin/hyprviz"
+    
+    print_success "HyprViz installed"
+else
+    print_success "HyprViz already installed"
+fi
 
-echo "Full results saved to: ${RESULTS_FILE}"
-exit ${FOUND_VULNERABLE}
-ULTS_FILE}"
+# ============================================
+# 3. INSTALL DCLI
+# ============================================
 
-echo "Full results saved to: ${RESULTS_FILE}"
-exit ${FOUND_VULNERABLE}
+print_header "Installing DCLI (Discord CLI)"
+
+if [ ! -d "$HOME/.local/share/dcli" ]; then
+    print_info "Cloning DCLI from GitLab..."
+    git clone https://gitlab.com/theblackdon/dcli.git "$HOME/.local/share/dcli"
+    
+    print_info "Setting up DCLI..."
+    cd "$HOME/.local/share/dcli"
+    
+    # Run setup if it exists
+    if [ -f "setup.py" ]; then
+        python setup.py install --user 2>/dev/null || print_warning "DCLI setup script failed, you may need to run it manually"
+    fi
+    
+    # Create launcher if executable exists
+    if [ -f "dcli.py" ] || [ -f "dcli" ]; then
+        cat > "$HOME/.local/bin/dcli" <<'EOF'
+#!/bin/bash
+cd "$HOME/.local/share/dcli"
+python dcli.py "$@" 2>/dev/null || python dcli "$@"
+EOF
+        chmod +x "$HOME/.local/bin/dcli"
+    fi
+    
+    print_success "DCLI installed"
+    print_info "You may need to configure DCLI with your Discord token"
+else
+    print_success "DCLI already installed"
+fi
+
+# ============================================
+# 4. CREATE DIRECTORY STRUCTURE
+# ============================================
+
+print_header "Creating Configuration Directories"
+
+DIRS=(
+    "$HOME/.config/hypr"
+    "$HOME/.config/rofi"
+    "$HOME/.config/swaync"
+    "$HOME/.config/wlogout"
+    "$HOME/.config/nwg-dock-hyprland"
+    "$HOME/.config/ghostty"
+    "$HOME/.config/nvim"
+    "$HOME/.config/MangoHud"
+    "$HOME/.config/hyprpanel"
+    "$HOME/.local/bin"
+    "$HOME/.cache"
+    "$HOME/Pictures/Screenshots"
+)
+
+for dir in "${DIRS[@]}"; do
+    if [ ! -d "$dir" ]; then
+        mkdir -p "$dir"
+        print_success "Created $dir"
+    fi
+done
+
+# ============================================
+# 5. SETUP STARSHIP
+# ============================================
+
+print_header "Configuring Starship"
+
+# Add starship to shell config if not already there
+if [ -f "$HOME/.bashrc" ]; then
+    if ! grep -q "starship init bash" "$HOME/.bashrc"; then
+        echo 'eval "$(starship init bash)"' >> "$HOME/.bashrc"
+        print_success "Added Starship to .bashrc"
+    fi
+fi
+
+if [ -f "$HOME/.zshrc" ]; then
+    if ! grep -q "starship init zsh" "$HOME/.zshrc"; then
+        echo 'eval "$(starship init zsh)"' >> "$HOME/.zshrc"
+        print_success "Added Starship to .zshrc"
+    fi
+fi
+
+# ============================================
+# 6. BACKUP EXISTING CONFIGS
+# ============================================
+
+print_header "Backing Up Existing Configurations"
+
+BACKUP_DIR="$HOME/.config/hyprland-backup-$(date +%Y%m%d-%H%M%S)"
+
+if [ -f "$HOME/.config/hypr/hyprland.conf" ]; then
+    mkdir -p "$BACKUP_DIR"
+    print_info "Backing up to $BACKUP_DIR"
+    
+    [ -f "$HOME/.config/hypr/hyprland.conf" ] && cp "$HOME/.config/hypr/hyprland.conf" "$BACKUP_DIR/"
+    
+    print_success "Backup completed"
+fi
+
+# ============================================
+# 7. ENABLE SERVICES
+# ============================================
+
+print_header "Configuring Services"
+
+# Enable bluetooth
+if ! systemctl is-enabled bluetooth.service &> /dev/null; then
+    sudo systemctl enable bluetooth.service
+    sudo systemctl start bluetooth.service
+    print_success "Enabled bluetooth"
+fi
+
+# Enable gamemode
+if command -v gamemoded &> /dev/null; then
+    systemctl --user enable gamemoded
+    print_success "Enabled gamemode"
+fi
+
+# ============================================
+# 8. AMD GPU OPTIMIZATIONS
+# ============================================
+
+print_header "AMD GPU Optimizations"
+
+# Create modprobe config for AMD GPU
+AMDGPU_CONF="/etc/modprobe.d/amdgpu.conf"
+if [ ! -f "$AMDGPU_CONF" ]; then
+    print_info "Creating AMD GPU configuration..."
+    sudo tee "$AMDGPU_CONF" > /dev/null <<EOF
+# AMD GPU Performance optimizations
+options amdgpu ppfeaturemask=0xffffffff
+options amdgpu gpu_recovery=1
+options amdgpu dc=1
+EOF
+    print_success "Created AMD GPU config"
+    print_warning "You may need to rebuild initramfs: sudo mkinitcpio -P"
+else
+    print_info "AMD GPU config already exists"
+fi
+
+# ============================================
+# 9. CREATE HELPER SCRIPTS
+# ============================================
+
+print_header "Creating Helper Scripts"
+
+# Gaming mode toggle
+cat > "$HOME/.local/bin/gaming-mode-toggle" <<'EOF'
+#!/bin/bash
+STATE_FILE="$HOME/.cache/hyprland-gaming-mode"
+if [ -f "$STATE_FILE" ]; then
+    hyprctl keyword decoration:blur:enabled true
+    hyprctl keyword decoration:drop_shadow true
+    hyprctl keyword animations:enabled true
+    hyprctl keyword general:gaps_in 5
+    hyprctl keyword general:gaps_out 10
+    hyprctl keyword decoration:rounding 10
+    rm "$STATE_FILE"
+    notify-send "Gaming Mode" "Effects restored" -i applications-games
+else
+    hyprctl keyword decoration:blur:enabled false
+    hyprctl keyword decoration:drop_shadow false
+    hyprctl keyword animations:enabled false
+    hyprctl keyword general:gaps_in 0
+    hyprctl keyword general:gaps_out 0
+    hyprctl keyword decoration:rounding 0
+    touch "$STATE_FILE"
+    notify-send "Gaming Mode" "Maximum performance" -i applications-games
+fi
+EOF
+chmod +x "$HOME/.local/bin/gaming-mode-toggle"
+print_success "Created gaming-mode-toggle script"
+
+# ============================================
+# 10. HYPRPM SETUP
+# ============================================
+
+print_header "Setting up Hyprpm (Plugin Manager)"
+
+if command -v hyprpm &> /dev/null; then
+    print_info "Initializing hyprpm..."
+    hyprpm update 2>/dev/null || print_warning "Hyprpm update failed (normal on first run)"
+    print_success "Hyprpm ready"
+else
+    print_warning "Hyprpm not found, it comes with Hyprland"
+fi
+
+# ============================================
+# 11. FONT INSTALLATION
+# ============================================
+
+print_header "Installing Fonts"
+
+sudo pacman -S --noconfirm ttf-jetbrains-mono-nerd ttf-font-awesome noto-fonts noto-fonts-emoji 2>/dev/null
+print_success "Fonts installed"
+
+# ============================================
+# 12. CONFIGURATION INSTRUCTIONS
+# ============================================
+
+print_header "Configuration Files Setup"
+
+echo ""
+print_info "Copy these configuration files from the artifacts:"
+echo ""
+echo "Required Files:"
+echo "  1. Complete Hyprland Configuration → ~/.config/hypr/hyprland.conf"
+echo "  2. Hypridle Configuration → ~/.config/hypr/hypridle.conf"
+echo "  3. Hyprlock Configuration → ~/.config/hypr/hyprlock.conf"
+echo "  4. nwg-dock Configuration → ~/.config/nwg-dock-hyprland/config.json"
+echo "  5. nwg-dock Style → ~/.config/nwg-dock-hyprland/style.css"
+echo "  6. Rofi Launcher → ~/.config/rofi/launcher.rasi"
+echo "  7. Rofi Settings → ~/.config/rofi/settings.rasi"
+echo "  8. SwayNC Config → ~/.config/swaync/config.json"
+echo "  9. SwayNC Style → ~/.config/swaync/style.css"
+echo "  10. Wlogout Layout → ~/.config/wlogout/layout"
+echo "  11. Wlogout Style → ~/.config/wlogout/style.css"
+echo "  12. Settings Launcher → ~/.local/bin/settings-launcher (make executable)"
+echo "  13. Starship Config → ~/.config/starship.toml"
+echo ""
+print_info "Note: HyprPanel will auto-configure on first launch"
+echo ""
+
+read -p "Have you copied all configuration files? (y/n) " -n 1 -r
+echo
+
+# ============================================
+# 13. COMPLETION
+# ============================================
+
+print_header "Setup Complete!"
+
+echo ""
+print_success "CachyOS Hyprland gaming desktop is ready!"
+echo ""
+print_info "New tools installed:"
+echo "  • HyprViz - GUI config editor (SUPER + V)"
+echo "  • HyprPanel - Modern status bar"
+echo "  • Hyprlock + Hypridle - Screen locking"
+echo "  • Starship - Beautiful terminal prompt"
+echo "  • Zen Browser - Privacy-focused browser"
+echo "  • DCLI - Discord from terminal"
+echo "  • Hyprsysteminfo - System info tool"
+echo "  • Hyprpm - Plugin manager for Hyprland"
+echo ""
+print_info "Key shortcuts:"
+echo "  SUPER + SPACE     - App launcher"
+echo "  SUPER + RETURN    - Ghostty terminal"
+echo "  SUPER + E         - Dolphin file manager"
+echo "  SUPER + B         - Zen Browser"
+echo "  SUPER + V         - HyprViz (config GUI)"
+echo "  SUPER + S         - Settings menu"
+echo "  SUPER + G         - Gaming mode toggle"
+echo "  SUPER + X         - Clipboard history"
+echo "  SUPER + ALT + L   - Lock screen"
+echo "  SUPER + SHIFT + I - System info"
+echo ""
+print_info "Next steps:"
+echo "  1. Reload Hyprland: hyprctl reload (or log out/in)"
+echo "  2. Configure HyprPanel: Edit ~/.config/hyprpanel/"
+echo "  3. Set up DCLI: cd ~/.local/share/dcli && python setup.py"
+echo "  4. Add Hyprland plugins: hyprpm add <plugin-url>"
+echo ""
+print_success "Enjoy your optimized gaming setup! 🎮"
