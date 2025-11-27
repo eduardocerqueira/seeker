@@ -1,4 +1,35 @@
 --------------------------------------------------------------------------------
+ 2025-11-27 17:14:09.325923
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/appset-diff.sh
+	deleted:    snippet/check-pr.sh
+	deleted:    snippet/copy_manifest_with_blobs.py
+	deleted:    snippet/curvature.py
+	deleted:    snippet/docker-cleanup.sh
+	deleted:    snippet/duckdb_client.py
+	deleted:    snippet/provisioning.sh
+	deleted:    snippet/runrecv.sh
+	deleted:    snippet/runsend.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/bot.py
+	snippet/converter.py
+	snippet/face_detector.py
+	snippet/ollama_fast_speech_text_speech.py
+	snippet/ssh_commands.sh
+	snippet/time_pre.sh
+	snippet/uninstall-docker.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2025-11-26 17:15:35.513091
 --------------------------------------------------------------------------------
   On branch main
