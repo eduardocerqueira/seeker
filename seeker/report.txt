@@ -1,4 +1,52 @@
 --------------------------------------------------------------------------------
+ 2025-11-28 17:14:21.932235
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/(models)__init__.py
+	deleted:    snippet/(wizard)__init__.py
+	deleted:    snippet/__init__.py
+	deleted:    snippet/__manifest__.py
+	deleted:    snippet/addmovies.py
+	deleted:    snippet/anthropic_oauth.py
+	deleted:    snippet/app.py
+	deleted:    snippet/base_import_extend.py
+	deleted:    snippet/comp-script.py
+	deleted:    snippet/dashboard.py
+	deleted:    snippet/direct_import.py
+	deleted:    snippet/gistfile1.txt
+	deleted:    snippet/import_history.py
+	deleted:    snippet/import_schedule.py
+	deleted:    snippet/logic.py
+	deleted:    snippet/mandelbrot.py
+	deleted:    snippet/mandelbrot_pure.py
+	deleted:    snippet/miner_muloco.py
+	deleted:    snippet/miner_sparseloco.py
+	deleted:    snippet/model_3_dit.py
+	deleted:    snippet/preprocessing.sh
+	deleted:    snippet/product_supplierinfo.py
+	deleted:    snippet/product_template.py
+	deleted:    snippet/scan.sh
+	deleted:    snippet/scroll_lock.py
+	deleted:    snippet/scroll_lock_pyautogui.py
+	deleted:    snippet/smart_import.py
+	deleted:    snippet/supplier_mapping_template.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/build_emacs.sh
+	snippet/configure_emacs.sh
+	snippet/hellbox.sh
+	snippet/lift_debug_emacs.sh
+	snippet/pd2-trade-linux-build.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2025-11-27 17:14:09.325923
 --------------------------------------------------------------------------------
   On branch main
