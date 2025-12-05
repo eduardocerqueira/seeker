@@ -1,0 +1,32 @@
+#date: 2025-12-05T17:09:14Z
+#url: https://api.github.com/gists/e2074b0c1c062e88d0e8d650554651da
+#owner: https://api.github.com/users/rrobles9112
+
+#!/bin/bash
+
+# Despertar y desbloquear el teléfono
+echo "Despertando dispositivo..."
+adb shell input keyevent KEYCODE_WAKEUP
+sleep 1
+
+# Realizar swipe hacia arriba para revelar el PIN pad
+echo "Swipe para revelar PIN pad..."
+adb shell input swipe 612 1356 612 200 300
+sleep 1
+
+# Usar keyevents individuales para cada número del PIN (0745)
+echo "Ingresando código 0745..."
+adb shell input keyevent KEYCODE_0
+sleep 0.2
+adb shell input keyevent KEYCODE_7
+sleep 0.2
+adb shell input keyevent KEYCODE_4
+sleep 0.2
+adb shell input keyevent KEYCODE_5
+sleep 0.5
+adb shell input keyevent KEYCODE_ENTER
+sleep 2
+
+# Iniciar SCRCPY
+echo "Iniciando SCRCPY..."
+scrcpy --disable-screensaver -d
