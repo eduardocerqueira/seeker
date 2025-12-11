@@ -1,5 +1,5 @@
-#date: 2025-12-10T16:53:43Z
-#url: https://api.github.com/gists/c8524dd3d7d41f6f2a4b8903b3c2e121
+#date: 2025-12-11T16:59:40Z
+#url: https://api.github.com/gists/da69f7e9eef9544a0e19fe5f32ffc34d
 #owner: https://api.github.com/users/mypy-play
 
 from typing import Iterator
