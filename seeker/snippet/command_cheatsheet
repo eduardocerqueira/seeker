@@ -1,0 +1,221 @@
+#date: 2025-12-19T16:57:25Z
+#url: https://api.github.com/gists/d12621d5571bff13e520e861ad5758af
+#owner: https://api.github.com/users/sgouda0412
+
+#!/bin/bash
+# BASH COMMAND CHEATSHEET
+
+cat /etc/*release                                               # find Linux distribution version
+cat /etc/*-release | uniq -u | grep 'release'                   # show Linux release
+sudo fuser -k 80/tcp                                            # kill all processes using port 80 (useful if nginx won't stop/restart gracefully)
+alias cdwww="cd /var/www/html/"                                 # add to ~/.bashrc for shortcut to webroot
+
+# ansible
+ansible-playbook <playbook>.yml --private-key ~/.ssh/<key>.pem	# specify a private key to use to connect when running playbooks on EC2 instances
+
+# apt
+apt list --installed                                            # list all installed packages
+apt-cache policy |grep http |awk '{print $2 $3}' |sort -u       # list apt sources
+apt-get install <package name>=<version>                        # install a specific version of a package
+
+# AWS motd banner
+sudo vim /etc/update-motd.d/30-banner                           # edit motd banner on AWS Amazon Linux AMI systems
+sudo /usr/sbin/update-motd                                      # update motd banner from contents of /etc/update-motd.d/ on AWS Amazon Linux AMI systems
+
+# cron
+  sudo crontab -l -u <user>                                     # view cron jobs for a specific user
+  sudo crontab -e -u <user>                                     # edit cron jobs for a specific user
+  sudo sh -c 'tail -n +1 /var/spool/cron/*'                     # list crontab for all users
+# cron time string format:
+  * * * * *                                                     # cron time string character positions
+  └─│─│─│─│── minute                                            # run cron job (0-59) minutes past the hour, or * for every minute
+    └─│─│─│── hour                                              # run cron job (0-23) hours past midnight, or * for every hour
+      └─│─│── day of month                                      # run cron job on day (1-31) of the month, or * for every day
+        └─│── month                                             # run cron job during month (1-12) of the year, or * for every month
+          └── day of week                                       # run cron job every (0-6) days past Sunday, or * for every day of the week
+# cron time special characters:
+  * (asterisk)                                                  # cron time: any/every
+  , (comma)                                                     # cron time: value list separator
+  - (hyphen)                                                    # cron time: defines range of values
+  / (forward slash)                                             # cron time: step value
+# cron time examples:
+  * * * * *                                                     # run cron job every minute
+  0 0-6,18-23 * * *                                             # run cron job hourly from 18:00 through 06:00
+  10 */2 * * *                                                  # run cron job 10 minutes past the hour, every other hour
+# See http://crontab.guru for more interactive cron examples
+
+# docker
+docker --version						# check Docker version
+docker images							# list Docker images
+docker search							# search the Docker Hub for images
+docker pull <image>						# pull an image or a repository from Docker Hub or another registry
+docker create <image>						# create a writeable container from an image and prepare it to run
+docker run <image>						# creates container from an image and runs it (similar to docker create + docker start)
+docker run -it centos:latest /bin/bash				# run a CentOS container, start bash and attach to to terminal
+docker run -d centos:latest /bin/bash				# run a CentOS container in detached mode
+docker start <container>					# start a stopped container
+docker inspect <image or container>				# show low-level information on Docker objects
+docker exec <container> <command>				# pass command to running container
+docker exec -it <container> /bin/bash				# start a bash prompt in a running container and attach it to terminal 
+docker stop <container name>					# stop a running container
+docker ps							# list running containers
+docker ps -a							# list all containers, running or stopped
+docker rm <container>						# remove container
+docker rm `docker ps -a -q`					# remove all containers
+docker rmi <image>						# remove image
+docker rmi -f <image>						# remove image (force)
+
+# git
+git init								    # initialize empty git repo in .git/
+git status								    # show current branch, list changes to be committed, untracked files, etc.
+git add <file>								    # add untracked file to staging area
+git add '*.txt'								    # add all new .txt files to staging area
+git --git-dir=/my/path/.git/ --work-tree=/my/path/ add <file>		    # add file in another directory to staging area
+git commit -m "<message>"						    # store staged changes
+git --git-dir=/my/path/.git/ --work-tree=/my/path/ commit -m "<comment>"    # commit changes in another directory
+git log									    # list changes committed so far
+git remote add origin <https://some.repo.com>				    # add remote repository
+git push -u origin master						    # push local changes to remote repo origin (-u stores params so only 'git push' is needed next time) 
+git pull origin master							    # check for changes on remote origin repo and pull them down
+git diff HEAD								    # check what is different from most recent commit
+git diff --staged							    # show changes within files that have already been staged
+git reset <file>							    # unstage <file>
+git branch								    # show branches and highlight which branch is currently being used
+git branch <branch>							    # create branch called <branch>
+git branch -d <branch>							    # delete <branch> branch
+git checkout -- <file>							    # get rid of changes since last commit for <file>
+git checkout <branch>							    # switch to branch <branch>
+git checkout -b <branch>						    # create and switch to branch <branch>
+git rm '*.txt'								    # deletes .txt files from disk and stages removal of the files in the repo
+git merge <branch>							    # merge changes from <branch> branch into current branch
+git clone <repo> .							    # clone repository in current local directory
+
+# grep
+grep -rli --exclude-dir={dir1,dir2,dir3} keyword /search/path   # search path for pattern with exceptions
+grep "^[^#;]" file.name                                         # show only non-commented lines (ignore comments)
+grep '^[[:blank:]]*[^[:blank:]#;]' file.name                    # show only non-commented non-blank lines (ignore comments and blank lines)
+
+# history (bash)
+HISTCONTROL=ignorespace                                         # tell bash not to record commands starting with space to history (add to .bashrc to make persistent)
+history -d <number>                                             # delete command <number> from bash history
+
+# kubernetes
+kubectl exec -it <pod name> -n <namespace> -- /bin/bash		# accesh shell in a container running in a kubernetes/EKS pod (see https://kubernetes.io/docs/tasks/debug-application-cluster/get-shell-running-container/)
+
+# ln
+ln -s <target> <name>						# creates a symbolic link (symlink) to <target> called <name>
+
+# magento
+php bin/magento admin: "**********":create --admin- "**********"='< "**********">' --admin-password='<password>' --admin-email='< "**********"@email.com>' --admin-firstname='<first>' --admin-lastname='<last>'    # create admin  "**********"
+rm -rf var/di/* var/generation/* var/cache/* var/log/* var/page_cache/* var/session/* var/view_preprocessed/* pub/static/*  # clear out magento cache and temp directories
+magento setup:install                                           # install Magento software
+magento setup:upgrade                                           # update the Magento software
+magento setup:di:compile                                        # run single-tenant compiler
+magento setup:static-content:deploy                             # deploy static content
+magento cache:clean                                             # clean cache type(s)
+magento cache:flush                                             # flush cache storage used by cache type(s)
+magento module:{enable|disable}                                 # enable or disable modules
+magento setup:db:status                                         # check if the database is up-to-date with the code
+export PATH=$PATH:/var/www/html/bin                             # add to ~/.bashrc to add magento commands to $PATH
+
+# mysql
+mysql -u db_username -p db_name < db_file.sql                   # import database 'db_name' from 'db_file.sql' into mysql (use gunzip if file.sql.gz)
+SELECT User FROM mysql.user;                                    # mysql > show all database users
+SHOW DATABASES;                                                 # mysql > show all databases
+sed -e 's/DEFINER[ ]*=[ ]*[^*]*\*/\*/' file.sql > newfile.sql   # make a mysql dump ready to import without SUPER permissions error
+# dump mysql database 'db_name' on server 'db_server' to file:
+mysqldump -h <db_server> -u <db_username> -p <db_name> --single-transaction | sed -e 's/DEFINER[ ]*=[ ]*[^*]*\*/\*/' | gzip > <db_file>.sql.gz
+
+# netstat
+sudo netstat -tulpn | grep :80                                  # find out what is running/listening on port 80
+sudo netstat | grep http | wc -l                                # check how many http connections are open
+
+# nginx
+sudo nginx -s reload                                            # reload nginx config
+sudo nginx -s quit                                              # gracefully shutdown nginx
+sudo nginx -s stop                                              # terminates nginx process
+sudo nginx -t                                                   # nginx config syntax check (pre-load)
+sudo nginx -T                                                   # displays currently running configs
+sudo nginx -v                                                   # checks nginx version
+ps aux | grep "[n]ginx"                                         # check running nginx processes
+service nginx status                                            # check nginx service status
+
+# rsync
+rsync -havz --stats --progress -e "ssh -i /path/to/sshkey.pem" /path/to/local/file user@remotehost:~/   # transfer local file to home directory on remote server
+rsync -havz --stats --progress -e "ssh -i /path/to/sshkey.pem" user@remotehost:~/file ~/                # transfer file from home directory on remote server to local home directory
+
+# screen
+screen                                                          # start screen
+<ctrl-a> c                                                      # creat new screen window
+<ctrl-a> n                                                      # go to next screen window
+<ctrl-a> p                                                      # go to previous screen window
+<ctrl-a> "						"	# show list of screen windows (allows you to select a window to change to)
+<ctrl-a> w                                                      # show screen window bar
+<ctrl-a> m                                                      # monitor current screen window for activity, alert when active
+<ctrl-a> _                                                      # monitor current screen window for silence or no activity, alert when inactive
+<ctrl-a> d                                                      # detach from current screen
+screen -ls                                                      # list screen sessions
+screen -r [pid.session.name]                                    # re-attach to screen session
+https://www.howtoforge.com/linux_screen                         # decent screen tutorial
+
+# ssh
+ssh-keygen -t rsa										# generate ssh keys
+find ~/.ssh -type f -exec chmod -R 600 {} \; && find ~/.ssh -type d -exec chmod -R 700 {} \;	# fix permissions on ssh folder and keys
+ssh-keygen -R hostname										# remove a host from known_hosts file
+
+# tar
+tar xvzf file.tar.gz                                            # extract entire .tar.gz archive
+tar tvf file.tar.gz                                             # view a table of contents by listing all files in achieve
+tar xvjf file.tar.bz2                                           # extract file which was compressed using a bZip2 compressor
+tar zcvf archive-name.tar.gz directory-name                     # compress entire directory
+
+# tmux
+tmux new -s session_name					# creates a new tmux session named session_name
+tmux attach -t session_name					# attaches to an existing tmux session named session_name
+tmux switch -t session_name					# switches to an existing session named session_name
+tmux list-sessions						# lists existing tmux sessions
+tmux kill-session -t :0-9					# kill tmux session
+tmux detach							# detach the currently attached session
+tmux new-window							# create a new window
+tmux select-window -t :0-9					# move to the window based on index
+tmux rename-window						# rename the current window
+tmux split-window						# splits the window into two vertical panes
+tmux split-window -h						# splits the window into two horizontal panes
+tmux swap-pane -[UDLR]						# swaps pane with another in the specified direction
+tmux select-pane -t :.+						# selects the next pane in numerical order
+tmux list-keys							# lists out every bound key and the tmux command it runs
+tmux list-commands						# lists out every tmux command and its arguments
+tmux info							# lists out every session, window, pane, its pid, etc.
+tmux source-file ~/.tmux.conf					# reloads the current tmux configuration (based on a default tmux config)
+  # tmux shortcuts:
+  <ctrl-b> d							# tmux detach
+  <ctrl-b> c							# tmux new-window
+  <ctrl-b> 0-9							# tmux select-window
+  <ctrl-b> ,							# tmux rename-window
+  <ctrl-b> "						"	# tmux split-window
+  <ctrl-b> %							# tmux split-window -h
+  <ctrl-b> { or }						# tmux swap-pane -[UDLR]
+  # tmux crash course:
+  https://robots.thoughtbot.com/a-tmux-crash-course
+
+# user and group management
+useradd -s /sbin/nologin dbuser                                 # add a user without a valid login shell (to establish SSH tunnels for DB access, for example)
+groups <user>                                                   # list groups <user> is in
+sudo usermod -a -G <group> <user>                               # add user to group
+
+# varnish
+varnishlog -g request -q 'ReqMethod eq "PURGE"'                 # view logged varnish purge requsts
+
+# yum
+yum list all                                                    # list all installed and available packages
+yum list installed                                              # list all installed packages
+yum list available                                              # list all available packages
+yum repolist all                                                # list all yum repositories and their status
+yum repolist enabled                                            # list only enabled yum repositories
+yum repolist disabled                                           # list disabled yum repositories
+yum --disablerepo=* --enablerepo=repo_name install [packages]   # only install packages from the 'repo_name' repository
+
+# zip, gzip
+gunzip file.gz                                                  # extract .gz file without tar
+gzcat <filename>                                                # look at gzipped file contents without extracting it
+
