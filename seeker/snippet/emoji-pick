@@ -1,0 +1,10 @@
+#date: 2025-12-30T16:47:01Z
+#url: https://api.github.com/gists/e460262fdd26a6ad8eaec2b2f0df2bad
+#owner: https://api.github.com/users/vasi
+
+#!/bin/sh
+emoji="$(perl -ne 'print "$1 $2\n" if /fully-qualified.*# (\S+) E\S+ (.*)/' \
+  /usr/share/unicode/emoji/emoji-test.txt \
+  | fuzzel --dmenu -p 'Emoji: ' \
+  | awk '{print $1}')"
+wtype -- "$emoji"
