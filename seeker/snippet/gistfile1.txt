@@ -1,0 +1,97 @@
+#date: 2026-01-19T16:59:58Z
+#url: https://api.github.com/gists/544925f41888bb15a142ba11ae799f29
+#owner: https://api.github.com/users/abubaker417
+
+#!/bin/bash
+
+# Local testing version of deploy script
+# This simulates the deployment without actually pulling from git
+
+set -e
+
+BRANCH=$1
+
+if [ -z "$BRANCH" ]; then
+    echo "Error: Branch name not provided"
+    echo "Usage: ./test-deploy-local.sh <branch-name>"
+    exit 1
+fi
+
+echo "LOCAL TEST: Deployment for branch: $BRANCH"
+
+# Configuration based on branch
+if [ "$BRANCH" == "dev" ]; then
+    COMPOSE_FILE="docker-compose.dev.yml"
+    CONTAINER_NAME="fastapi-dev"
+    PORT="8001"
+    # ENV_NAME="DEVELOPMENT"
+elif [ "$BRANCH" == "main" ]; then
+    COMPOSE_FILE="docker-compose.prod.yml"
+    CONTAINER_NAME="fastapi-prod"
+    PORT="8000"
+    # ENV_NAME="PRODUCTION"
+else
+    echo "Unknown branch: $BRANCH"
+    exit 1
+fi
+
+# echo "Environment: $ENV_NAME"
+echo "Container: $CONTAINER_NAME"
+echo "Port: $PORT"
+echo "Branch: $BRANCH"
+
+# Stop existing container
+echo "Stopping existing $CONTAINER_NAME container..."
+docker-compose -f $COMPOSE_FILE down 2>/dev/null || true
+
+# Clean up
+echo "Cleaning up old images..."
+docker image prune -f
+
+# Build new image
+echo "Building new Docker image..."
+docker-compose -f $COMPOSE_FILE build --no-cache
+
+# Start container
+echo "Starting $CONTAINER_NAME container..."
+docker-compose -f $COMPOSE_FILE up -d
+
+# Wait
+echo "Waiting for application to start..."
+sleep 10
+
+# Health check
+echo "Checking application health..."
+MAX_RETRIES=5
+RETRY_COUNT=0
+
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    if curl -f http://localhost:$PORT/health > /dev/null 2>&1; then
+        # echo "LOCAL TEST PASSED! $ENV_NAME is healthy."
+        echo ""
+        echo "Container status:"
+        docker ps | grep $CONTAINER_NAME
+        echo ""
+        echo "Test your application at:"
+        echo "   http://localhost:$PORT"
+        echo "   http://localhost:$PORT/docs"
+        echo "   http://localhost:$PORT/health"
+        echo ""
+        echo "View logs: docker logs $CONTAINER_NAME -f"
+        echo ""
+        echo "Ready to push to $BRANCH branch!"
+        echo ""
+        exit 0
+    else
+        echo "Health check failed, retrying... ($((RETRY_COUNT + 1))/$MAX_RETRIES)"
+        RETRY_COUNT=$((RETRY_COUNT + 1))
+        sleep 5
+    fi
+done
+
+echo "LOCAL TEST FAILED!"
+echo ""
+echo "Recent logs:"
+docker logs $CONTAINER_NAME --tail=50
+echo ""
+exit 1
