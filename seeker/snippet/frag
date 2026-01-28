@@ -1,0 +1,37 @@
+#date: 2026-01-28T17:25:38Z
+#url: https://api.github.com/gists/c4b3c6351344a88189195574cef28202
+#owner: https://api.github.com/users/wrgoldstein
+
+#!/bin/bash
+
+# Create frags directory if it doesn't exist
+FRAG_DIR="$HOME/frags"
+mkdir -p "$FRAG_DIR"
+
+# Generate timestamp for filename
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+FILENAME="$FRAG_DIR/frag_${TIMESTAMP}.txt"
+
+# Get clipboard content and save to file
+pbpaste > "$FILENAME"
+
+# Check if clipboard was empty
+if [ ! -s "$FILENAME" ]; then
+    echo "Warning: Clipboard was empty or could not be read"
+    rm "$FILENAME"
+    exit 1
+fi
+
+# Get file size and line count for feedback
+FILE_SIZE=$(wc -c < "$FILENAME" | tr -d ' ')
+LINE_COUNT=$(wc -l < "$FILENAME" | tr -d ' ')
+
+echo "Fragment saved to: $FILENAME"
+echo "Size: $FILE_SIZE bytes, Lines: $LINE_COUNT"
+
+# Show first few lines as preview
+echo "---Preview---"
+head -n 3 "$FILENAME"
+if [ "$LINE_COUNT" -gt 3 ]; then
+    echo "..."
+fi
