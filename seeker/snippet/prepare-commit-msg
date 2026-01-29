@@ -1,0 +1,27 @@
+#date: 2026-01-29T17:21:53Z
+#url: https://api.github.com/gists/a9bbe29fd33321601fd64a74be0fb9a4
+#owner: https://api.github.com/users/maxisandoval37
+
+#!/usr/bin/env bash
+set -euo pipefail
+
+MSG_FILE="${1:-}"
+[[ -z "$MSG_FILE" || ! -f "$MSG_FILE" ]] && exit 0
+
+WI_ID=""
+if grep -Eq '#[0-9]+' "$MSG_FILE"; then
+  WI_ID="$(grep -Eo '#[0-9]+' "$MSG_FILE" | head -n1 | tr -d '#')"
+elif grep -Eq 'WI:\s*[0-9]+' "$MSG_FILE"; then
+  WI_ID="$(grep -Eo 'WI:\s*[0-9]+' "$MSG_FILE" | head -n1 | tr -dc '0-9')"
+fi
+[[ -z "$WI_ID" ]] && exit 0
+
+# 1) Preferir el comando instalado (si existe)
+if command -v commitg >/dev/null 2>&1; then
+  commitg generate --repo "." --staged --wi "$WI_ID" --out "$MSG_FILE" || exit 0
+  exit 0
+fi
+
+# 2) Fallback: ejecutar el proyecto .NET directo
+COMMITG_CSPROJ="../commitg-ia/commitg-ia.csproj"
+dotnet run --project "$COMMITG_CSPROJ" -- generate --repo "." --staged --wi "$WI_ID" --out "$MSG_FILE" || exit 0

@@ -1,0 +1,17 @@
+#date: 2026-01-29T17:21:53Z
+#url: https://api.github.com/gists/a9bbe29fd33321601fd64a74be0fb9a4
+#owner: https://api.github.com/users/maxisandoval37
+
+#!/usr/bin/env bash
+set -euo pipefail
+
+MSG_FILE="${1:-}"
+[[ -z "$MSG_FILE" || ! -f "$MSG_FILE" ]] && exit 0
+
+if command -v commitg >/dev/null 2>&1; then
+  commitg validate --repo "." --file "$MSG_FILE"
+  exit 0
+fi
+
+COMMITG_CSPROJ="../commitg-ia/commitg-ia.csproj"
+dotnet run --project "$COMMITG_CSPROJ" -- validate --repo "." --file "$MSG_FILE"

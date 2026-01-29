@@ -1,356 +1,39 @@
-#date: 2026-01-28T17:08:43Z
-#url: https://api.github.com/gists/2796ac36518f46b799890a5cbce3ef69
-#owner: https://api.github.com/users/YLGH
+#date: 2026-01-29T17:12:56Z
+#url: https://api.github.com/gists/075459bdde5e1fe806f54defef2e3d8a
+#owner: https://api.github.com/users/darkrival329
 
-#!/usr/bin/env python3
-"""
-Compare output tokens between the local LLM server and HuggingFace Transformers.
+#!/usr/bin/env bash
+set -euo pipefail
 
-This script:
-1. Sends a request to the local server's completions API to get output tokens
-2. Runs the same prompt through HuggingFace Transformers
-3. Compares the output tokens to identify divergence points
+# ---- Required env vars (fail fast with clear errors) ----
+: "${BINARY_PATH:?BINARY_PATH is required (e.g. /usr/local/bin/myapp)}"
+: "${CI_APPLICATION_REPOSITORY:?CI_APPLICATION_REPOSITORY is required (e.g. registry.gitlab.com/group/project)}"
+: "${CI_APPLICATION_TAG:?CI_APPLICATION_TAG is required (e.g. 1.2.3)}"
+: "${PACKAGE_NAME:?PACKAGE_NAME is required (e.g. myapp)}"
 
-Usage:
-    # First, start the server in another terminal:
-    # CUDA_VISIBLE_DEVICES=7 python -m fireworks.serving.text_completion /dev/shm/llama-v3p1-8b-instruct -b 8
+IMAGE="${CI_APPLICATION_REPOSITORY}:${CI_APPLICATION_TAG}"
+CONTAINER_NAME="extract"
 
-    # Then run this script:
-    python scripts/compare_hf_tokens.py --model-path /dev/shm/llama-v3p1-8b-instruct
-"""
+cleanup() {
+  # Best-effort cleanup
+  docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
+}
+trap cleanup EXIT
 
-import argparse
-import json
-import requests
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+echo "Extracting ${BINARY_PATH} from image..."
+rm -rf ./bin
+mkdir -p ./bin
 
+docker create --name "${CONTAINER_NAME}" "${IMAGE}" >/dev/null
 
-def get_server_completion(
-    prompt: str,
-    server_url: str = "http://localhost:80",
-    max_tokens: "**********"
-    temperature: float = 0.0,
-    model: str = "accounts/shm/models/llama-v3p1-8b-instruct",
-    top_logprobs: int = 5,
-) -> dict:
-    """Get completion from the local server."""
-    url = f"{server_url}/v1/completions"
-    
-    payload = {
-        "model": model,
-        "prompt": prompt,
-        "max_tokens": "**********"
-        "temperature": temperature,
-        "logprobs": top_logprobs,  # Request top N logprobs
-        "echo": False,
-    }
-    
-    response = requests.post(url, json=payload, timeout=120)
-    response.raise_for_status()
-    return response.json()
+# Copy the binary (or file/dir) from the image to ./bin
+docker cp "${CONTAINER_NAME}:${BINARY_PATH}" "./bin"
 
+# If the copied item ends up nested, that's fine—tar will include it.
+echo "Creating tarball..."
+TARBALL="${PACKAGE_NAME}-${CI_APPLICATION_TAG}.tar.gz"
+tar -czf "${TARBALL}" bin/
 
-def get_hf_completion(
-    prompt_ids: list[int],
-    model: AutoModelForCausalLM,
-    tokenizer: "**********"
-    max_new_tokens: "**********"
-    top_k_logprobs: int = 5,
-) -> tuple[list[int], list[float], list[list[tuple[int, float]]]]:
-    """Get completion tokens, logprobs, and top-k logprobs from HuggingFace Transformers."""
-    # Use pre-tokenized prompt IDs
-    input_ids = torch.tensor([prompt_ids], dtype=torch.long)
-    input_ids = input_ids.to(model.device)
-    
-    prompt_length = input_ids.shape[1]
-    
-    # Generate with logprobs
-    with torch.no_grad():
-        outputs = model.generate(
-            input_ids,
-            max_new_tokens= "**********"
-            do_sample=False,  # Greedy decoding to match temperature=0
-            return_dict_in_generate=True,
-            output_scores=True,
-            pad_token_id= "**********"
-        )
-    
-    # Extract generated tokens (excluding prompt)
-    generated_ids = outputs.sequences[0, prompt_length:].tolist()
-    
-    # Calculate logprobs and top-k logprobs for each generated token
-    logprobs = []
-    top_logprobs_list = []
-    for i, score in enumerate(outputs.scores):
-        # score shape: [batch_size, vocab_size]
-        log_probs = torch.nn.functional.log_softmax(score[0], dim=-1)
-        token_id = "**********"
-        logprobs.append(log_probs[token_id].item())
-        
-        # Get top-k logprobs
-        top_values, top_indices = torch.topk(log_probs, top_k_logprobs)
-        top_logprobs_list.append([
-            (idx.item(), val.item()) for idx, val in zip(top_indices, top_values)
-        ])
-    
-    return generated_ids, logprobs, top_logprobs_list
-
-
-def format_top_logprobs(top_lps: "**********": AutoTokenizer, max_items: int = 3) -> str:
-    """Format top logprobs for display."""
-    items = []
-    for tok_id, lp in top_lps[:max_items]:
-        tok_str = "**********"
-        items.append(f"{tok_id}({tok_str}):{lp:.4f}")
-    return " | ".join(items)
-
-
-def compare_tokens(
-    server_tokens: "**********"
-    server_logprobs: list[float],
-    server_top_logprobs: list[dict[str, float]],
-    hf_tokens: "**********"
-    hf_logprobs: list[float],
-    hf_top_logprobs: list[list[tuple[int, float]]],
-    tokenizer: "**********"
-) -> None:
-    """Compare tokens from server and HuggingFace, highlighting divergences."""
-    print("\n" + "=" * 120)
-    print("TOKEN COMPARISON")
-    print("=" * 120)
-    
-    max_len = "**********"
-    
-    print(f"\n{'Pos': "**********":<6} {'Server Token':<25} {'HF Token':<25} {'Server LP':>12} {'HF LP':>12} {'LP Diff':>10}")
-    print("-" * 120)
-    
-    first_divergence = None
-    for i in range(max_len):
-        server_tok = "**********"
-        hf_tok = "**********"
-        server_lp = server_logprobs[i] if i < len(server_logprobs) else None
-        hf_lp = hf_logprobs[i] if i < len(hf_logprobs) else None
-        
-        match = "✓" if server_tok == hf_tok else "✗"
-        
-        server_str = "**********"
-        hf_str = "**********"
-        
-        server_lp_str = f"{server_lp:.6f}" if server_lp is not None else "N/A"
-        hf_lp_str = f"{hf_lp:.6f}" if hf_lp is not None else "N/A"
-        
-        lp_diff = ""
-        if server_lp is not None and hf_lp is not None:
-            diff = abs(server_lp - hf_lp)
-            lp_diff = f"{diff:.6f}"
-        
-        # Highlight divergence
-        if server_tok != hf_tok:
-            if first_divergence is None:
-                first_divergence = i
-            print(f"\033[91m{i:<5} {match:<6} {server_str:<25} {hf_str:<25} {server_lp_str:>12} {hf_lp_str:>12} {lp_diff:>10}\033[0m")
-        else:
-            print(f"{i:<5} {match:<6} {server_str:<25} {hf_str:<25} {server_lp_str:>12} {hf_lp_str:>12} {lp_diff:>10}")
-        
-        # Print top logprobs for this position
-        if i < len(server_top_logprobs) and server_top_logprobs[i]:
-            server_top = server_top_logprobs[i]
-            # Convert server format {token_str: "**********"
-            server_top_list = []
-            for tok_str, lp in server_top.items():
-                # Try to get token ID by encoding the token string
-                tok_ids = "**********"=False)
-                tok_id = tok_ids[0] if tok_ids else -1
-                server_top_list.append((tok_id, tok_str, lp))
-            server_top_list.sort(key=lambda x: x[2], reverse=True)
-            server_top_str = " | ".join([f"{tid}({repr(ts)}):{lp:.4f}" for tid, ts, lp in server_top_list[:5]])
-            print(f"      Server top: {server_top_str}")
-        
-        if i < len(hf_top_logprobs):
-            hf_top = hf_top_logprobs[i]
-            hf_top_str = "**********"=5)
-            print(f"      HF top:     {hf_top_str}")
-        
-        print()  # Blank line between positions
-    
-    print("-" * 120)
-    
-    if first_divergence is not None:
-        print(f"\n\033[91mFIRST DIVERGENCE at position {first_divergence}\033[0m")
-        print(f"  Server chose: "**********"
-        print(f"  HF chose: "**********"
-        
-        # Show top logprobs at divergence point
-        if first_divergence < len(server_top_logprobs) and server_top_logprobs[first_divergence]:
-            print(f"\n  Server top logprobs at divergence:")
-            server_top = server_top_logprobs[first_divergence]
-            for tok_str, lp in sorted(server_top.items(), key=lambda x: x[1], reverse=True):
-                print(f"    {repr(tok_str)}: {lp:.6f}")
-        
-        if first_divergence < len(hf_top_logprobs):
-            print(f"\n  HF top logprobs at divergence:")
-            for tok_id, lp in hf_top_logprobs[first_divergence]:
-                tok_str = "**********"
-                print(f"    {tok_id} ({repr(tok_str)}): {lp:.6f}")
-    else:
-        print(f"\n\033[92mALL TOKENS MATCH!\033[0m")
-    
-    # Decode full outputs
-    print("\n" + "=" * 120)
-    print("DECODED OUTPUTS")
-    print("=" * 120)
-    print(f"\nServer output: "**********"
-    print(f"\nHF output: "**********"
-
-
-def main():
-    parser = argparse.ArgumentParser(description="Compare LLM server vs HuggingFace Transformers")
-    parser.add_argument(
-        "--model-path",
-        default="/dev/shm/llama-v3p1-8b-instruct",
-        help="Path to the model (used for HF comparison)",
-    )
-    parser.add_argument(
-        "--server-url",
-        default="http://localhost:80",
-        help="URL of the local LLM server",
-    )
-    parser.add_argument(
-        "--prompt",
-        default="The capital of France is",
-        help="Prompt to use for comparison",
-    )
-    parser.add_argument(
-        "--max-tokens",
-        type=int,
-        default=50,
-        help= "**********"
-    )
-    parser.add_argument(
-        "--device",
-        default="cuda",
-        help="Device for HuggingFace model (cuda or cpu)",
-    )
-    parser.add_argument(
-        "--dtype",
-        default="bfloat16",
-        choices=["float32", "float16", "bfloat16"],
-        help="Data type for HuggingFace model",
-    )
-    parser.add_argument(
-        "--server-model",
-        default="accounts/shm/models/llama-v3p1-8b-instruct",
-        help="Model name to use for the server API",
-    )
-    
-    args = parser.parse_args()
-    
-    # Map dtype string to torch dtype
-    dtype_map = {
-        "float32": torch.float32,
-        "float16": torch.float16,
-        "bfloat16": torch.bfloat16,
-    }
-    torch_dtype = dtype_map[args.dtype]
-    
-    print("=" * 100)
-    print("LLM SERVER vs HUGGINGFACE TRANSFORMERS COMPARISON")
-    print("=" * 100)
-    print(f"Model path: {args.model_path}")
-    print(f"Server URL: {args.server_url}")
-    print(f"Prompt: {repr(args.prompt)}")
-    print(f"Max tokens: "**********"
-    print(f"Device: {args.device}")
-    print(f"Dtype: {args.dtype}")
-    
-    # Load tokenizer
-    print("\nLoading tokenizer...")
-    tokenizer = "**********"
-    
-    # Apply chat template to get proper formatting with BOS tokens, etc.
-    messages = [{"role": "user", "content": args.prompt}]
-    formatted_prompt_ids = "**********"
-        messages,
-        add_generation_prompt=True,  # Add the assistant turn start
-        return_tensors=None,  # Return list of ints
-    )
-    formatted_prompt_text = "**********"
-    
-    print(f"\nFormatted prompt ({len(formatted_prompt_ids)} tokens): "**********"
-    print(f"  Token IDs: "**********"
-    print(f"  Text: {repr(formatted_prompt_text)}")
-    
-    # Step 1: Get server completion
-    print("\n" + "-" * 50)
-    print("Getting completion from server...")
-    try:
-        server_response = get_server_completion(
-            formatted_prompt_text,  # Use the formatted prompt text
-            args.server_url,
-            args.max_tokens,
-            temperature=0.0,
-            model=args.server_model,
-        )
-        print(f"Server response received")
-        
-        # Extract tokens from server response
-        choice = server_response["choices"][0]
-        server_text = choice["text"]
-        
-        # Get token IDs directly from logprobs (server returns them)
- "**********"  "**********"  "**********"  "**********"  "**********"  "**********"  "**********"  "**********"  "**********"i "**********"f "**********"  "**********"" "**********"l "**********"o "**********"g "**********"p "**********"r "**********"o "**********"b "**********"s "**********"" "**********"  "**********"i "**********"n "**********"  "**********"c "**********"h "**********"o "**********"i "**********"c "**********"e "**********"  "**********"a "**********"n "**********"d "**********"  "**********"c "**********"h "**********"o "**********"i "**********"c "**********"e "**********"[ "**********"" "**********"l "**********"o "**********"g "**********"p "**********"r "**********"o "**********"b "**********"s "**********"" "**********"] "**********"  "**********"a "**********"n "**********"d "**********"  "**********"" "**********"t "**********"o "**********"k "**********"e "**********"n "**********"_ "**********"i "**********"d "**********"s "**********"" "**********"  "**********"i "**********"n "**********"  "**********"c "**********"h "**********"o "**********"i "**********"c "**********"e "**********"[ "**********"" "**********"l "**********"o "**********"g "**********"p "**********"r "**********"o "**********"b "**********"s "**********"" "**********"] "**********": "**********"
-            server_tokens = "**********"
-            server_logprobs = "**********"
-            server_top_logprobs = choice["logprobs"].get("top_logprobs", [])
-        else:
-            # Fall back to re-tokenizing the output
-            print("Warning: "**********"
-            server_tokens = "**********"=False)
-            server_logprobs = "**********"
-            server_top_logprobs = []
-            
-        print(f"Server generated {len(server_tokens)} tokens")
-        print(f"Server token IDs: "**********"
-        print(f"Server raw response:\n{json.dumps(server_response, indent=2)[:2000]}")
-        
-    except requests.exceptions.ConnectionError:
-        print("\033[91mERROR: Could not connect to server. Make sure it's running:\033[0m")
-        print("  CUDA_VISIBLE_DEVICES=7 python -m fireworks.serving.text_completion /dev/shm/llama-v3p1-8b-instruct -b 8")
-        return 1
-    except Exception as e:
-        print(f"\033[91mERROR getting server completion: {e}\033[0m")
-        return 1
-    
-    # Step 2: Get HuggingFace completion  
-    print("\n" + "-" * 50)
-    print("Loading HuggingFace model...")
-    model = AutoModelForCausalLM.from_pretrained(
-        args.model_path,
-        torch_dtype=torch_dtype,
-        device_map=args.device,
-    )
-    model.eval()
-    
-    print("Getting completion from HuggingFace...")
-    hf_tokens, hf_logprobs, hf_top_logprobs = "**********"
-        formatted_prompt_ids,  # Use the same formatted prompt IDs
-        model,
-        tokenizer,
-        max_new_tokens= "**********"
-        top_k_logprobs=5,
-    )
-    print(f"HF generated {len(hf_tokens)} tokens")
-    
-    # Step 3: Compare
-    compare_tokens(
-        server_tokens, server_logprobs, server_top_logprobs,
-        hf_tokens, hf_logprobs, hf_top_logprobs,
-        tokenizer
-    )
-    
-    return 0
-
-
-if __name__ == "__main__":
-    exit(main())
+echo "Uploading to package registry..."
+echo "TODO: implement upload step (curl to GitLab Generic Package Registry, S3, etc.)"
+echo "Created: ${TARBALL}"
