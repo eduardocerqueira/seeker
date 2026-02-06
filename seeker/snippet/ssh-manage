@@ -1,0 +1,245 @@
+#date: 2026-02-06T17:24:59Z
+#url: https://api.github.com/gists/8cc6cb2bdcc1b177ab68bf7e1a11079f
+#owner: https://api.github.com/users/colonel-otto
+
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ssh-manage: GitHub-centric SSH key management
+#
+# GitHub is the single source of truth. Every machine:
+#   1. Generates its own key
+#   2. Registers it with GitHub via `gh`
+#   3. Pulls ALL your GitHub keys into authorized_keys
+#
+# Commands:
+#   ssh-manage setup    Generate key + register with GitHub + sync all keys
+#   ssh-manage sync     Pull all GitHub keys into authorized_keys
+#   ssh-manage status   Show local key + all GitHub-registered keys
+
+GITHUB_USER="colonel-otto"
+KEY_TYPE="ed25519"
+
+BOLD='\033[1m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+CYAN='\033[0;36m'
+DIM='\033[2m'
+NC='\033[0m'
+
+log()  { echo -e "${GREEN}[+]${NC} $*"; }
+warn() { echo -e "${YELLOW}[!]${NC} $*"; }
+err()  { echo -e "${RED}[x]${NC} $*" >&2; }
+info() { echo -e "${CYAN}[i]${NC} $*"; }
+
+hostname_label() {
+    hostname -s 2>/dev/null || hostname
+}
+
+ensure_gh() {
+    if ! command -v gh &>/dev/null; then
+        err "GitHub CLI (gh) is required but not installed."
+        echo ""
+        echo "  Install:"
+        echo "    Ubuntu/Debian:  sudo apt install gh"
+        echo "    Arch:           sudo pacman -S github-cli"
+        echo "    macOS:          brew install gh"
+        exit 1
+    fi
+
+    if ! gh auth status &>/dev/null 2>&1; then
+        warn "GitHub CLI not authenticated. Starting login..."
+        echo ""
+        gh auth login -p ssh
+    fi
+}
+
+cmd_setup() {
+    local key_path="$HOME/.ssh/id_${KEY_TYPE}"
+    local pubkey_path="${key_path}.pub"
+    local host_label
+    host_label="$(hostname_label)"
+
+    echo -e "${BOLD}=== Setup: ${host_label} ===${NC}"
+    echo ""
+
+    # 1. Ensure SSH key exists
+    mkdir -p ~/.ssh && chmod 700 ~/.ssh
+
+    if [[ -f "$key_path" ]]; then
+        info "Key already exists: $key_path"
+        echo "    $(ssh-keygen -lf "$key_path")"
+    else
+        log "Generating $KEY_TYPE key..."
+        ssh-keygen -t "$KEY_TYPE" -C "rustee@${host_label}" -f "$key_path" -N ""
+        log "Key created."
+    fi
+
+    echo ""
+
+    # 2. Ensure gh is authenticated
+    ensure_gh
+
+    echo ""
+
+    # 3. Register key with GitHub
+    local pubkey_data
+    pubkey_data="$(awk '{print $2}' "$pubkey_path")"
+
+    if gh ssh-key list 2>/dev/null | grep -qF "$pubkey_data"; then
+        info "This key is already registered on GitHub."
+    else
+        log "Registering key with GitHub as '${host_label}'..."
+        gh ssh-key add "$pubkey_path" --title "$host_label"
+        log "Registered."
+    fi
+
+    echo ""
+
+    # 4. Sync all keys
+    cmd_sync
+
+    echo ""
+    echo -e "${BOLD}=== Setup Complete ===${NC}"
+    echo ""
+    log "This machine can now:"
+    echo "    - Push/pull to GitHub repos via SSH"
+    echo "    - Be SSH'd into by any of your other machines"
+    echo "    - SSH into any machine that has run 'ssh-manage sync'"
+}
+
+cmd_sync() {
+    echo -e "${BOLD}=== Syncing keys from GitHub ===${NC}"
+    echo ""
+
+    ensure_gh
+
+    local tmpfile
+    tmpfile=$(mktemp)
+    trap 'rm -f "${tmpfile:-}"' EXIT
+
+    gh api "users/${GITHUB_USER}/keys" --jq '.[] | .key' > "$tmpfile" 2>/dev/null || {
+        err "Failed to fetch keys from GitHub."
+        exit 1
+    }
+
+    local total
+    total=$(wc -l < "$tmpfile")
+    info "Found $total keys on GitHub for ${GITHUB_USER}"
+
+    mkdir -p ~/.ssh && chmod 700 ~/.ssh
+    touch ~/.ssh/authorized_keys
+    chmod 600 ~/.ssh/authorized_keys
+
+    local added=0
+    local skipped=0
+
+    while IFS= read -r key; do
+        local key_fingerprint
+        key_fingerprint="$(echo "$key" | awk '{print $2}')"
+
+        if grep -qF "$key_fingerprint" ~/.ssh/authorized_keys 2>/dev/null; then
+            skipped=$((skipped + 1))
+        else
+            echo "$key ${GITHUB_USER}@github" >> ~/.ssh/authorized_keys
+            added=$((added + 1))
+        fi
+    done < "$tmpfile"
+
+    echo ""
+    log "Sync complete: ${GREEN}$added added${NC}, $skipped already present."
+}
+
+cmd_status() {
+    local host_label
+    host_label="$(hostname_label)"
+
+    echo -e "${BOLD}=== SSH Status: ${host_label} ===${NC}"
+    echo ""
+
+    # Local key
+    local key_path="$HOME/.ssh/id_${KEY_TYPE}"
+    if [[ -f "$key_path" ]]; then
+        log "Local key: $key_path"
+        echo "    $(ssh-keygen -lf "$key_path")"
+    else
+        warn "No local key. Run: ssh-manage setup"
+    fi
+
+    echo ""
+
+    # gh auth
+    if command -v gh &>/dev/null; then
+        if gh auth status &>/dev/null 2>&1; then
+            log "GitHub CLI: authenticated"
+        else
+            warn "GitHub CLI: not authenticated. Run: ssh-manage setup"
+        fi
+    else
+        warn "GitHub CLI: not installed"
+    fi
+
+    echo ""
+
+    # GitHub keys
+    info "Keys registered on GitHub (${GITHUB_USER}):"
+    echo ""
+    printf "    ${DIM}%-22s %-14s %s${NC}\n" "NAME" "TYPE" "ADDED"
+    printf "    ${DIM}%-22s %-14s %s${NC}\n" "----" "----" "-----"
+
+    if command -v gh &>/dev/null && gh auth status &>/dev/null 2>&1; then
+        local local_pubkey_data=""
+        if [[ -f "${key_path}.pub" ]]; then
+            local_pubkey_data="$(awk '{print $2}' "${key_path}.pub")"
+        fi
+
+        while IFS=$'\t' read -r title key_full date _id _type; do
+            local key_algo key_data
+            key_algo="$(echo "$key_full" | awk '{print $1}' | sed 's/ssh-//')"
+            key_data="$(echo "$key_full" | awk '{print $2}')"
+            local short_date="${date:0:10}"
+            local marker=""
+            if [[ -n "$local_pubkey_data" && "$key_data" == "$local_pubkey_data" ]]; then
+                marker=" ${GREEN}<-- this machine${NC}"
+            fi
+            printf "    %-22s %-14s %s" "$title" "$key_algo" "$short_date"
+            echo -e "$marker"
+        done < <(gh ssh-key list 2>/dev/null)
+    fi
+
+    echo ""
+
+    # authorized_keys summary
+    local auth_count=0
+    local github_count=0
+    if [[ -f ~/.ssh/authorized_keys ]]; then
+        auth_count=$(grep -c . ~/.ssh/authorized_keys 2>/dev/null || echo 0)
+        github_count=$(grep -c "github" ~/.ssh/authorized_keys 2>/dev/null || echo 0)
+    fi
+    info "authorized_keys: $auth_count total ($github_count from GitHub)"
+}
+
+# --- Main --------------------------------------------------------------------
+case "${1:-help}" in
+    setup)        cmd_setup ;;
+    sync)         cmd_sync ;;
+    status)       cmd_status ;;
+    help|--help)
+        echo -e "${BOLD}ssh-manage${NC} - GitHub-centric SSH key management"
+        echo ""
+        echo "Commands:"
+        echo "  setup     Generate key + register with GitHub + sync all keys"
+        echo "  sync      Pull all GitHub keys into authorized_keys"
+        echo "  status    Show local key + all GitHub-registered keys"
+        echo ""
+        echo "New machine:"
+        echo "  sudo apt install gh && gh auth login"
+        echo "  bash <(curl -sL <gist-url>) setup"
+        ;;
+    *)
+        err "Unknown command: $1"
+        echo "Commands: setup, sync, status"
+        exit 1
+        ;;
+esac

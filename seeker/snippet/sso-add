@@ -1,0 +1,96 @@
+#date: 2026-02-06T17:37:09Z
+#url: https://api.github.com/gists/bdc732b8774749311af75219fa6e86dd
+#owner: https://api.github.com/users/ricwo
+
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.11"
+# ///
+
+import argparse
+import json
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+STANDARD_MAPPING = SCRIPT_DIR / "Standard_Azure_attribute_mapping_for_supabase.json"
+DEFAULT_PROJECT_REF = "oudzkevdvvkndzkgndiw"
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Add a SAML SSO provider to Supabase in one step."
+    )
+    parser.add_argument("customer", help="Customer name (used for folder creation)")
+    parser.add_argument("--metadata-file", required=True, type=Path, help="SAML 2.0 Metadata XML file")
+    parser.add_argument("--domains", required=True, help="Comma-separated email domains")
+    parser.add_argument("--project-ref", default=DEFAULT_PROJECT_REF, help=f"Supabase project ref (default: {DEFAULT_PROJECT_REF})")
+    parser.add_argument("--mapping-file", type=Path, default=STANDARD_MAPPING, help="Custom attribute mapping JSON")
+    parser.add_argument("--dry-run", action="store_true", help="Print command without executing")
+    args = parser.parse_args()
+
+    metadata = Path(args.metadata_file).expanduser().resolve()
+    mapping = Path(args.mapping_file).expanduser().resolve()
+
+    if not metadata.exists():
+        sys.exit(f"Error: metadata file not found: {metadata}")
+    if not mapping.exists():
+        sys.exit(f"Error: mapping file not found: {mapping}")
+
+    # Create customer dir, copy files for records
+    customer_dir = SCRIPT_DIR / args.customer
+    customer_dir.mkdir(exist_ok=True)
+
+    customer_lower = args.customer.lower().replace(" ", "_")
+    dest_metadata = customer_dir / metadata.name
+    dest_mapping = customer_dir / f"{customer_lower}_cogram_saml_attribute_mapping.json"
+
+    shutil.copy2(metadata, dest_metadata)
+    shutil.copy2(mapping, dest_mapping)
+
+    cmd = [
+        "supabase", "sso", "add",
+        "--type", "saml",
+        "--project-ref", args.project_ref,
+        "--metadata-file", str(dest_metadata),
+        "--domains", args.domains,
+        "--attribute-mapping-file", str(dest_mapping),
+        "-o", "json",
+    ]
+
+    print(f"Customer:  {args.customer}")
+    print(f"Project:   {args.project_ref}")
+    print(f"Domains:   {args.domains}")
+    print(f"Metadata:  {dest_metadata}")
+    print(f"Mapping:   {dest_mapping}")
+    print()
+
+    if args.dry_run:
+        print(f"[dry-run] {' '.join(cmd)}")
+        return
+
+    print(f"Running: {' '.join(cmd)}")
+    print()
+
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    output = result.stdout
+    print(output)
+
+    if result.returncode != 0:
+        print(result.stderr, file=sys.stderr)
+        sys.exit(result.returncode)
+
+    # Extract and save provider ID
+    try:
+        provider_id = json.loads(output)["id"]
+        print(f"Provider ID: {provider_id}")
+        (customer_dir / "provider_id.txt").write_text(provider_id + "\n")
+        print(f"Saved to: {customer_dir / 'provider_id.txt'}")
+    except (json.JSONDecodeError, KeyError):
+        print("Warning: could not extract provider ID from output", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()
