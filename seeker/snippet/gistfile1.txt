@@ -1,0 +1,146 @@
+#date: 2026-02-10T17:57:16Z
+#url: https://api.github.com/gists/0f633178316e91858460e70ef633ee4c
+#owner: https://api.github.com/users/NQevxvEtg
+
+#!/bin/bash
+
+: << 'END_COMMENT'
+Gate 1: Mount Options (noexec)
+    Kernel says: "This partition is for data only. No programs allowed."
+    Result: Blocked immediately. fapolicyd is asleep.
+
+Gate 2: File Permissions (DAC)
+    Kernel says: "Does the user have +x permission on this file?"
+
+Gate 3: SELinux (MAC)
+    Kernel says: "Does the security context allow this process to execute this file type?"
+
+Gate 4: fapolicyd (Application Control)
+    Daemon says: "Is this file hash/path in my trust database?"
+END_COMMENT
+
+# --- CONFIGURATION ---
+RULES_FILE="/etc/fapolicyd/rules.d/80-auto-allow.rules"
+DEBUG_LOG="/tmp/fapolicyd-debug.log"
+
+# --- COLORS ---
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+# --- CLEANUP ---
+function cleanup() {
+    echo ""
+    echo "-----------------------------------------------------"
+    echo " STOPPING..."
+    echo "-----------------------------------------------------"
+    
+    if [ -n "$FAP_PID" ]; then 
+        echo " [*] Killing debug process ($FAP_PID)..."
+        kill "$FAP_PID" 2>/dev/null
+        
+        # CRITICAL FIX: Wait for the process to actually die!
+        # Prevents systemd from seeing the file lock and failing.
+        wait "$FAP_PID" 2>/dev/null 
+    fi
+    
+    # Extra safety buffer for the kernel to release the file lock
+    sleep 2 
+    
+    echo " [*] Restarting fapolicyd service..."
+    
+    # Check if we need to reset a failed state first
+    if systemctl is-failed --quiet fapolicyd; then
+        systemctl reset-failed fapolicyd
+    fi
+
+    systemctl start fapolicyd
+    
+    # Verify start
+    if systemctl is-active --quiet fapolicyd; then
+        echo -e "${GREEN} [OK] Service restored successfully.${NC}"
+    else
+        echo -e "${RED} [!] Service failed to start. Run: sudo systemctl status fapolicyd${NC}"
+    fi
+
+    rm -f "$DEBUG_LOG"
+    exit 0
+}
+
+trap cleanup SIGINT
+
+# --- PRE-FLIGHT ---
+[ "$EUID" -eq 0 ] || { echo "Must run as root."; exit 1; }
+touch "$RULES_FILE"; chmod 644 "$RULES_FILE"
+
+echo "-----------------------------------------------------"
+echo " FAPOLICYD UNIVERSAL MONITOR (Exec + Open + Any)"
+echo "-----------------------------------------------------"
+echo " [*] Stopping background service..."
+systemctl stop fapolicyd
+
+echo " [*] Starting fapolicyd (Redirecting to $DEBUG_LOG)..."
+# Start fapolicyd in background, writing to file
+fapolicyd --permissive --debug > "$DEBUG_LOG" 2>&1 &
+FAP_PID=$!
+
+# Give it a moment to initialize
+sleep 2
+
+echo " [*] Monitoring active..." 
+echo "     (Switch to your User terminal and run the blocked app)"
+echo "-----------------------------------------------------"
+
+# --- THE PURE BASH LOOP (No grep = No hang) ---
+tail -f "$DEBUG_LOG" | while read -r line; do
+    
+    # CASE 1: DENIAL (Block)
+    if [[ "$line" == *"deny"* ]]; then
+        
+        # Extract Path
+        if [[ "$line" =~ path=\"?([^[:space:]\"]+)\"? ]]; then
+            BLOCKED_PATH="${BASH_REMATCH[1]}"
+            
+            # Extract FTYPE
+            if [[ "$line" =~ ftype=([^[:space:]]+) ]]; then
+                FTYPE="${BASH_REMATCH[1]}"
+                
+                # Extract PERMISSION (execute, open, write, any)
+                PERM="execute" # Default fallback
+                if [[ "$line" =~ perm=([^[:space:]]+) ]]; then
+                    PERM="${BASH_REMATCH[1]}"
+                fi
+                
+                # Check duplication (Avoid writing the same rule twice)
+                # We read the file into a variable first to avoid spawning 'grep'
+                CURRENT_RULES=$(<"$RULES_FILE")
+                if [[ "$CURRENT_RULES" != *"$BLOCKED_PATH"* ]]; then
+                    
+                    echo -e "${RED}[!] BLOCK DETECTED:${NC} $BLOCKED_PATH ($PERM)"
+                    
+                    # INTELLIGENT RULE GENERATION (Final Update)
+                    # Instead of guessing 'open' vs 'execute', we trust the Kernel.
+                    # If fapolicyd blocked 'open', we allow 'open'.
+                    # If it blocked 'execute', we allow 'execute'.
+                    
+                    NEW_RULE="allow perm=$PERM all : path=$BLOCKED_PATH ftype=$FTYPE"
+                    
+                    echo "$NEW_RULE" >> "$RULES_FILE"
+                    echo -e "${GREEN}    [+] Rule Added:${NC} $NEW_RULE"
+                fi
+            fi
+        fi
+
+    # CASE 2: ALLOW (Success - Just for visibility)
+    elif [[ "$line" == *"allow"* ]]; then
+        if [[ "$line" =~ path=\"?([^[:space:]\"]+)\"? ]]; then
+            ALLOWED_PATH="${BASH_REMATCH[1]}"
+            # Extract Rule Number
+            if [[ "$line" =~ rule=([0-9]+) ]]; then
+                RULE_NUM="${BASH_REMATCH[1]}"
+                echo -e "${CYAN}[i] ALLOWED:${NC} $ALLOWED_PATH (Rule $RULE_NUM)"
+            fi
+        fi
+    fi
+done
