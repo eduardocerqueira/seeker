@@ -1,0 +1,60 @@
+#date: 2026-02-13T17:34:28Z
+#url: https://api.github.com/gists/8d4af6ee5507915be2a27cea2e55e9b3
+#owner: https://api.github.com/users/saschabuehrle
+
+#!/bin/bash
+set -euo pipefail
+
+DEMO_REPO="https://github.com/lemony-ai/cascadeflow-terminal.git"
+INSTALL_DIR="${HOME}/.cascadeflow-demo"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+DIM='\033[2m'
+NC='\033[0m'
+
+echo ""
+echo -e "  ${BOLD}${CYAN}cascadeflow${NC} investor demo installer"
+echo ""
+
+# Check Node.js
+if command -v node &> /dev/null; then
+    NODE_VERSION=$(node -v)
+    NODE_MAJOR=$(echo "$NODE_VERSION" | sed 's/v//' | cut -d. -f1)
+    if [ "$NODE_MAJOR" -lt 18 ]; then
+        echo -e "  ${RED}✗${NC} Node.js ${NODE_VERSION} found, but >= 18 required"
+        echo "    https://nodejs.org/"
+        exit 1
+    fi
+    echo -e "  ${GREEN}✓${NC} Node.js ${NODE_VERSION}"
+else
+    echo -e "  ${RED}✗${NC} Node.js not found. Please install Node.js >= 18"
+    echo "    https://nodejs.org/"
+    exit 1
+fi
+
+# Clone or update
+if [ -d "${INSTALL_DIR}/.git" ]; then
+    echo -e "  ${CYAN}↻${NC} Updating..."
+    cd "${INSTALL_DIR}" && git pull --quiet
+else
+    echo -e "  ${CYAN}↓${NC} Downloading..."
+    rm -rf "${INSTALL_DIR}"
+    git clone --quiet "${DEMO_REPO}" "${INSTALL_DIR}"
+fi
+echo -e "  ${GREEN}✓${NC} Source ready"
+
+# Install deps
+echo -e "  ${CYAN}◐${NC} Installing dependencies..."
+cd "${INSTALL_DIR}" && npm install --silent 2>/dev/null
+echo -e "  ${GREEN}✓${NC} Dependencies installed"
+
+echo ""
+echo -e "  ${BOLD}${CYAN}Starting cascadeflow demo...${NC}"
+echo ""
+
+# Launch — CASCADE_API_URL inherited from environment if set
+exec npx tsx src/index.tsx
