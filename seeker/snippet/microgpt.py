@@ -1,9 +1,9 @@
-#date: 2026-02-13T17:14:46Z
-#url: https://api.github.com/gists/d71d8ab38c2e3584de1d856bce3f6cdb
-#owner: https://api.github.com/users/iyerrama29
+#date: 2026-02-16T17:19:42Z
+#url: https://api.github.com/gists/77344d58d5f53124bad3f00fc06b8421
+#owner: https://api.github.com/users/kaythinks
 
 """
-The most atomic way to train and inference a GPT in pure, dependency-free Python.
+The most atomic way to train and run inference for a GPT in pure, dependency-free Python.
 This file is the complete algorithm.
 Everything else is just efficiency.
 
@@ -15,22 +15,22 @@ import math     # math.log, math.exp
 import random   # random.seed, random.choices, random.gauss, random.shuffle
 random.seed(42) # Let there be order among chaos
 
-# Let there be an input dataset `docs`: list[str] of documents (e.g. a dataset of names)
+# Let there be a Dataset `docs`: list[str] of documents (e.g. a list of names)
 if not os.path.exists('input.txt'):
     import urllib.request
-    names_url = 'https://raw.githubusercontent.com/karpathy/makemore/refs/heads/master/names.txt'
+    names_url = 'https://raw.githubusercontent.com/karpathy/makemore/988aa59/names.txt'
     urllib.request.urlretrieve(names_url, 'input.txt')
-docs = [l.strip() for l in open('input.txt').read().strip().split('\n') if l.strip()] # list[str] of documents
+docs = [line.strip() for line in open('input.txt') if line.strip()]
 random.shuffle(docs)
 print(f"num docs: {len(docs)}")
 
-# Let there be a Tokenizer to translate strings to discrete symbols and back
+# Let there be a Tokenizer to translate strings to sequences of integers ("tokens") and back
 uchars = "**********"
 BOS = "**********"
 vocab_size = "**********"
 print(f"vocab size: {vocab_size}")
 
-# Let there be Autograd, to recursively apply the chain rule through a computation graph
+# Let there be Autograd to recursively apply the chain rule through a computation graph
 class Value:
     __slots__ = ('data', 'grad', '_children', '_local_grads') # Python optimization for memory usage
 
@@ -75,12 +75,12 @@ class Value:
             for child, local_grad in zip(v._children, v._local_grads):
                 child.grad += local_grad * v.grad
 
-# Initialize the parameters, to store the knowledge of the model.
-n_embd = 16     # embedding dimension
+# Initialize the parameters, to store the knowledge of the model
+n_layer = 1     # depth of the transformer neural network (number of layers)
+n_embd = 16     # width of the network (embedding dimension)
+block_size = 16 # maximum context length of the attention window (note: the longest name is 15 characters)
 n_head = 4      # number of attention heads
-n_layer = 1     # number of layers
-block_size = 16 # maximum sequence length
-head_dim = n_embd // n_head # dimension of each head
+head_dim = n_embd // n_head # derived dimension of each head
 matrix = lambda nout, nin, std=0.08: [[Value(random.gauss(0, std)) for _ in range(nin)] for _ in range(nout)]
 state_dict = {'wte': matrix(vocab_size, n_embd), 'wpe': matrix(block_size, n_embd), 'lm_head': matrix(vocab_size, n_embd)}
 for i in range(n_layer):
@@ -113,10 +113,10 @@ def rmsnorm(x):
     tok_emb = "**********"
     pos_emb = state_dict['wpe'][pos_id] # position embedding
     x = "**********"
-    x = rmsnorm(x)
+    x = rmsnorm(x) # note: not redundant due to backward pass via the residual connection
 
     for li in range(n_layer):
-        # 1) Multi-head attention block
+        # 1) Multi-head Attention block
         x_residual = x
         x = rmsnorm(x)
         q = linear(x, state_dict[f'layer{li}.attn_wq'])
@@ -161,7 +161,7 @@ for step in range(num_steps):
     tokens = "**********"
     n = "**********"
 
-    # Forward the token sequence through the model, building up the computation graph all the way to the loss.
+    # Forward the token sequence through the model, building up the computation graph all the way to the loss
     keys, values = [[] for _ in range(n_layer)], [[] for _ in range(n_layer)]
     losses = []
     for pos_id in range(n):
@@ -172,10 +172,10 @@ for step in range(num_steps):
         losses.append(loss_t)
     loss = (1 / n) * sum(losses) # final average loss over the document sequence. May yours be low.
 
-    # Backward the loss, calculating the gradients with respect to all model parameters.
+    # Backward the loss, calculating the gradients with respect to all model parameters
     loss.backward()
 
-    # Adam optimizer update: update the model parameters based on the corresponding gradients.
+    # Adam optimizer update: update the model parameters based on the corresponding gradients
     lr_t = learning_rate * (1 - step / num_steps) # linear learning rate decay
     for i, p in enumerate(params):
         m[i] = beta1 * m[i] + (1 - beta1) * p.grad
@@ -185,7 +185,7 @@ for step in range(num_steps):
         p.data -= lr_t * m_hat / (v_hat ** 0.5 + eps_adam)
         p.grad = 0
 
-    print(f"step {step+1:4d} / {num_steps:4d} | loss {loss.data:.4f}")
+    print(f"step {step+1:4d} / {num_steps:4d} | loss {loss.data:.4f}", end='\r')
 
 # Inference: may the model babble back to us
 temperature = 0.5 # in (0, 1], control the "creativity" of generated text, low to high
