@@ -1,0 +1,178 @@
+#date: 2026-02-18T17:32:07Z
+#url: https://api.github.com/gists/ea69eb9c5e59b09ff955f55c7463f8d5
+#owner: https://api.github.com/users/tichopad
+
+#!/bin/zsh
+# ghw - Run a GitHub Actions workflow and wait for it to complete
+# Triggers a workflow via GitHub CLI, then watches it until completion
+
+set -e
+
+# Text formatting
+BOLD='\033[1m'
+RESET='\033[0m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+RED='\033[0;31m'
+YELLOW='\033[0;33m'
+
+usage() {
+  echo "${BOLD}Usage:${RESET}"
+  echo "  ghw <workflow> [options]"
+  echo ""
+  echo "${BOLD}Description:${RESET}"
+  echo "  Triggers a GitHub Actions workflow, waits for it to complete,"
+  echo "  streams the logs, and reports the final status and duration."
+  echo ""
+  echo "${BOLD}Arguments:${RESET}"
+  echo "  workflow    The workflow file name, ID, or name (e.g., 'build.yml')"
+  echo ""
+  echo "${BOLD}Options:${RESET}"
+  echo "  -r, --ref <branch>    The branch or tag to run the workflow on (default: current branch)"
+  echo "  -f, --field <key=val> Add a workflow input (can be repeated)"
+  echo "  -R, --repo <owner/repo>  Target repository (default: current repo)"
+  echo "  -q, --quiet           Don't stream logs, just wait and report status"
+  echo "  -h, --help            Show this help message"
+  echo ""
+  echo "${BOLD}Examples:${RESET}"
+  echo "  ghw build.yml"
+  echo "  ghw deploy.yml -r main"
+  echo "  ghw test.yml -f environment=staging -f debug=true"
+  exit 0
+}
+
+error() {
+  echo "${RED}Error: $1${RESET}" >&2
+  exit 1
+}
+
+# Check for gh CLI
+command -v gh >/dev/null 2>&1 || error "GitHub CLI (gh) is not installed. Install it with 'brew install gh'"
+
+# Parse arguments
+workflow=""
+ref=""
+repo_arg=""
+fields=()
+quiet=false
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -h|--help)
+      usage
+      ;;
+    -r|--ref)
+      ref="$2"
+      shift 2
+      ;;
+    -f|--field)
+      fields+=("-f" "$2")
+      shift 2
+      ;;
+    -R|--repo)
+      repo_arg="-R $2"
+      shift 2
+      ;;
+    -q|--quiet)
+      quiet=true
+      shift
+      ;;
+    -*)
+      error "Unknown option: $1"
+      ;;
+    *)
+      if [[ -z "$workflow" ]]; then
+        workflow="$1"
+      else
+        error "Unexpected argument: $1"
+      fi
+      shift
+      ;;
+  esac
+done
+
+[[ -z "$workflow" ]] && error "Workflow name is required. Run 'ghw --help' for usage."
+
+# Build the run command
+ref_arg=""
+[[ -n "$ref" ]] && ref_arg="--ref $ref"
+
+# Record start time
+start_time=$(date +%s)
+
+echo "${BLUE}Triggering workflow:${RESET} ${BOLD}$workflow${RESET}"
+[[ -n "$ref" ]] && echo "${BLUE}On ref:${RESET} $ref"
+
+# Trigger the workflow
+# shellcheck disable=SC2086
+if ! gh workflow run "$workflow" $ref_arg $repo_arg "${fields[@]}" 2>&1; then
+  error "Failed to trigger workflow"
+fi
+
+echo "${GREEN}✓ Workflow triggered${RESET}"
+echo "${BLUE}Waiting for workflow run to appear...${RESET}"
+
+# Wait a moment for the run to be registered
+sleep 2
+
+# Find the most recent run of this workflow
+# We need to poll until we find a run that started after our trigger
+max_attempts=30
+attempt=0
+run_id=""
+
+while [[ -z "$run_id" && $attempt -lt $max_attempts ]]; do
+  # Get runs that are in progress or queued, started after we triggered
+  # shellcheck disable=SC2086
+  run_id=$(gh run list --workflow="$workflow" $repo_arg --limit 5 --json databaseId,status,createdAt \
+    -q '.[] | select(.status == "in_progress" or .status == "queued") | .databaseId' 2>/dev/null | head -1)
+  
+  if [[ -z "$run_id" ]]; then
+    ((attempt++))
+    sleep 1
+  fi
+done
+
+[[ -z "$run_id" ]] && error "Could not find the triggered workflow run. It may have completed very quickly or failed to start."
+
+echo "${GREEN}✓ Found run:${RESET} $run_id"
+echo ""
+
+# Watch the run (streams logs by default)
+watch_exit_code=0
+if [[ "$quiet" == true ]]; then
+  echo "${BLUE}Waiting for completion (quiet mode)...${RESET}"
+  # shellcheck disable=SC2086
+  gh run watch "$run_id" $repo_arg --exit-status >/dev/null 2>&1 || watch_exit_code=$?
+else
+  echo "${BLUE}Streaming logs...${RESET}"
+  echo "─────────────────────────────────────────────────────────────"
+  # shellcheck disable=SC2086
+  gh run watch "$run_id" $repo_arg --exit-status || watch_exit_code=$?
+  echo "─────────────────────────────────────────────────────────────"
+fi
+
+# Calculate duration
+end_time=$(date +%s)
+duration=$((end_time - start_time))
+minutes=$((duration / 60))
+seconds=$((duration % 60))
+
+echo ""
+if [[ $minutes -gt 0 ]]; then
+  echo "${BLUE}Duration:${RESET} ${minutes}m ${seconds}s"
+else
+  echo "${BLUE}Duration:${RESET} ${seconds}s"
+fi
+
+# Report final status
+if [[ $watch_exit_code -eq 0 ]]; then
+  echo "${GREEN}${BOLD}✓ Workflow completed successfully${RESET}"
+  exit 0
+else
+  echo "${RED}${BOLD}✗ Workflow failed${RESET}"
+  # shellcheck disable=SC2086
+  echo "${BLUE}View details:${RESET} gh run view $run_id $repo_arg --web"
+  exit 1
+fi
+
