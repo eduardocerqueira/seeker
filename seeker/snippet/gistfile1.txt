@@ -1,0 +1,26 @@
+#date: 2026-02-20T17:11:41Z
+#url: https://api.github.com/gists/2df09bb2f8627a631445ef1539a46131
+#owner: https://api.github.com/users/cloudseven23
+
+#!/bin/bash
+set -e
+
+if [ -z "$GITHUB_TOKEN" ]; then
+    echo "ERROR: "**********"
+    exit 1
+fi
+
+REPO_DIR="/workspace/scan"
+BRANCH="${GITHUB_BRANCH:-dynamic-orchestrator}"
+GITHUB_REPO="${GITHUB_REPO:-cloudseven23/crypto-hunter}"
+
+echo "Cloning private repo..."
+rm -rf "$REPO_DIR" 2>/dev/null || true
+git clone -b "$BRANCH" "https: "**********"
+
+echo "Running vast_autostart.sh (with logging)..."
+bash "$REPO_DIR/scripts/vast_autostart.sh"
+
+echo "=== BOOTSTRAP COMPLETE ==="pts/vast_autostart.sh"
+
+echo "=== BOOTSTRAP COMPLETE ==="
