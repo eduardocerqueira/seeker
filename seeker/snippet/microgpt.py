@@ -1,6 +1,6 @@
-#date: 2026-02-20T17:22:13Z
-#url: https://api.github.com/gists/fd342d608f36bed7b0d97db5e367f37a
-#owner: https://api.github.com/users/Ayumad
+#date: 2026-02-24T17:50:04Z
+#url: https://api.github.com/gists/21e142bd51ec394739bec8e6b28fd53d
+#owner: https://api.github.com/users/brunodecamus
 
 """
 The most atomic way to train and run inference for a GPT in pure, dependency-free Python.
