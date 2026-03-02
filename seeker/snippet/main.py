@@ -1,23 +1,16 @@
-#date: 2026-02-27T17:23:47Z
-#url: https://api.github.com/gists/ccbb398c6b68a7a954220e29a1e35d71
-#owner: https://api.github.com/users/AlexWaygood
+#date: 2026-03-02T17:29:43Z
+#url: https://api.github.com/gists/0b652aaa4ec3f480216b435fb485e840
+#owner: https://api.github.com/users/mypy-play
 
-from typing import TypeVar, Generic
-
-T = TypeVar("T")
-U = TypeVar("U", default=T)
+from typing import Iterator
 
 
+def fib(n: int) -> Iterator[int]:
+    a, b = 0, 1
+    while a < n:
+        yield a
+        a, b = b, a + b
 
 
-
-
-
-
-
-
-
-
-class Foo(Generic[U, T]):
-    x: U
-    y: T
+fib(10)
+fib("10")
