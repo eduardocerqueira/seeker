@@ -1,5 +1,5 @@
-#date: 2026-03-03T17:24:38Z
-#url: https://api.github.com/gists/82faf1d263cc86c267f94016d33528ee
+#date: 2026-03-03T17:27:04Z
+#url: https://api.github.com/gists/d036e41416d96d287fbe21fbe9222340
 #owner: https://api.github.com/users/edelah
 
 #!/usr/bin/env python3
@@ -88,6 +88,16 @@ def port_file() -> Path:
 
 def ca_cert_file() -> Path:
     return Path(os.getenv('CLAWSSH_TLS_CA_CERT_FILE', str(state_dir() / 'ca.crt'))).expanduser()
+
+
+def certificate_fingerprint_from_pem_file(cert_path: str | os.PathLike[str]) -> str:
+    import hashlib
+    import ssl
+
+    pem_text = Path(cert_path).read_text(encoding='utf-8')
+    certificate_der = ssl.PEM_cert_to_DER_cert(pem_text)
+    digest = hashlib.sha256(certificate_der).hexdigest().upper()
+    return ':'.join(digest[i:i + 2] for i in range(0, len(digest), 2))
 
 
 def ca_key_file() -> Path:

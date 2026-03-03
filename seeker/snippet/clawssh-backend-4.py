@@ -1,5 +1,5 @@
-#date: 2026-03-03T17:24:38Z
-#url: https://api.github.com/gists/82faf1d263cc86c267f94016d33528ee
+#date: 2026-03-03T17:29:29Z
+#url: https://api.github.com/gists/336d1d44a8f09df817f80775fcc379e9
 #owner: https://api.github.com/users/edelah
 
 #!/usr/bin/env python3
@@ -88,6 +88,16 @@ def port_file() -> Path:
 
 def ca_cert_file() -> Path:
     return Path(os.getenv('CLAWSSH_TLS_CA_CERT_FILE', str(state_dir() / 'ca.crt'))).expanduser()
+
+
+def certificate_fingerprint_from_pem_file(cert_path: str | os.PathLike[str]) -> str:
+    import hashlib
+    import ssl
+
+    pem_text = Path(cert_path).read_text(encoding='utf-8')
+    certificate_der = ssl.PEM_cert_to_DER_cert(pem_text)
+    digest = hashlib.sha256(certificate_der).hexdigest().upper()
+    return ':'.join(digest[i:i + 2] for i in range(0, len(digest), 2))
 
 
 def ca_key_file() -> Path:
@@ -764,7 +774,7 @@ def enroll_device(device_id: str, bind_host: str, connect_host: str) -> None:
 
     invite_qr_path = state_dir() / 'enroll_invite.png'
     try:
-        print_invite_qr(invite_link, output_png=invite_qr_path)
+        print_invite_qr(invite_json, output_png=invite_qr_path)
 
         print('Open the enrollment link on your device, or scan the QR code in the ClawSSH app.')
         print(f'Waiting for your device to connect to {enroll_url} ...')
