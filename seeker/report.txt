@@ -1,4 +1,78 @@
 --------------------------------------------------------------------------------
+ 2026-03-11 17:46:35.949565
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/brew-bundle-short-name-repro.sh
+	deleted:    snippet/debt_allocator_proposal_replay.py
+	deleted:    snippet/exemplo_gist.py
+	deleted:    snippet/ps1.zsh
+	deleted:    snippet/python_tip_list_comprehension_speed.py
+	deleted:    snippet/screenai_ocr.go
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/4_deploy_pipeline.py
+	snippet/5_deploy_pipeline.py
+	snippet/AligneLeYamlDeLorchestrator.py
+	snippet/FormatDesYaml.py
+	snippet/__init__.py
+	snippet/agent.py
+	snippet/base_agent.py
+	snippet/check_orchestrator.py
+	snippet/collective_learning.py
+	snippet/color_attr.py
+	snippet/color_dataclass.py
+	snippet/correcteur_orchestrator.py
+	snippet/correcteur_requirements.py
+	snippet/create_frontend_subagents_advanced.py
+	snippet/dashboard_generator.py
+	snippet/deploy_agents.py
+	snippet/diagnose_communication.py
+	snippet/file_based_storage.py
+	snippet/find_string_error.py
+	snippet/fix_agent_imports.py
+	snippet/fix_agent_status.py
+	snippet/fix_agents.py
+	snippet/fix_all_issues.py
+	snippet/fix_communication_handlers.py
+	snippet/fix_communication_subagents.py
+	snippet/fix_indentation.py
+	snippet/fix_orchestrator.py
+	snippet/fix_orchestrator_syntax.py
+	snippet/fix_subagents_annotations.py
+	snippet/generate_agent_classes.py
+	snippet/need_update.sh
+	snippet/replace_orchestrator.py
+	snippet/setup_agents.py
+	snippet/share_github_v8.1.py
+	snippet/share_github_v8.3.py
+	snippet/share_github_v8.4.py
+	snippet/start.py
+	snippet/subAgents.py
+	snippet/test_all_agents.py
+	snippet/test_architect.py
+	snippet/test_detailed.py
+	snippet/test_direct.py
+	snippet/test_formal.py
+	snippet/test_frontend.py
+	snippet/test_frontend_2_0.py
+	snippet/test_frontend_config.py
+	snippet/test_fuzzing.py
+	snippet/test_orchestrator_import.py
+	snippet/test_pipeline.py
+	snippet/test_simple.py
+	snippet/tools.py
+	snippet/update_all.sh
+	snippet/wp_post_cleanup.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2026-03-10 17:42:56.409240
 --------------------------------------------------------------------------------
   On branch main
