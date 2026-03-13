@@ -1,4 +1,78 @@
 --------------------------------------------------------------------------------
+ 2026-03-13 17:32:16.025498
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/4_deploy_pipeline.py
+	deleted:    snippet/5_deploy_pipeline.py
+	deleted:    snippet/AligneLeYamlDeLorchestrator.py
+	deleted:    snippet/FormatDesYaml.py
+	deleted:    snippet/__init__.py
+	deleted:    snippet/agent.py
+	deleted:    snippet/base_agent.py
+	deleted:    snippet/check_orchestrator.py
+	deleted:    snippet/collective_learning.py
+	deleted:    snippet/color_attr.py
+	deleted:    snippet/color_dataclass.py
+	deleted:    snippet/correcteur_orchestrator.py
+	deleted:    snippet/correcteur_requirements.py
+	deleted:    snippet/create_frontend_subagents_advanced.py
+	deleted:    snippet/dashboard_generator.py
+	deleted:    snippet/deploy_agents.py
+	deleted:    snippet/diagnose_communication.py
+	deleted:    snippet/file_based_storage.py
+	deleted:    snippet/find_string_error.py
+	deleted:    snippet/fix_agent_imports.py
+	deleted:    snippet/fix_agent_status.py
+	deleted:    snippet/fix_agents.py
+	deleted:    snippet/fix_all_issues.py
+	deleted:    snippet/fix_communication_handlers.py
+	deleted:    snippet/fix_communication_subagents.py
+	deleted:    snippet/fix_indentation.py
+	deleted:    snippet/fix_orchestrator.py
+	deleted:    snippet/fix_orchestrator_syntax.py
+	deleted:    snippet/fix_subagents_annotations.py
+	deleted:    snippet/generate_agent_classes.py
+	deleted:    snippet/need_update.sh
+	deleted:    snippet/replace_orchestrator.py
+	deleted:    snippet/setup_agents.py
+	deleted:    snippet/share_github_v8.1.py
+	deleted:    snippet/share_github_v8.3.py
+	deleted:    snippet/share_github_v8.4.py
+	deleted:    snippet/start.py
+	deleted:    snippet/subAgents.py
+	deleted:    snippet/test_all_agents.py
+	deleted:    snippet/test_architect.py
+	deleted:    snippet/test_detailed.py
+	deleted:    snippet/test_direct.py
+	deleted:    snippet/test_formal.py
+	deleted:    snippet/test_frontend.py
+	deleted:    snippet/test_frontend_2_0.py
+	deleted:    snippet/test_frontend_config.py
+	deleted:    snippet/test_fuzzing.py
+	deleted:    snippet/test_orchestrator_import.py
+	deleted:    snippet/test_pipeline.py
+	deleted:    snippet/test_simple.py
+	deleted:    snippet/tools.py
+	deleted:    snippet/update_all.sh
+	deleted:    snippet/wp_post_cleanup.sh
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/a.py
+	snippet/dbt_databricks_issue_repro.py
+	snippet/demo_bt_container_isolation.py
+	snippet/finetune_and_deploy_gpt_oss_20b.sh
+	snippet/numero impar ou par.py
+	snippet/soonerxtr.py
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2026-03-12 17:46:18.549658
 --------------------------------------------------------------------------------
   On branch main
