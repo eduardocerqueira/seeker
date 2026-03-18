@@ -1,4 +1,74 @@
 --------------------------------------------------------------------------------
+ 2026-03-18 17:58:02.265234
+--------------------------------------------------------------------------------
+  On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    snippet/4_deploy_pipeline.py
+	deleted:    snippet/5_deploy_pipeline.py
+	deleted:    snippet/AligneLeYamlDeLorchestrator.py
+	deleted:    snippet/App_Automation.py
+	deleted:    snippet/FormatDesYaml.py
+	deleted:    snippet/__init__.py
+	deleted:    snippet/agent.py
+	deleted:    snippet/base_agent.py
+	deleted:    snippet/check_orchestrator.py
+	deleted:    snippet/collective_learning.py
+	deleted:    snippet/conftest.py
+	deleted:    snippet/correcteur_orchestrator.py
+	deleted:    snippet/correcteur_requirements.py
+	deleted:    snippet/diagnose_communication.py
+	deleted:    snippet/dylan.sh
+	deleted:    snippet/factories.py
+	deleted:    snippet/file_based_storage.py
+	deleted:    snippet/find_string_error.py
+	deleted:    snippet/fix_agent_imports.py
+	deleted:    snippet/fix_agent_status.py
+	deleted:    snippet/fix_agents.py
+	deleted:    snippet/fix_communication_subagents.py
+	deleted:    snippet/fix_indentation.py
+	deleted:    snippet/fix_orchestrator.py
+	deleted:    snippet/fix_subagents_annotations.py
+	deleted:    snippet/lg2m.py
+	deleted:    snippet/ntc.py
+	deleted:    snippet/part_service.py
+	deleted:    snippet/partmodel.py
+	deleted:    snippet/partschema.py
+	deleted:    snippet/pr_to_markdown.py
+	deleted:    snippet/scripts.py
+	deleted:    snippet/serve.py
+	deleted:    snippet/setup_agents.py
+	deleted:    snippet/start.py
+	deleted:    snippet/subAgents.py
+	deleted:    snippet/test_all_agents.py
+	deleted:    snippet/test_architect.py
+	deleted:    snippet/test_detailed.py
+	deleted:    snippet/test_direct.py
+	deleted:    snippet/test_formal.py
+	deleted:    snippet/test_frontend.py
+	deleted:    snippet/test_frontend_2_0.py
+	deleted:    snippet/test_frontend_config.py
+	deleted:    snippet/test_fuzzing.py
+	deleted:    snippet/test_orchestrator_import.py
+	deleted:    snippet/test_partfactory.py
+	deleted:    snippet/test_partservice.py
+	deleted:    snippet/test_pipeline.py
+	deleted:    snippet/test_simple.py
+	deleted:    snippet/test_with_missing_data.py
+	deleted:    snippet/tools.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	snippet/getrecycledfiles.sh
+	snippet/gist_demo.py
+	snippet/install-ai-superhub.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+--------------------------------------------------------------------------------
  2026-03-17 18:18:56.955085
 --------------------------------------------------------------------------------
   On branch main
