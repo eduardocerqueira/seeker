@@ -27,7 +27,7 @@ code snippet for later to be analyzed.
 
 ## Requirements
 * GitHub OauthAPI GITHUB_TOKEN
-* Python 3
+* Python 3.12 (LTS)
 
 ## Setup dev env
 
@@ -35,6 +35,13 @@ code snippet for later to be analyzed.
 git clone git@github.com:eduardocerqueira/seeker.git
 cd seeker
 sh ops/scripts/set_dev_env.sh
+
+# reproducible local setup
+python3.12 -m venv venv
+source venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+pip install -e .
 ```
 
 ## Build

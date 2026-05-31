@@ -2,8 +2,7 @@ import sys
 
 import requests
 from os import getenv
-from os.path import join
-from seeker.util import get_config
+from seeker.util import SNIPPET_DIR, get_config
 from github import Github
 
 
@@ -23,7 +22,7 @@ class Gists:
 
     def get(self):
         session = requests.Session()
-        session.auth = (self.user, getenv("TOKEN"))
+        session.auth = (self.user, getenv("GITHUB_TOKEN"))
         headers = {"Accept": "application/vnd.github.v3+json"}
         session.headers.update(headers)
         resp = session.get(self.url, headers=headers).json()
@@ -35,7 +34,7 @@ class Gists:
                     if str(v["language"]).lower() in ["go", "java"]:
                         comment = "//"
                     file_content = session.get(v["raw_url"])
-                    with open(join("./snippet", v["filename"]), "w") as snippet:
+                    with open(SNIPPET_DIR / v["filename"], "w") as snippet:
                         data_header = (
                             f"{comment}date: {gist['created_at']}\n"
                             f"{comment}url: {gist['url']}\n"
@@ -47,7 +46,7 @@ class Gists:
 
 class GitHub:
     _config = "github"
-    gh = Github(login_or_token=getenv("TOKEN"))
+    gh = Github(login_or_token=getenv("GITHUB_TOKEN"))
 
     def get_repo(self):
         repos = self.gh.search_repositories(
