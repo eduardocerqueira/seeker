@@ -17,10 +17,16 @@ setuptools.setup(
     },
     classifiers=[
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.12",
         "Operating System :: Linux",
     ],
+    python_requires=">=3.12,<3.13",
     packages=setuptools.find_packages(include=["seeker", "seeker.*"]),
-    install_requires=["requests>=2.20.0", "PyGithub>=1.55", "click>=8.0.0"],
+    install_requires=[
+        "requests==2.32.5",
+        "PyGithub==2.8.1",
+        "click==8.1.8",
+    ],
     py_modules=["seeker"],
     entry_points={
         "console_scripts": [

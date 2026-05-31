@@ -3,13 +3,19 @@ import json
 import re
 from configparser import ConfigParser
 from datetime import datetime, timedelta
+from pathlib import Path
 from os import remove, rename, listdir
 from subprocess import call, check_output
+
+PACKAGE_DIR = Path(__file__).resolve().parent
+CONFIG_PATH = PACKAGE_DIR / "seeker.conf"
+SNIPPET_DIR = PACKAGE_DIR / "snippet"
+REPORT_FILE = PACKAGE_DIR / "report.txt"
 
 
 def get_config(section, parameter):
     config = ConfigParser()
-    config.read("seeker.conf")
+    config.read(CONFIG_PATH)
     return json.loads(config.get(section, parameter))
 
 
@@ -27,7 +33,7 @@ def git_status(now):
     rs = check_output(["git", "status"], universal_newlines=True)
     line = "-" * 80
     report_header = f"{line}\n " f"{now}\n" f"{line}\n "
-    prepend_line("report.txt", f"{report_header} {rs}")
+    prepend_line(str(REPORT_FILE), f"{report_header} {rs}")
 
 
 def git_push():
@@ -42,11 +48,11 @@ def git_push():
 
 def purge():
     day = get_config("purge", "day")
-    files = listdir("snippet")
+    files = listdir(SNIPPET_DIR)
     for file in files:
-        with open(f"snippet/{file}", "r") as fp:
+        with open(SNIPPET_DIR / file, "r") as fp:
             data = fp.read()
-            re_pattern = "(date:).(\d{4}-\d{2}-\d{2})"
+            re_pattern = r"(date:).(\d{4}-\d{2}-\d{2})"
             for m in re.finditer(re_pattern, data):
                 if m.group(0).__len__() > 0:
                     date_in_header = datetime.strptime(
@@ -55,9 +61,9 @@ def purge():
                     dt = datetime.today() - timedelta(days=day)
                     if date_in_header < dt:
                         logging.info(
-                            f"header: {date_in_header} deleting snippet/{file}"
+                            f"header: {date_in_header} deleting {SNIPPET_DIR / file}"
                         )
-                        remove(f"snippet/{file}")
+                        remove(SNIPPET_DIR / file)
 
 
 def build_regex():
@@ -88,9 +94,9 @@ def obfuscate():
     rules_mask = get_config("obfuscate_rules", "mask")
     re_pattern = build_regex()
 
-    files = listdir("snippet")
+    files = listdir(SNIPPET_DIR)
     for file in files:
-        with open(f"snippet/{file}", "r+") as fp:
+        with open(SNIPPET_DIR / file, "r+") as fp:
             data = fp.read()
             sensitive_data = re.finditer(re_pattern, data, re.IGNORECASE)
             to_replace = {}
@@ -123,3 +129,4 @@ def obfuscate():
                     data = data.replace(k, v)
 
                 fp.write(data)
+                fp.truncate()
