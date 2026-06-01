@@ -50,7 +50,7 @@ def purge():
     day = get_config("purge", "day")
     files = listdir(SNIPPET_DIR)
     for file in files:
-        with open(SNIPPET_DIR / file, "r") as fp:
+        with open(SNIPPET_DIR / file, "r", encoding="utf-8", errors="ignore") as fp:
             data = fp.read()
             re_pattern = r"(date:).(\d{4}-\d{2}-\d{2})"
             for m in re.finditer(re_pattern, data):
@@ -96,7 +96,7 @@ def obfuscate():
 
     files = listdir(SNIPPET_DIR)
     for file in files:
-        with open(SNIPPET_DIR / file, "r+") as fp:
+        with open(SNIPPET_DIR / file, "r+", encoding="utf-8", errors="ignore") as fp:
             data = fp.read()
             sensitive_data = re.finditer(re_pattern, data, re.IGNORECASE)
             to_replace = {}

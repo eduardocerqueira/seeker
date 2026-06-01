@@ -22,10 +22,20 @@ class Gists:
 
     def get(self):
         session = requests.Session()
-        session.auth = (self.user, getenv("GITHUB_TOKEN"))
-        headers = {"Accept": "application/vnd.github.v3+json"}
+        token = getenv("GITHUB_TOKEN")
+        headers = {"Accept": "application/vnd.github+json"}
+        if token:
+            # Authenticated requests get 5000/hr; without this the shared CI
+            # runner IP hits the 60/hr unauthenticated limit and the API returns
+            # an error object instead of a gist list.
+            headers["Authorization"] = f"Bearer {token}"
         session.headers.update(headers)
         resp = session.get(self.url, headers=headers).json()
+
+        if not isinstance(resp, list):
+            message = resp.get("message") if isinstance(resp, dict) else str(resp)[:200]
+            print(f"seeker: gist fetch from {self.url} returned no list ({message}); skipping this run")
+            return
 
         for gist in resp:
             comment = "#"
